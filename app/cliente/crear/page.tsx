@@ -15,13 +15,6 @@ import {
 import { PlusIcon, CircleCheck, CircleX } from "lucide-react";
 import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
 
-interface Horario {
-  idHorario: number;
-  numeroDia: number;
-  inicioJornada: string;
-  finJornada: string;
-  estado: string;
-}
 
 interface Colaborador {
   idColaborador: number;
@@ -45,18 +38,21 @@ export default function CrearCitaPage() {
   const [acceso, setAcceso] = React.useState<boolean>(false);
   React.useEffect(() => {
     if(typeof window !== "undefined"){
-    if(verificarAccesoPorPermiso("Gestionar Agendamiento") == false){
+    if(verificarAccesoPorPermiso("Gestionar Cita") == false){
       window.location.href = "../../../../acceso/noAcceso"
     }
-    setAcceso(verificarAccesoPorPermiso("Gestionar Agendamiento"));
+    setAcceso(verificarAccesoPorPermiso("Gestionar Cita"));
   }
   }, []);
+  const idUsuario = typeof window !== "undefined" ? sessionStorage.getItem("idUsuario") : null;
+  const idCliente = idUsuario !== null ? Number(idUsuario):0;
+
   const [clientes, setClientes] = useState<{ [key: number]: string }>({});
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
   const [paquetes, setPaquetes] = useState<{ [key: number]: string }>({});
   const [horario, setHorarios] = useState<{ [key: number]: number }>({});
   const [formData, setFormData] = useState<Cita>({
-    idCliente: 0,
+    idCliente: idCliente,
     idColaborador: 0,
     idPaquete: 0,
     idHorario: 0,
@@ -145,7 +141,7 @@ export default function CrearCitaPage() {
 
       if (response.ok) {
         onOpenSuccess();
-        window.location.href = "/admin/Agendamiento/citas";
+        window.location.href = "/cliente";
       } else {
         setMensajeError("Error al crear la cita");
         onOpenError();
@@ -164,15 +160,6 @@ export default function CrearCitaPage() {
       <h1 className={title()}>Crear Cita</h1>
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col gap-4">
-          <label>
-            Cliente
-            <select name="idCliente" onChange={handleInputChange}>
-              <option value="">Seleccione un cliente</option>
-              {Object.entries(clientes).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-          </label>
           <label>
             Colaborador
             <select name="idColaborador" onChange={handleInputChange}>

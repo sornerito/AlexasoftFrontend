@@ -28,7 +28,6 @@ import { PlusIcon, Ellipsis, Edit, Info, FileBarChart2 } from "lucide-react";
 import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
 
 const columns = [
-  { name: "ID", uid: "idCita" },
   { name: "Cliente", uid: "idCliente" },
   { name: "Colaborador", uid: "idColaborador" },
   { name: "Fecha", uid: "fecha" },
@@ -60,12 +59,6 @@ interface Cita {
   idColaborador: number;
 }
 
-const estadoColors: { [key: string]: string } = {
-  "En_espera": "yellow",
-  "Aceptado": "green",
-  "Cancelado": "red",
-};
-
 export default function CitasPage() {
    //Valida permiso
    const [acceso, setAcceso] = React.useState<boolean>(false);
@@ -86,25 +79,32 @@ export default function CitasPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [selectedCita, setSelectedCita] = useState<Cita | null>(null);
-  const { isOpen: isOpenEstado, onOpen: onOpenEstado, onClose: onCloseEstado } = useDisclosure();
   const { isOpen: isOpenError, onOpen: onOpenError, onClose: onCloseError } = useDisclosure();
   const [mensajeError, setMensajeError] = useState("");
   const { isOpen: isOpenDetails, onOpen: onOpenDetails, onClose: onCloseDetails } = useDisclosure();
 
   useEffect(() => {
-    getWithAuth("http://localhost:8080/cita")
-      .then((response) => response.json())
-      .then((data) => {
-        const processedData = data.map((item: Cita) => ({
-          ...item,
-          fecha: new Date(item.fecha).toISOString().split('T')[0], // Formatear fecha a YYYY-MM-DD
-        }));
-        setCitas(processedData);
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
+    const idUsuario = typeof window !== "undefined" ? sessionStorage.getItem("idUsuario") : null;
+    console.log(idUsuario)
+  
+    if (idUsuario) {
+      getWithAuth(`http://localhost:8080/cita/cliente/${idUsuario}`)
+        .then((response) => response.json())
+        .then((data) => {
+          const processedData = data.map((item: Cita) => ({
+            ...item,
+            fecha: new Date(item.fecha).toISOString().split('T')[0], // Formatear fecha a YYYY-MM-DD
+          }));
+          setCitas(processedData);
+        })
+        .catch((err) => {
+          console.log(err.message);
+        });
+    } else {
+      console.log("No se encontró el ID del usuario en sessionStorage.");
+    }
   }, []);
+  
 
   useEffect(() => {
     const fetchClientes = async () => {
@@ -238,7 +238,7 @@ export default function CitasPage() {
         </div>
         <div className="basis-1/2"></div>
         <div className="basis-1/4 mb-4 sm:my-4 text-end">
-          <Link href="/admin/Agendamiento/citas/crear">
+          <Link href="/cliente/crear">
             <Button className="bg-gradient-to-tr from-red-600 to-orange-300 ml-2" aria-label="Crear Cita">
               <PlusIcon />Crear Cita
             </Button>
@@ -330,7 +330,6 @@ export default function CitasPage() {
           <ModalBody>
             {selectedCita && (
               <div>
-                <p><strong>ID de Cita:</strong> {selectedCita.idCita}</p>
                 <p><strong>Cliente:</strong> {clientes[selectedCita.idCliente]}</p>
                 <p><strong>Colaborador:</strong> {colaboradores[selectedCita.idColaborador]}</p>
                 <p><strong>Fecha:</strong> {new Date(selectedCita.fecha).toLocaleDateString()}</p>
