@@ -79,7 +79,7 @@ export default function EditarPaquetePage({
     onOpenChange: onOpenChangeError,
   } = useDisclosure(); //Hook de modal error
 
-  // Hacer Fetch para obtener rol del id
+  // Hacer Fetch para obtener paquete del id
   React.useEffect(() => {
     getWithAuth("http://localhost:8080/servicio/paquete/" + params.idPaquete)
       .then((response) => response.json())
@@ -103,7 +103,7 @@ export default function EditarPaquetePage({
       });
   }, [params.idPaquete]);
 
-  // Hacer Fetch para obtener permisos y acomodarlos a conveniencia
+  // Hacer Fetch para obtener los servicios y acomodarlos a conveniencia
   React.useEffect(() => {
     getWithAuth("http://localhost:8080/servicio/servicios")
       .then((response) => response.json())
