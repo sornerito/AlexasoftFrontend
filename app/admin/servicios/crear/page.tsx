@@ -59,6 +59,18 @@ export default function CrearServicioPage() {
     const [cantidad, setCantidad] = useState<number>(0);
     const [unidadMedida, setUnidadMedida] = useState("");
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5; // Número de productos por página
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = productosSeleccionados.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(productosSeleccionados.length / itemsPerPage);
+
+    const handlePageChange = (pageNumber: number) => {
+        setCurrentPage(pageNumber);
+    };
+
     // Unidades de medida disponibles
     const unidadesMedida = [
         { key: "ml", label: "ml" },
@@ -112,12 +124,10 @@ export default function CrearServicioPage() {
 
     // Función de validación y envío del formulario
     const guardarServicio = async () => {
-        console.log("Producto seleccionado antes de agregar:", productoSeleccionado);
-        console.log("Productos seleccionados:", productosSeleccionados);
         const errorNombre = validarCampoString(nombre, "Nombre del servicio");
         const errorDescripcion = validarDescripcionModal(descripcion);
         const errorTiempoMinutos = validarTiempoModal(tiempoMinutos);
-        const errorCantidad = validarCantidadModal(cantidad);
+        const errorCantidad = validarCantidad(cantidad);
 
         if (errorNombre != "") {
             setMensajeError(errorNombre);
@@ -136,6 +146,7 @@ export default function CrearServicioPage() {
         }
 
 
+
         try {
             const nuevoServicio: Servicio = {
                 idServicio: "",
@@ -150,14 +161,7 @@ export default function CrearServicioPage() {
             const productosId = productosSeleccionados.map(producto => producto.idProducto).filter(id => id != null);
             const cantidad = productosSeleccionados.map(producto => producto.cantidad);
             const unidadMedida = productosSeleccionados.map(producto => producto.unidadMedida);
-
-            console.log("Datos a enviar:", {
-                servicio: nuevoServicio,
-                productosId,
-                cantidad,
-                unidadMedida
-            });
-
+            
 
             const response = await postWithAuth("http://localhost:8080/servicio/servicio", {
                 servicio: nuevoServicio,
@@ -166,20 +170,11 @@ export default function CrearServicioPage() {
                 unidadMedida
             });
 
-            console.log("ProductosSeleccionados:", productosSeleccionados);
-            console.log("Productos:", productosId);
-            console.log("cantidad:", cantidad);
-            console.log("unidaMedida:", unidadMedida);
-
 
 
             if (response.ok) {
                 console.log("Servicio creado:", await response.json());
                 router.push("/admin/servicios");
-                console.log("ProductosSeleccionados:", productosSeleccionados);
-                console.log("Productos:", productosId);
-                console.log("cantidad:", cantidad);
-                console.log("unidaMedida:", unidadMedida);
             } else {
                 const errorData = await response.json();
                 setMensajeError(errorData.message || "Error al crear el servicio");
@@ -215,7 +210,14 @@ export default function CrearServicioPage() {
 
         const tiempoNumerico = parseInt(valor, 10);
 
-        return !isNaN(tiempoNumerico) && tiempoNumerico > 0;
+        return !isNaN(tiempoNumerico) && tiempoNumerico > 0 && tiempoNumerico <= 300; // Max 5 hours (300 minutes)
+    };
+
+    const validarCantidad = (cantidad: any) => {
+        if (validarDescripcionModal(cantidad) != "") {
+            return false;
+        }
+        return descripcion.length >= 0;
     };
 
 
@@ -228,6 +230,8 @@ export default function CrearServicioPage() {
 
         };
     }, [nombre, descripcion, tiempoMinutos,]);
+
+
 
 
     // Componente principal
@@ -258,7 +262,7 @@ export default function CrearServicioPage() {
                                 value={tiempoMinutos}
                                 isInvalid={errors.tiempoMinutos}
                                 color={errors.tiempoMinutos ? "danger" : "default"}
-                                errorMessage={errors.tiempoMinutos ? "Error en el tiempo en minutos" : ""}
+                                errorMessage={errors.tiempoMinutos ? "El tiempo en minutos debe ser positivo y no superar 300 minutos (5 horas)" : ""}
                                 onValueChange={(value) => setTiempoMinutos(value)}
                                 className="w-full"
                             />
@@ -329,6 +333,8 @@ export default function CrearServicioPage() {
                         </div>
                     </div>
 
+                    {/* Tabla de productos seleccionados con paginación */}
+
                     <div className="w-full lg:w-1/2 pl-4">
                         <h2 className="text-xl font-semibold mb-2">Productos Seleccionados</h2>
                         <Table aria-label="Tabla de productos seleccionados" className="min-w-full">
@@ -339,13 +345,13 @@ export default function CrearServicioPage() {
                                 <TableColumn>Acciones</TableColumn>
                             </TableHeader>
                             <TableBody>
-                                {productosSeleccionados.map((producto, index) => (
+                                {currentItems.map((producto, index) => (
                                     <TableRow key={index}>
                                         <TableCell>{producto.nombre}</TableCell>
                                         <TableCell>{producto.cantidad}</TableCell>
                                         <TableCell>{producto.unidadMedida}</TableCell>
                                         <TableCell>
-                                            <Button color="danger" variant="light" onPress={() => eliminarProducto(index)}>
+                                            <Button color="danger" variant="light" onPress={() => eliminarProducto(index + indexOfFirstItem)}>
                                                 Eliminar
                                             </Button>
                                         </TableCell>
@@ -353,24 +359,39 @@ export default function CrearServicioPage() {
                                 ))}
                             </TableBody>
                         </Table>
+
+                        <div className="flex justify-center my-4">
+                            <Button disabled={currentPage === 1} onPress={() => handlePageChange(currentPage - 1)}>
+                                Anterior
+                            </Button>
+                            <span className="mx-2">
+                                Página {currentPage} de {totalPages}
+                            </span>
+                            <Button disabled={currentPage === totalPages} onPress={() => handlePageChange(currentPage + 1)}>
+                                Siguiente
+                            </Button>
+                        </div>
                     </div>
                 </div>
             ) : (
                 <CircularProgress color="warning" aria-label="Cargando..." />
             )}
 
-            <div className="my-4 text-end">
+            <div className="mt-6 flex justify-end">
                 <Link href="/admin/servicios">
-                    <Button className="bg-[#894242] mr-2" type="button">
+                    <Button
+                        className="bg-gradient-to-tr from-red-600 to-red-300 mr-2"
+                        type="button"
+                    >
                         Cancelar
                     </Button>
                 </Link>
                 <Button
                     className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-                    type="button"
-                    onPress={onOpen}  // Opens the confirmation modal when clicked
+                    onPress={onOpen}
                 >
-                    Crear Servicio
+                    <PlusIcon />
+                    Crear Usuario
                 </Button>
             </div>
 
