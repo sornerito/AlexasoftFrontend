@@ -25,7 +25,7 @@ import {
   CircularProgress,
 } from "@nextui-org/react";
 import { PlusIcon, Ellipsis, Edit, Info, FileBarChart2 } from "lucide-react";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import { getWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
 
 const columns = [
   { name: "Cliente", uid: "idCliente" },
@@ -36,16 +36,6 @@ const columns = [
   { name: "Acciones", uid: "acciones" },
 ];
 
-const diasSemana: { [key: number]: string } = {
-  1: "Lunes",
-  2: "Martes",
-  3: "Miércoles",
-  4: "Jueves",
-  5: "Viernes",
-  6: "Sábado",
-  7: "Domingo",
-};
-
 interface Cita {
   idCita: string;
   fecha: string;
@@ -55,7 +45,6 @@ interface Cita {
   idMotivo: number | null;
   idCliente: number;
   idPaquete: number;
-  idHorario: number;
   idColaborador: number;
 }
 
@@ -74,7 +63,6 @@ export default function CitasPage() {
   const [clientes, setClientes] = useState<{ [key: number]: string }>({});
   const [paquetes, setPaquetes] = useState<{ [key: number]: string }>({});
   const [colaboradores, setColaboradores] = useState<{ [key: number]: string }>({});
-  const [horarios, setHorarios] = useState<{ [key: number]: string }>({});
   const [motivos, setMotivos] = useState<{ [key: number]: string }>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
@@ -142,17 +130,6 @@ export default function CitasPage() {
       setColaboradores(fetchedColaboradores);
     };
 
-    const fetchHorarios = async () => {
-      const ids = Array.from(new Set(citas.map((cita) => cita.idHorario)));
-      const fetchedHorarios: { [key: number]: string } = {};
-      for (const id of ids) {
-        const response = await getWithAuth(`http://localhost:8080/horario/${id}`);
-        const data = await response.json();
-        fetchedHorarios[id] = `${data.inicioJornada} - ${data.finJornada}`;
-      }
-      setHorarios(fetchedHorarios);
-    };
-
     const fetchMotivos = async () => {
       const response = await getWithAuth(`http://localhost:8080/motivocancelacion`);
       const data = await response.json();
@@ -166,7 +143,6 @@ export default function CitasPage() {
     fetchClientes();
     fetchPaquetes();
     fetchColaboradores();
-    fetchHorarios();
     fetchMotivos();
   }, [citas]);
 
@@ -183,7 +159,6 @@ export default function CitasPage() {
         (cita.idMotivo && cita.idMotivo.toString().includes(searchTerm.toLowerCase())) ||
         clientes[cita.idCliente]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         paquetes[cita.idPaquete]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        diasSemana[cita.idHorario]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         colaboradores[cita.idColaborador]?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [citas, searchTerm, clientes, paquetes, colaboradores]);
@@ -307,8 +282,6 @@ export default function CitasPage() {
                     clientes[item.idCliente] || item.idCliente.toString()
                   ) : column.uid === "idPaquete" ? (
                     paquetes[item.idPaquete] || item.idPaquete.toString()
-                  ) : column.uid === "idHorario" ? (
-                    diasSemana[item.idHorario] || "Día no disponible"
                   ) : column.uid === "idColaborador" ? (
                     colaboradores[item.idColaborador] || "Colaborador no disponible"
                   ) : column.uid === "fecha" ? (
