@@ -1,13 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
-import { Input, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Table, TableColumn, TableHeader, TableBody, TableRow, TableCell, Select, SelectItem, CircularProgress } from "@nextui-org/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+    Input, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Table, TableColumn, TableHeader, TableBody, TableRow, TableCell, Select, SelectItem, CircularProgress
+} from "@nextui-org/react";
 import { CircleHelp, CircleX, Link, PlusIcon } from "lucide-react";
 import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
-import { validarCampoString, validarDescripcionModal, validarTiempoModal, validarCantidadModal } from "@/config/validaciones2";
+import {
+    validarCampoString, validarDescripcionModal, validarTiempoModal, validarCantidadModal
+} from "@/config/validaciones2";
 import React from "react";
 
-// Interfaces de datos (las mismas que en la creación)
+// Interfaces de datos
 interface Servicio {
     idServicio: string;
     nombre: string;
@@ -34,16 +38,14 @@ interface ProductoSeleccionado extends Producto {
 }
 
 export default function EditarServicioPage() {
-    // Valida permiso
-    const [acceso, setAcceso] = React.useState<boolean>(false);
-    const idServicio = useParams()?.idServicio as string;
+    const [acceso, setAcceso] = useState<boolean>(false);
+    const [servicioId, setServicioId] = useState<string>("");
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const { isOpen: isOpenError, onOpen: onOpenError, onClose: onCloseError } = useDisclosure();
     const [mensajeError, setMensajeError] = useState("");
     const [productos, setProductos] = useState<Producto[]>([]);
     const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoSeleccionado[]>([]);
 
-    // Datos del formulario
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [tiempoMinutos, setTiempoMinutos] = useState("");
@@ -51,68 +53,69 @@ export default function EditarServicioPage() {
     const [cantidad, setCantidad] = useState<number>(0);
     const [unidadMedida, setUnidadMedida] = useState("");
 
-    // Unidades de medida disponibles
     const unidadesMedida = [
         { key: "ml", label: "ml" },
         { key: "g", label: "g" },
     ];
 
     const router = useRouter();
+    const searchParams = useSearchParams();
 
-    // Verifica acceso y carga datos del servicio a editar
     useEffect(() => {
         if (typeof window !== "undefined") {
-            if (!verificarAccesoPorPermiso("Gestionar Servicios")) {
+            if (verificarAccesoPorPermiso("Gestionar Servicios") === false) {
                 window.location.href = "../../../acceso/noAcceso";
             }
             setAcceso(verificarAccesoPorPermiso("Gestionar Servicios"));
-
-            const fetchServicio = async () => {
-                try {
-                    const response = await getWithAuth(`http://localhost:8080/servicio/${idServicio}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        setNombre(data.nombre);
-                        setDescripcion(data.descripcion);
-                        setTiempoMinutos(data.tiempoMinutos);
-                        setProductosSeleccionados(data.productosSeleccionados);
-                    } else {
-                        const errorData = await response.json();
-                        setMensajeError(errorData.error || "Hubo un problema al obtener los datos del servicio.");
-                        onOpenError();
-                    }
-                } catch (error) {
-                    setMensajeError("Error en la comunicación con el servidor");
-                    onOpenError();
-                }
-            };
-
-            fetchServicio();
         }
-    }, [idServicio]);
-
-    useEffect(() => {
-        const fetchProductos = async () => {
-            try {
-                const response = await getWithAuth("http://localhost:8080/compras/productos");
-                if (response.ok) {
-                    const data = await response.json();
-                    setProductos(data);
-                } else {
-                    const errorData = await response.json();
-                    setMensajeError(errorData.error || "Hubo un problema al obtener los productos.");
-                    onOpenError();
-                }
-            } catch (error) {
-                setMensajeError("Error en la comunicación con el servidor");
-                onOpenError();
-            }
-        };
-
-        fetchProductos();
     }, []);
 
-    // Función para agregar un producto
+    useEffect(() => {
+        const id = searchParams.get("idServicio");
+        if (id) {
+            setServicioId(id);
+            fetchServicio(id);
+        }
+        fetchProductos();
+    }, [searchParams]);
+
+    const fetchServicio = async (id: string) => {
+        try {
+            const response = await getWithAuth(`http://localhost:8080/servicio/servicio/${id}`);
+            if (response.ok) {
+                const data = await response.json();
+                setNombre(data.nombre);
+                setDescripcion(data.descripcion);
+                setTiempoMinutos(data.tiempoMinutos);
+                setProductosSeleccionados(data.productos);
+            } else {
+                const errorData = await response.json();
+                setMensajeError(errorData.error || "Hubo un problema al obtener el servicio.");
+                onOpenError();
+            }
+        } catch (error) {
+            setMensajeError("Error en la comunicación con el servidor");
+            onOpenError();
+        }
+    };
+
+    const fetchProductos = async () => {
+        try {
+            const response = await getWithAuth("http://localhost:8080/compras/productos");
+            if (response.ok) {
+                const data = await response.json();
+                setProductos(data);
+            } else {
+                const errorData = await response.json();
+                setMensajeError(errorData.error || "Hubo un problema al obtener los productos.");
+                onOpenError();
+            }
+        } catch (error) {
+            setMensajeError("Error en la comunicación con el servidor");
+            onOpenError();
+        }
+    };
+
     const agregarProducto = () => {
         if (productoSeleccionado && cantidad > 0 && unidadMedida) {
             setProductosSeleccionados((prevProductosSeleccionados) => [
@@ -132,18 +135,17 @@ export default function EditarServicioPage() {
         setProductosSeleccionados(productosSeleccionados.filter((_, i) => i !== index));
     };
 
-    // Función de validación y envío del formulario
     const actualizarServicio = async () => {
         const errorNombre = validarCampoString(nombre, "Nombre del servicio");
         const errorDescripcion = validarDescripcionModal(descripcion);
         const errorTiempoMinutos = validarTiempoModal(tiempoMinutos);
 
-        if (errorNombre) {
+        if (errorNombre !== "") {
             setMensajeError(errorNombre);
             onOpenError();
             return;
         }
-        if (errorDescripcion) {
+        if (errorDescripcion !== "") {
             setMensajeError(errorDescripcion);
             onOpenError();
             return;
@@ -156,19 +158,18 @@ export default function EditarServicioPage() {
 
         try {
             const servicioActualizado: Servicio = {
-                idServicio: idServicio || "",
+                idServicio: servicioId,
                 nombre,
                 descripcion,
                 tiempoMinutos,
                 estado: "Activo",
             };
 
-            // Extraer los datos necesarios de productosSeleccionados
-            const productosId = productosSeleccionados.map(producto => producto.idProducto).filter(id => id != null);
-            const cantidad = productosSeleccionados.map(producto => producto.cantidad);
-            const unidadMedida = productosSeleccionados.map(producto => producto.unidadMedida);
+            const productosId = productosSeleccionados.map((producto) => producto.idProducto);
+            const cantidad = productosSeleccionados.map((producto) => producto.cantidad);
+            const unidadMedida = productosSeleccionados.map((producto) => producto.unidadMedida);
 
-            const response = await postWithAuth(`http://localhost:8080/servicio/${idServicio}`, {
+            const response = await postWithAuth(`http://localhost:8080/servicio/servicio/${servicioId}`, {
                 servicio: servicioActualizado,
                 productosId,
                 cantidad,
@@ -188,29 +189,14 @@ export default function EditarServicioPage() {
         }
     };
 
-    // Validación en tiempo real
-    const validarNombre = (nombre: any) => {
-        return nombre.length >= 5 && validarCampoString(nombre, "Nombre") === "";
-    };
-
-    const validarDescripcion = (descripcion: any) => {
-        return descripcion.length >= 10 && validarDescripcionModal(descripcion) === "";
-    };
-
-    const validarTiempo = (valor: string): boolean => {
-        const tiempoNumerico = parseInt(valor, 10);
-        return valor.trim() === "" || (!isNaN(tiempoNumerico) && tiempoNumerico > 0);
-    };
-
     const errors = React.useMemo(() => {
         return {
-            nombre: nombre !== "" && !validarNombre(nombre),
-            descripcion: descripcion !== "" && !validarDescripcion(descripcion),
-            tiempoMinutos: tiempoMinutos !== "" && !validarTiempo(tiempoMinutos),
+            nombre: nombre !== "" && !validarCampoString(nombre, "Nombre"),
+            descripcion: descripcion !== "" && !validarDescripcionModal(descripcion),
+            tiempoMinutos: tiempoMinutos !== "" && !validarTiempoModal(tiempoMinutos),
         };
     }, [nombre, descripcion, tiempoMinutos]);
 
-    // Componente principal
     return (
         <>
             {acceso ? (
@@ -251,119 +237,106 @@ export default function EditarServicioPage() {
                                     value={descripcion}
                                     isInvalid={errors.descripcion}
                                     color={errors.descripcion ? "danger" : "default"}
-                                    errorMessage="La descripción debe tener al menos 10 caracteres y no debe incluir símbolos especiales"
+                                    errorMessage={errors.descripcion}
                                     onValueChange={setDescripcion}
-                                    className="w-full"
+                                    className="w-full h-32"
                                 />
+                            </div>
+                            <div className="col-span-2">
+                                <h2 className="text-xl font-semibold mb-2">Seleccionar Producto</h2>
+                                <div className="flex flex-col gap-4">
+                                    <div className="max-h-64 overflow-y-auto">
+                                        {productos.map((producto) => (
+                                            <div key={producto.idProducto} className="flex justify-between items-center mb-2">
+                                                <span>{producto.nombre}</span>
+                                                <Button size="sm" onPress={() => setProductoSeleccionado(producto)}>
+                                                    Seleccionar
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {productoSeleccionado && (
+                                        <div className="flex flex-col gap-4">
+                                            <div>
+                                                <span className="block font-semibold">Producto Seleccionado:</span>
+                                                <span>{productoSeleccionado.nombre}</span>
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <Input
+                                                    isRequired
+                                                    type="number"
+                                                    label="Cantidad"
+                                                    variant="bordered"
+                                                    value={cantidad.toString()}
+                                                    onValueChange={(value) => setCantidad(parseInt(value))}
+                                                />
+                                                <Select
+                                                    label="Unidad de medida"
+                                                    placeholder="Seleccione una unidad"
+                                                    value={unidadMedida}
+                                                    onChange={(e) => setUnidadMedida(e.target.value)}
+                                                >
+                                                    {unidadesMedida.map((unidad) => (
+                                                        <SelectItem key={unidad.key} value={unidad.key}>
+                                                            {unidad.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </Select>
+                                            </div>
+                                            <Button onPress={agregarProducto}>Agregar Producto</Button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="w-full lg:w-1/2 mt-4 lg:mt-0">
-                        <h2 className="text-xl font-bold mb-4">Productos Asociados</h2>
-                        <div className="flex flex-col lg:flex-row gap-2 mb-4">
-                            <Select
-                                label="Producto"
-                                placeholder="Seleccione un producto"
-                                onChange={(event) => {
-                                    const value = event.target.value;
-                                    const producto = productos.find((p) => p.idProducto.toString() === value);
-                                    setProductoSeleccionado(producto || null);
-                                }}
-                                className="w-full mb-4"
-                            >
-                                {productos.map((producto) => (
-                                    <SelectItem key={producto.idProducto} value={producto.idProducto.toString()}>
-                                        {producto.nombre}
-                                    </SelectItem>
+                    <div className="w-full lg:w-1/2">
+                        <h2 className="text-xl font-semibold mb-2">Productos Seleccionados</h2>
+                        <Table>
+                            <TableHeader>
+                                <TableColumn>Nombre</TableColumn>
+                                <TableColumn>Cantidad</TableColumn>
+                                <TableColumn>Unidad de Medida</TableColumn>
+                                <TableColumn>Acciones</TableColumn>
+                            </TableHeader>
+                            <TableBody>
+                                {productosSeleccionados.map((producto, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{producto.nombre}</TableCell>
+                                        <TableCell>{producto.cantidad}</TableCell>
+                                        <TableCell>{producto.unidadMedida}</TableCell>
+                                        <TableCell>
+                                            <Button color="danger" onPress={() => eliminarProducto(index)}>
+                                                Eliminar
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
                                 ))}
-                            </Select>
-                            <Input
-                                isRequired
-                                type="number"
-                                label="Cantidad"
-                                variant="bordered"
-                                value={cantidad.toString()}
-                                onValueChange={(value) => setCantidad(Number(value))}
-                                className="w-full lg:w-1/4"
-                            />
-                            <Select
-                                isRequired
-                                name="UnidadMedida"
-                                label="Unidad de Medida"
-                                variant="bordered"
-                                value={unidadMedida}
-                                onChange={(e) => setUnidadMedida(e.target.value)}
-                                className="w-full h-12" // Aumenta la altura del campo
-                            >
-                                {unidadesMedida.map((tipo) => (
-                                    <SelectItem key={tipo.key} value={tipo.key}>
-                                        {tipo.label}
-                                    </SelectItem>
-                                ))}
-                            </Select>
-                            <Button color="primary" onPress={agregarProducto} startContent={<PlusIcon />}>
-                                Añadir
-                            </Button>
-                        </div>
-
-                        {productosSeleccionados.length > 0 ? (
-                            <Table
-                                aria-label="Tabla de productos asociados"
-                                selectionMode="multiple"
-                                className="w-full"
-                            >
-                                <TableHeader>
-                                    <TableColumn>Producto</TableColumn>
-                                    <TableColumn>Cantidad</TableColumn>
-                                    <TableColumn>Unidad</TableColumn>
-                                    <TableColumn children={undefined}></TableColumn>
-                                </TableHeader>
-                                <TableBody>
-                                    {productosSeleccionados.map((producto, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{producto.nombre}</TableCell>
-                                            <TableCell>{producto.cantidad}</TableCell>
-                                            <TableCell>{producto.unidadMedida}</TableCell>
-                                            <TableCell>
-                                                <Button color="danger" onPress={() => eliminarProducto(index)} startContent={<CircleX />}>
-                                                    Eliminar
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        ) : (
-                            <p className="text-gray-500">No se han agregado productos al servicio.</p>
-                        )}
+                            </TableBody>
+                        </Table>
+                        <Button onPress={actualizarServicio} className="mt-4">
+                            Actualizar Servicio
+                        </Button>
                     </div>
+
+                    <Modal isOpen={isOpenError} onOpenChange={onCloseError}>
+                        <ModalContent>
+                            <ModalHeader>Error</ModalHeader>
+                            <ModalBody>
+                                {mensajeError && <p>{mensajeError}</p>}
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button color="danger" onPress={onCloseError}>
+                                    Cerrar
+                                </Button>
+                            </ModalFooter>
+                        </ModalContent>
+                    </Modal>
                 </div>
             ) : (
-                <div className="flex justify-center items-center h-full">
-                    <CircularProgress color="primary" label="Cargando..." />
-                </div>
+                <CircularProgress />
             )}
-
-            <div className="mt-4 flex justify-end">
-                <Button color="primary" onPress={actualizarServicio}>
-                    Guardar Cambios
-                </Button>
-            </div>
-
-            <Modal isOpen={isOpenError} onClose={onCloseError}>
-                <ModalContent>
-                    <ModalHeader>Error</ModalHeader>
-                    <ModalBody>
-                        <p>{mensajeError}</p>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button color="danger" onPress={onCloseError}>
-                            Cerrar
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
         </>
     );
 }
