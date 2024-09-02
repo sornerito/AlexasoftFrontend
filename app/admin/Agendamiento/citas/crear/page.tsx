@@ -15,14 +15,6 @@ import {
 import { PlusIcon, CircleCheck, CircleX } from "lucide-react";
 import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
 
-interface Horario {
-  idHorario: number;
-  numeroDia: number;
-  inicioJornada: string;
-  finJornada: string;
-  estado: string;
-}
-
 interface Colaborador {
   idColaborador: number;
   nombre: string;

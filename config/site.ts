@@ -44,7 +44,7 @@ export const siteConfig = {
         { label: "Colaboradores", href: "/admin/Agendamiento/colaboradores", permiso:"Gestionar Colaboradores" },
         { label: "Horarios", href: "/admin/Agendamiento/horario", permiso:"Gestionar Horario" },
         { label: "Motivos", href: "/admin/Agendamiento/motivo", permiso:"Gestionar Agendamiento" },
-        { label: "Horarios", href: "/colaborador/horario", permiso:"Gestionar Colaborador Horario" },
+        { label: "Horarios", href: "/colaborador", permiso:"Gestionar C Horario" },
       ]
     },
     {

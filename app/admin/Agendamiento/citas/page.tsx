@@ -67,21 +67,20 @@ const estadoColors: { [key: string]: string } = {
 };
 
 export default function CitasPage() {
-   //Valida permiso
-   const [acceso, setAcceso] = React.useState<boolean>(false);
-   React.useEffect(() => {
-     if(typeof window !== "undefined"){
-     if(verificarAccesoPorPermiso("Gestionar Agendamiento") == false){
-       window.location.href = "../../../../acceso/noAcceso"
-     }
-     setAcceso(verificarAccesoPorPermiso("Gestionar Agendamiento"));
-   }
-   }, []);
+  //Valida permiso
+  const [acceso, setAcceso] = React.useState<boolean>(false);
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (verificarAccesoPorPermiso("Gestionar Agendamiento") == false) {
+        window.location.href = "../../../../acceso/noAcceso"
+      }
+      setAcceso(verificarAccesoPorPermiso("Gestionar Agendamiento"));
+    }
+  }, []);
   const [citas, setCitas] = useState<Cita[]>([]);
   const [clientes, setClientes] = useState<{ [key: number]: string }>({});
   const [paquetes, setPaquetes] = useState<{ [key: number]: string }>({});
   const [colaboradores, setColaboradores] = useState<{ [key: number]: string }>({});
-  const [horarios, setHorarios] = useState<{ [key: number]: string }>({});
   const [motivos, setMotivos] = useState<{ [key: number]: string }>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
@@ -143,17 +142,6 @@ export default function CitasPage() {
       setColaboradores(fetchedColaboradores);
     };
 
-    const fetchHorarios = async () => {
-      const ids = Array.from(new Set(citas.map((cita) => cita.idHorario)));
-      const fetchedHorarios: { [key: number]: string } = {};
-      for (const id of ids) {
-        const response = await getWithAuth(`http://localhost:8080/horario/${id}`);
-        const data = await response.json();
-        fetchedHorarios[id] = `${data.inicioJornada} - ${data.finJornada}`;
-      }
-      setHorarios(fetchedHorarios);
-    };
-
     const fetchMotivos = async () => {
       const response = await getWithAuth(`http://localhost:8080/motivocancelacion`);
       const data = await response.json();
@@ -167,7 +155,6 @@ export default function CitasPage() {
     fetchClientes();
     fetchPaquetes();
     fetchColaboradores();
-    fetchHorarios();
     fetchMotivos();
   }, [citas]);
 
@@ -200,8 +187,10 @@ export default function CitasPage() {
     if (!selectedCita) return;
 
     try {
-      const response = await postWithAuth(`http://localhost:8080/cita/${selectedCita.idCita}`, {...selectedCita,
-          estado: nuevoEstado});
+      const response = await postWithAuth(`http://localhost:8080/cita/${selectedCita.idCita}`, {
+        ...selectedCita,
+        estado: nuevoEstado
+      });
 
       if (response.ok) {
         const updatedCita = await response.json();
@@ -233,210 +222,210 @@ export default function CitasPage() {
 
   return (
     <>
-{acceso ? (
+      {acceso ? (
 
-    <div>
-      <h1 className={title()}>Citas</h1>
+        <div>
+          <h1 className={title()}>Citas</h1>
 
-      <div className="flex flex-col items-start sm:flex-row sm:items-center">
-        <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
-          <Input
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "shadow-xl",
-                "rounded-lg",
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focus=true]:bg-default-200/50",
-                "dark:group-data-[focus=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
-            placeholder="Buscar..."
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="basis-1/2"></div>
-        <div className="basis-1/4 mb-4 sm:my-4 text-end">
-          <Button isIconOnly className="bg-gradient-to-tr from-red-600 to-red-100" aria-label="Crear Reporte">
-            <FileBarChart2 />
-          </Button>
-          <Link href="/admin/Agendamiento/citas/crear">
-            <Button className="bg-gradient-to-tr from-red-600 to-orange-300 ml-2" aria-label="Crear Cita">
-              <PlusIcon />Crear Cita
-            </Button>
-          </Link>
-        </div>
-      </div>
-      <Table
-        className="mb-8"
-        isStriped
-        bottomContent={
-          <div className="flex w-full justify-center">
-            <Pagination
-              showControls
-              color="warning"
-              page={page}
-              total={Math.ceil(citasFiltradas.length / rowsPerPage)}
-              onChange={(page) => setPage(page)}
-            />
+          <div className="flex flex-col items-start sm:flex-row sm:items-center">
+            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+              <Input
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  input: [
+                    "bg-transparent",
+                    "text-black/90 dark:text-white/90",
+                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                  ],
+                  innerWrapper: "bg-transparent",
+                  inputWrapper: [
+                    "shadow-xl",
+                    "rounded-lg",
+                    "bg-default-200/50",
+                    "dark:bg-default/60",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-default-200/70",
+                    "dark:hover:bg-default/70",
+                    "group-data-[focus=true]:bg-default-200/50",
+                    "dark:group-data-[focus=true]:bg-default/60",
+                    "!cursor-text",
+                  ],
+                }}
+                placeholder="Buscar..."
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="basis-1/2"></div>
+            <div className="basis-1/4 mb-4 sm:my-4 text-end">
+              <Button isIconOnly className="bg-gradient-to-tr from-red-600 to-red-100" aria-label="Crear Reporte">
+                <FileBarChart2 />
+              </Button>
+              <Link href="/admin/Agendamiento/citas/crear">
+                <Button className="bg-gradient-to-tr from-red-600 to-orange-300 ml-2" aria-label="Crear Cita">
+                  <PlusIcon />Crear Cita
+                </Button>
+              </Link>
+            </div>
           </div>
-        }
-      >
-        <TableHeader>
-          {columns.map((column) => (
-            <TableColumn key={column.uid}>{column.name}</TableColumn>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.idCita}>
-              {columns.map((column) => (
-                <TableCell key={column.uid}>
-                  {column.uid === "estado" ? (
-                    <select
-                      value={item.estado}
-                      onChange={(e) => handleEstadoSelect(item, e.target.value)}
-                      style={{
-                        backgroundColor: "transparent",
-                        color: 'white',
-                        border: '2px solid',
-                        borderColor: estadoColors[item.estado],
-                        borderRadius: '9999px',
-                        padding: '0.5rem 1rem',
-                        cursor: 'pointer',
-                        transition: 'transform 0.1s ease-in-out',
-                      }}
-                      className="hover:scale-105 focus:outline-none"
-                    >
-                      <option value="En_espera" style={{ border: '2px solid', borderColor: estadoColors["En_espera"], backgroundColor: "transparent", color: "white" }}>
-                        En espera
-                      </option>
-                      <option value="Aceptado" style={{ backgroundColor: estadoColors["Aceptado"], color: 'white' }}>
-                        Aceptado
-                      </option>
-                      <option value="Cancelado" style={{ backgroundColor: estadoColors["Cancelado"], color: 'white' }}>
-                        Cancelado
-                      </option>
-                    </select>
-                  ) : column.uid === "acciones" ? (
-                    <Dropdown>
-                      <DropdownTrigger>
-                        <Button
-                          aria-label="Acciones"
-                          className="bg-transparent"
-                          isDisabled={item.estado === "Desactivado"}
-                        >
-                          <Ellipsis />
-                        </Button>
-                      </DropdownTrigger>
-                      <DropdownMenu onAction={(action) => console.log(action)}>
-                        <DropdownItem>
-                          <Button
-                            className="bg-transparent w-full"
-                            onClick={() => handleShowDetails(item)}
-                          >
-                            <Info className="mr-2" /> Detalles
-                          </Button>
-                        </DropdownItem>
-                        {
-                        /*<DropdownItem href={`/admin/Agendamiento/citas/reagendar/${item.idCita}`}>
-                          <Button className="bg-transparent w-full">
-                            <Edit className="mr-2" /> Reagendar Cita
-                          </Button>
-                        </DropdownItem>*/
-                        }
-                      </DropdownMenu>
-                    </Dropdown>
-                  ) : column.uid === "idMotivo" ? (
-                    item.idMotivo !== null ? motivos[item.idMotivo] : "N/A"
-                  ) : column.uid === "idCliente" ? (
-                    clientes[item.idCliente] || item.idCliente.toString()
-                  ) : column.uid === "idPaquete" ? (
-                    paquetes[item.idPaquete] || item.idPaquete.toString()
-                  ) : column.uid === "idHorario" ? (
-                    diasSemana[item.idHorario] || "Día no disponible"
-                  ) : column.uid === "idColaborador" ? (
-                    colaboradores[item.idColaborador] || "Colaborador no disponible"
-                  ) : column.uid === "fecha" ? (
-                    new Date(item.fecha).toISOString().split('T')[0]
-                  ) : (
-                    item[column.uid as keyof Cita]?.toString()
-                  )}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-
-      {/* Modal de detalles */}
-      <Modal isOpen={isOpenDetails} onClose={onCloseDetails}>
-        <ModalContent>
-          <ModalHeader>Detalles de la Cita</ModalHeader>
-          <ModalBody>
-            {selectedCita && (
-              <div>
-                <p><strong>ID de Cita:</strong> {selectedCita.idCita}</p>
-                <p><strong>Cliente:</strong> {clientes[selectedCita.idCliente]}</p>
-                <p><strong>Colaborador:</strong> {colaboradores[selectedCita.idColaborador]}</p>
-                <p><strong>Fecha:</strong> {new Date(selectedCita.fecha).toLocaleDateString()}</p>
-                <p><strong>Hora:</strong> {selectedCita.hora}</p>
-                <p><strong>Paquete:</strong> {paquetes[selectedCita.idPaquete]}</p>
-                <p><strong>Detalle:</strong> {selectedCita.detalle || "N/A"}</p>
-                <p><strong>Motivo:</strong> {selectedCita.idMotivo !== null ? motivos[selectedCita.idMotivo] : "N/A"}</p>
-                <p><strong>Estado:</strong> {selectedCita.estado}</p>
+          <Table
+            className="mb-8"
+            isStriped
+            bottomContent={
+              <div className="flex w-full justify-center">
+                <Pagination
+                  showControls
+                  color="warning"
+                  page={page}
+                  total={Math.ceil(citasFiltradas.length / rowsPerPage)}
+                  onChange={(page) => setPage(page)}
+                />
               </div>
-            )}
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={onCloseDetails}>Cerrar</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+            }
+          >
+            <TableHeader>
+              {columns.map((column) => (
+                <TableColumn key={column.uid}>{column.name}</TableColumn>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {items.map((item) => (
+                <TableRow key={item.idCita}>
+                  {columns.map((column) => (
+                    <TableCell key={column.uid}>
+                      {column.uid === "estado" ? (
+                        <select
+                          value={item.estado}
+                          onChange={(e) => handleEstadoSelect(item, e.target.value)}
+                          style={{
+                            backgroundColor: "transparent",
+                            color: 'white',
+                            border: '2px solid',
+                            borderColor: estadoColors[item.estado],
+                            borderRadius: '9999px',
+                            padding: '0.5rem 1rem',
+                            cursor: 'pointer',
+                            transition: 'transform 0.1s ease-in-out',
+                          }}
+                          className="hover:scale-105 focus:outline-none"
+                        >
+                          <option value="En_espera" style={{ border: '2px solid', borderColor: estadoColors["En_espera"], backgroundColor: "transparent", color: "white" }}>
+                            En espera
+                          </option>
+                          <option value="Aceptado" style={{ backgroundColor: estadoColors["Aceptado"], color: 'white' }}>
+                            Aceptado
+                          </option>
+                          <option value="Cancelado" style={{ backgroundColor: estadoColors["Cancelado"], color: 'white' }}>
+                            Cancelado
+                          </option>
+                        </select>
+                      ) : column.uid === "acciones" ? (
+                        <Dropdown>
+                          <DropdownTrigger>
+                            <Button
+                              aria-label="Acciones"
+                              className="bg-transparent"
+                              isDisabled={item.estado === "Desactivado"}
+                            >
+                              <Ellipsis />
+                            </Button>
+                          </DropdownTrigger>
+                          <DropdownMenu onAction={(action) => console.log(action)}>
+                            <DropdownItem>
+                              <Button
+                                className="bg-transparent w-full"
+                                onClick={() => handleShowDetails(item)}
+                              >
+                                <Info className="mr-2" /> Detalles
+                              </Button>
+                            </DropdownItem>
+                            {
+                              /*<DropdownItem href={`/admin/Agendamiento/citas/reagendar/${item.idCita}`}>
+                                <Button className="bg-transparent w-full">
+                                  <Edit className="mr-2" /> Reagendar Cita
+                                </Button>
+                              </DropdownItem>*/
+                            }
+                          </DropdownMenu>
+                        </Dropdown>
+                      ) : column.uid === "idMotivo" ? (
+                        item.idMotivo !== null ? motivos[item.idMotivo] : "N/A"
+                      ) : column.uid === "idCliente" ? (
+                        clientes[item.idCliente] || item.idCliente.toString()
+                      ) : column.uid === "idPaquete" ? (
+                        paquetes[item.idPaquete] || item.idPaquete.toString()
+                      ) : column.uid === "idHorario" ? (
+                        diasSemana[item.idHorario] || "Día no disponible"
+                      ) : column.uid === "idColaborador" ? (
+                        colaboradores[item.idColaborador] || "Colaborador no disponible"
+                      ) : column.uid === "fecha" ? (
+                        new Date(item.fecha).toISOString().split('T')[0]
+                      ) : (
+                        item[column.uid as keyof Cita]?.toString()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
-      {/* Modal de error */}
-      <Modal isOpen={isOpenError} onClose={onCloseError}>
-        <ModalContent>
-          <ModalHeader>Error</ModalHeader>
-          <ModalBody>
-            <p>{mensajeError}</p>
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={onCloseError}>Cerrar</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+          {/* Modal de detalles */}
+          <Modal isOpen={isOpenDetails} onClose={onCloseDetails}>
+            <ModalContent>
+              <ModalHeader>Detalles de la Cita</ModalHeader>
+              <ModalBody>
+                {selectedCita && (
+                  <div>
+                    <p><strong>ID de Cita:</strong> {selectedCita.idCita}</p>
+                    <p><strong>Cliente:</strong> {clientes[selectedCita.idCliente]}</p>
+                    <p><strong>Colaborador:</strong> {colaboradores[selectedCita.idColaborador]}</p>
+                    <p><strong>Fecha:</strong> {new Date(selectedCita.fecha).toLocaleDateString()}</p>
+                    <p><strong>Hora:</strong> {selectedCita.hora}</p>
+                    <p><strong>Paquete:</strong> {paquetes[selectedCita.idPaquete]}</p>
+                    <p><strong>Detalle:</strong> {selectedCita.detalle || "N/A"}</p>
+                    <p><strong>Motivo:</strong> {selectedCita.idMotivo !== null ? motivos[selectedCita.idMotivo] : "N/A"}</p>
+                    <p><strong>Estado:</strong> {selectedCita.estado}</p>
+                  </div>
+                )}
+              </ModalBody>
+              <ModalFooter>
+                <Button onClick={onCloseDetails}>Cerrar</Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
 
-      {/* Modal de cambio de estado */}
-      <Modal isOpen={isOpenEstado} onClose={onCloseEstado}>
-        <ModalContent>
-          <ModalHeader>Cambiar Estado de Cita</ModalHeader>
-          <ModalBody>
-            <p>¿Está seguro de que desea cambiar el estado de esta cita a <strong>{nuevoEstado}</strong>?</p>
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={onCloseEstado}>Cancelar</Button>
-            <Button onClick={handleChangeEstado}>Confirmar</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </div>
-          
-        ) :(
-          <CircularProgress color="warning" aria-label="Cargando..." />
-        )}
+          {/* Modal de error */}
+          <Modal isOpen={isOpenError} onClose={onCloseError}>
+            <ModalContent>
+              <ModalHeader>Error</ModalHeader>
+              <ModalBody>
+                <p>{mensajeError}</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button onClick={onCloseError}>Cerrar</Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          {/* Modal de cambio de estado */}
+          <Modal isOpen={isOpenEstado} onClose={onCloseEstado}>
+            <ModalContent>
+              <ModalHeader>Cambiar Estado de Cita</ModalHeader>
+              <ModalBody>
+                <p>¿Está seguro de que desea cambiar el estado de esta cita a <strong>{nuevoEstado}</strong>?</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button onClick={onCloseEstado}>Cancelar</Button>
+                <Button onClick={handleChangeEstado}>Confirmar</Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+        </div>
+
+      ) : (
+        <CircularProgress color="warning" aria-label="Cargando..." />
+      )}
     </>
   );
 }
