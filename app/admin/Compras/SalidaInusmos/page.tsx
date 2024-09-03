@@ -76,6 +76,7 @@ export default function InsumosPage() {
   const { isOpen: isOpenEdit, onOpen: onOpenEdit, onOpenChange: onOpenChangeEdit } = useDisclosure();
   const [selectedInsumo, setSelectedInsumo] = useState<Insumo | null>(null);
   const [motivoAnular, setMotivoAnular] = useState("");
+  const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
   const [errores, setErrores] = useState<any>({});
   const fecha = new Date();
   
@@ -95,11 +96,18 @@ export default function InsumosPage() {
           cantidad: item.cantidad,
           motivoAnular: item.motivoAnular,
         })));
-      } catch (err) {
-        console.error("Error al obtener insumos:", err);
-        setMensajeError("Error al obtener insumos. Por favor, inténtalo de nuevo.");
+      } catch (err:any) {
+        if (err.message === "Unexpected end of JSON input") {
+          setMensajeError("No hay Categoria Salida insumos registradas aún.");
+          onOpenWarning();
+        }else{
+          console.error("Error al obtener Salida insumos:", err);
+        setMensajeError("Error al obtener Salida insumos. Por favor, inténtalo de nuevo.");
         onOpenError();
+        }
+       
       }
+
     };
 
     fetchInsumos();
@@ -356,6 +364,28 @@ const validarMotivoAnular = () => {
           )}
         </ModalContent>
       </Modal>
+
+        {/* Modal para mostrar advertencias */}
+        <Modal isOpen={isOpenWarning} onOpenChange={onOpenChangeWarning}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleHelp color="gold" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">Ups...</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
       {/* Modal de edición */}
       <Modal isOpen={isOpenEdit} onOpenChange={onOpenChangeEdit}>
