@@ -150,7 +150,7 @@ export default function VentasPageCrear() {
   // Función para enviar el formulario
   const crearCompra = async () => {
     try {
-      const response = await postWithAuth("http://localhost:8080/compras/compras", {
+      const response = await postWithAuth("http://localhost:8080/compras", {
         ...compra,
         subtotal: compra.subTotal,
         precio: compra.precioTotal,
@@ -208,7 +208,7 @@ export default function VentasPageCrear() {
 
       toast.success("Compra creada con éxito!");
       setTimeout(() => {
-        router.push("/admin/Compras/compra");
+        router.push("/admin/compras");
       }, 1000);
     } catch (error) {
       // El error ya ha sido manejado en crearCompra o crearDetallesCompra

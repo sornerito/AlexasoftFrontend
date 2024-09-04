@@ -91,9 +91,9 @@ export default function EditarServicioPage() {
             const response = await getWithAuth(`http://localhost:8080/servicio/servicio/${idServicio}`);
             if (response.ok) {
                 const data = await response.json();
-                setNombre(data.nombre);
-                setDescripcion(data.descripcion);
-                setTiempoMinutos(data.tiempoMinutos);
+                setNombre(data.servicios.nombre);
+                setDescripcion(data.servicios.descripcion);
+                setTiempoMinutos(data.servicios.tiempoMinutos);
                 setEstado(data.estado)
                 console.log(data)
                 // Precargar los productos seleccionados
@@ -156,7 +156,7 @@ export default function EditarServicioPage() {
 
         try {
             const servicioActualizado =  {
-                idServicio: "",
+                
                 nombre,
                 descripcion,
                 tiempoMinutos,
@@ -172,7 +172,7 @@ export default function EditarServicioPage() {
             console.log("Cantidad:", cantidad);
             console.log("Unidad de Medida:", unidadMedida);
 
-            const response = await postWithAuth(`http://localhost:8080/servicio/servicio/${idServicio}`, {
+            const response = await postWithAuth(`http://localhost:8080/servicio/servicioActualizar/${idServicio}`, {
                 servicio: servicioActualizado,
                 productosId,
                 cantidad,

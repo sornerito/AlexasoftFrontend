@@ -146,7 +146,7 @@ export default function ComprasPage() {
   useEffect(() => {
     const fetchCompras = async () => {
       try {
-        const response = await getWithAuth("http://localhost:8080/compras/compras");
+        const response = await getWithAuth("http://localhost:8080/compras");
         const data = await response.json();
         setCompras(data.map((item: any) => {
           const idCompra = item.idCompra || {};
@@ -307,7 +307,7 @@ export default function ComprasPage() {
             </div>
             <div className="basis-1/2"></div>
             <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
-              <Link href="/admin/compras/compra/crear">
+              <Link href="/admin/compras/crear">
                 <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Compra">
                   <PlusIcon /> Crear Compra
                 </Button>
