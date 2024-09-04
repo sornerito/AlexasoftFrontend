@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import {
     Input, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Table, TableColumn, TableHeader, TableBody, TableRow, TableCell, Select, SelectItem, CircularProgress
 } from "@nextui-org/react";
@@ -39,7 +39,6 @@ interface ProductoSeleccionado extends Producto {
 
 export default function EditarServicioPage() {
     const [acceso, setAcceso] = useState<boolean>(false);
-    const [servicioId, setServicioId] = useState<string>("");
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const { isOpen: isOpenError, onOpen: onOpenError, onClose: onCloseError } = useDisclosure();
     const [mensajeError, setMensajeError] = useState("");
@@ -49,6 +48,7 @@ export default function EditarServicioPage() {
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [tiempoMinutos, setTiempoMinutos] = useState("");
+    const [estado, setEstado] = useState("Activo");
     const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
     const [cantidad, setCantidad] = useState<number>(0);
     const [unidadMedida, setUnidadMedida] = useState("");
@@ -59,7 +59,8 @@ export default function EditarServicioPage() {
     ];
 
     const router = useRouter();
-    const searchParams = useSearchParams();
+    const { idServicio } = useParams();
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -71,23 +72,37 @@ export default function EditarServicioPage() {
     }, []);
 
     useEffect(() => {
-        const id = searchParams.get("idServicio");
-        if (id) {
-            setServicioId(id);
-            fetchServicio(id);
-        }
-        fetchProductos();
-    }, [searchParams]);
+        const fetchData = async () => {
+            try {
+                setIsLoading(true);
+                await Promise.all([fetchProductos(), fetchServicio((idServicio as string))]);
+            } catch (error) {
+                console.error("Error al obtener datos:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    const fetchServicio = async (id: string) => {
+        fetchData();
+    }, [idServicio]);
+
+    const fetchServicio = async (idServicio: string) => {
         try {
-            const response = await getWithAuth(`http://localhost:8080/servicio/servicio/${id}`);
+            const response = await getWithAuth(`http://localhost:8080/servicio/servicio/${idServicio}`);
             if (response.ok) {
                 const data = await response.json();
                 setNombre(data.nombre);
                 setDescripcion(data.descripcion);
                 setTiempoMinutos(data.tiempoMinutos);
-                setProductosSeleccionados(data.productos);
+                setEstado(data.estado)
+                console.log(data)
+                // Precargar los productos seleccionados
+                setProductosSeleccionados(data.productos.map((producto: any) => ({
+                    idProducto: producto.idProducto,
+                    nombre: producto.nombre,
+                    cantidad: producto.cantidad,
+                    unidadMedida: producto.unidadMedida,
+                })));
             } else {
                 const errorData = await response.json();
                 setMensajeError(errorData.error || "Hubo un problema al obtener el servicio.");
@@ -97,6 +112,7 @@ export default function EditarServicioPage() {
             setMensajeError("Error en la comunicación con el servidor");
             onOpenError();
         }
+        setIsLoading(false);
     };
 
     const fetchProductos = async () => {
@@ -136,29 +152,11 @@ export default function EditarServicioPage() {
     };
 
     const actualizarServicio = async () => {
-        const errorNombre = validarCampoString(nombre, "Nombre del servicio");
-        const errorDescripcion = validarDescripcionModal(descripcion);
-        const errorTiempoMinutos = validarTiempoModal(tiempoMinutos);
 
-        if (errorNombre !== "") {
-            setMensajeError(errorNombre);
-            onOpenError();
-            return;
-        }
-        if (errorDescripcion !== "") {
-            setMensajeError(errorDescripcion);
-            onOpenError();
-            return;
-        }
-        if (errorTiempoMinutos) {
-            setMensajeError(errorTiempoMinutos);
-            onOpenError();
-            return;
-        }
 
         try {
-            const servicioActualizado: Servicio = {
-                idServicio: servicioId,
+            const servicioActualizado =  {
+                idServicio: "",
                 nombre,
                 descripcion,
                 tiempoMinutos,
@@ -169,7 +167,12 @@ export default function EditarServicioPage() {
             const cantidad = productosSeleccionados.map((producto) => producto.cantidad);
             const unidadMedida = productosSeleccionados.map((producto) => producto.unidadMedida);
 
-            const response = await postWithAuth(`http://localhost:8080/servicio/servicio/${servicioId}`, {
+            console.log("Servicio Actualizado:", servicioActualizado);
+            console.log("Productos Id:", productosId);
+            console.log("Cantidad:", cantidad);
+            console.log("Unidad de Medida:", unidadMedida);
+
+            const response = await postWithAuth(`http://localhost:8080/servicio/servicio/${idServicio}`, {
                 servicio: servicioActualizado,
                 productosId,
                 cantidad,
@@ -191,11 +194,38 @@ export default function EditarServicioPage() {
 
     const errors = React.useMemo(() => {
         return {
-            nombre: nombre !== "" && !validarCampoString(nombre, "Nombre"),
-            descripcion: descripcion !== "" && !validarDescripcionModal(descripcion),
-            tiempoMinutos: tiempoMinutos !== "" && !validarTiempoModal(tiempoMinutos),
+
+
         };
     }, [nombre, descripcion, tiempoMinutos]);
+
+    const handleChangeNombre = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        switch (name) {
+            case "nombre":
+                setNombre(value);
+                break;
+        }
+    };
+
+    const handleChangeDescripcion = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        switch (name) {
+            case "descripcion":
+                setDescripcion(value);
+                break;
+        }
+    };
+
+    const handleChangeTiempoMinutos = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        switch (name) {
+            case "tiempoMinutos":
+                setTiempoMinutos(value);
+                break;
+        }
+    };
+
 
     return (
         <>
@@ -210,10 +240,8 @@ export default function EditarServicioPage() {
                                 label="Nombre"
                                 variant="bordered"
                                 value={nombre}
-                                isInvalid={errors.nombre}
-                                color={errors.nombre ? "danger" : "default"}
-                                errorMessage="El nombre debe tener al menos 5 caracteres, no puede contener números ni caracteres especiales"
-                                onValueChange={setNombre}
+                                onChange={handleChangeNombre}
+                                name="nombre"
                                 className="w-full"
                             />
                             <Input
@@ -222,10 +250,8 @@ export default function EditarServicioPage() {
                                 label="Tiempo en minutos"
                                 variant="bordered"
                                 value={tiempoMinutos}
-                                isInvalid={errors.tiempoMinutos}
-                                color={errors.tiempoMinutos ? "danger" : "default"}
-                                errorMessage={errors.tiempoMinutos ? "Error en el tiempo en minutos" : ""}
-                                onValueChange={(value) => setTiempoMinutos(value)}
+                                onChange={handleChangeTiempoMinutos}
+                                name="tiempoMinutos"
                                 className="w-full"
                             />
                             <div className="col-span-2">
@@ -235,10 +261,8 @@ export default function EditarServicioPage() {
                                     label="Descripción"
                                     variant="bordered"
                                     value={descripcion}
-                                    isInvalid={errors.descripcion}
-                                    color={errors.descripcion ? "danger" : "default"}
-                                    errorMessage={errors.descripcion}
-                                    onValueChange={setDescripcion}
+                                    onChange={handleChangeDescripcion}
+                                    name="descripcion"
                                     className="w-full h-32"
                                 />
                             </div>
