@@ -66,12 +66,12 @@ export default function ProductosPage() {
   //Valida permiso
   const [acceso, setAcceso] = React.useState<boolean>(false);
   React.useEffect(() => {
-    if(typeof window !== "undefined"){
-    if(verificarAccesoPorPermiso("Gestionar Productos") == false){
-      window.location.href = "../../../../acceso/noAcceso"
+    if (typeof window !== "undefined") {
+      if (verificarAccesoPorPermiso("Gestionar Productos") == false) {
+        window.location.href = "../../../../acceso/noAcceso"
+      }
+      setAcceso(verificarAccesoPorPermiso("Gestionar Productos"));
     }
-    setAcceso(verificarAccesoPorPermiso("Gestionar Productos"));
-  }
   }, []);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [compras, setCompras] = useState<Compras[]>([]);
@@ -84,6 +84,7 @@ export default function ProductosPage() {
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
+  const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
 
   const rowsPerPage = 6;
   const tamanoMovil = useMediaQuery({ maxWidth: 768 });
@@ -91,7 +92,7 @@ export default function ProductosPage() {
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const response = await getWithAuth ("http://localhost:8080/compras/productos");
+        const response = await getWithAuth("http://localhost:8080/compras/productos");
         const data = await response.json();
         setProductos(data.map((item: any) => ({
           idProducto: item.idProducto,
@@ -103,11 +104,18 @@ export default function ProductosPage() {
           categoria: item.idCategoriaProducto.nombre,
           imagenes: item.imagenes,
         })));
-      } catch (err) {
-        console.error("Error al obtener productos:", err);
-        setMensajeError("Error al obtener productos. Por favor, inténtalo de nuevo.");
-        onOpenError();
+      } catch (err: any) {
+        if (err.message === "Unexpected end of JSON input") {
+          setMensajeError("No hay Categoria Producto registradas aún.");
+          onOpenWarning();
+        } else {
+          console.error("Error al obtener Producto:", err);
+          setMensajeError("Error al obtener Producto. Por favor, inténtalo de nuevo.");
+          onOpenError();
+        }
+
       }
+
     };
 
     fetchProductos();
@@ -124,7 +132,7 @@ export default function ProductosPage() {
             idProducto: item.idProducto,
             precioporunidad: item.precioporunidad,
           }))
-          .sort((a: { idCompra: number }, b: { idCompra: number }) => b.idCompra - a.idCompra) 
+          .sort((a: { idCompra: number }, b: { idCompra: number }) => b.idCompra - a.idCompra)
         );
       } catch (err) {
         console.error("Error al obtener detalle de compras:", err);
@@ -132,20 +140,20 @@ export default function ProductosPage() {
         onOpenError();
       }
     };
-  
+
     fetchProductosCompra();
   }, []);
-  
+
   const productosConPrecioCompra = React.useMemo(() => {
     return productos.map(producto => {
       const compra = compras.find(c => c.idProducto === producto.idProducto);
       return {
         ...producto,
-        precioporunidad: compra ? compra.precioporunidad : 0 
+        precioporunidad: compra ? compra.precioporunidad : 0
       };
     });
   }, [productos, compras]);
-  
+
   const productosFiltrados = React.useMemo(() =>
     productosConPrecioCompra.filter((producto) =>
       Object.entries(producto).some(([key, value]) =>
@@ -222,242 +230,262 @@ export default function ProductosPage() {
 
   return (
     <>
-{acceso ? (
-      
-    
-    <div>
-      <h1 className={title()}>Productos</h1>
-      <Toaster position="top-left" />
+      {acceso ? (
 
-      <div className="flex flex-col items-start sm:flex-row sm:items-center">
-        <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
-          <Input
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "shadow-xl",
-                "rounded-lg",
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focus=true]:bg-default-200/50",
-                "dark:group-data-[focus=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
-            placeholder="Buscar..."
-            onChange={(e: any) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="basis-1/2"></div>
-        <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
-          <Link href="/admin/compras/producto/crear">
-            <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Producto">
-              <PlusIcon /> Crear Producto
-            </Button>
-          </Link>
-        </div>
-      </div>
-      {tamanoMovil ? (
+
         <div>
-          {items.map((item) => (
-            <Card key={item.idProducto} className="mb-4">
-              <CardBody>
-                {columns.map((column) => (
-                  <div key={column.uid}>
-                    <strong>{column.name}: </strong>
-                    {column.uid === "acciones" ? (
-                      <Dropdown>
-                        <DropdownTrigger className="bg-transparent w-auto my-2">
-                          <Button
-                            isIconOnly
-                            className="border"
-                            aria-label="Actions"
-                            isDisabled={item.estado === "Desactivado"}
+          <h1 className={title()}>Productos</h1>
+          <Toaster position="top-left" />
+
+          <div className="flex flex-col items-start sm:flex-row sm:items-center">
+            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+              <Input
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  input: [
+                    "bg-transparent",
+                    "text-black/90 dark:text-white/90",
+                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                  ],
+                  innerWrapper: "bg-transparent",
+                  inputWrapper: [
+                    "shadow-xl",
+                    "rounded-lg",
+                    "bg-default-200/50",
+                    "dark:bg-default/60",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-default-200/70",
+                    "dark:hover:bg-default/70",
+                    "group-data-[focus=true]:bg-default-200/50",
+                    "dark:group-data-[focus=true]:bg-default/60",
+                    "!cursor-text",
+                  ],
+                }}
+                placeholder="Buscar..."
+                onChange={(e: any) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="basis-1/2"></div>
+            <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
+              <Link href="/admin/compras/producto/crear">
+                <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Producto">
+                  <PlusIcon /> Crear Producto
+                </Button>
+              </Link>
+            </div>
+          </div>
+          {tamanoMovil ? (
+            <div>
+              {items.map((item) => (
+                <Card key={item.idProducto} className="mb-4">
+                  <CardBody>
+                    {columns.map((column) => (
+                      <div key={column.uid}>
+                        <strong>{column.name}: </strong>
+                        {column.uid === "acciones" ? (
+                          <Dropdown>
+                            <DropdownTrigger className="bg-transparent w-auto my-2">
+                              <Button
+                                isIconOnly
+                                className="border"
+                                aria-label="Actions"
+                                isDisabled={item.estado === "Desactivado"}
+                              >
+                                <Ellipsis />
+                              </Button>
+                            </DropdownTrigger>
+                            <DropdownMenu
+                              onAction={(action) => console.log(action)}
+                            >
+                              <DropdownItem
+                                key="editar"
+                                href={'producto/editar/${item.idProducto}'}
+                                isDisabled={item.estado === "Desactivado"}
+                              >
+                                <Button className="bg-transparent w-full" disabled={item.estado === "Desactivado"}>
+                                  <Edit />
+                                  Editar
+                                </Button>
+                              </DropdownItem>
+                            </DropdownMenu>
+                          </Dropdown>
+                        ) : column.uid === "precio" ? (
+                          formatCurrency(item.precio)
+                        ) : column.uid === "estado" ? (
+                          <Chip
+                            color={item.estado === "Activo" ? "success" : "danger"}
+                            variant="bordered"
+                            className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
+                            onClick={() =>
+                              handleOpenModal(item.idProducto)
+                            }
                           >
-                            <Ellipsis />
-                          </Button>
-                        </DropdownTrigger>
-                        <DropdownMenu
-                          onAction={(action) => console.log(action)}
-                        >
-                          <DropdownItem
-                            key="editar"
-                            href={'producto/editar/${item.idProducto}'}
-                            isDisabled={item.estado === "Desactivado"}
+                            {item.estado}
+                          </Chip>
+                        ) : column.uid === "precio" ? (
+                          formatCurrency(item.precio)
+                        ) : column.uid === "precioporunidad" ? (
+                          formatCurrency(item.precioporunidad)
+                        ) : (
+                          <span>{item[column.uid as keyof Producto]}</span>
+                        )}
+                      </div>
+                    ))}
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Table className="mb-8" isStriped>
+              <TableHeader columns={columns}>
+                {(column) => (
+                  <TableColumn className="text-base" key={column.uid}>
+                    {column.name}
+                  </TableColumn>
+                )}
+              </TableHeader>
+              <TableBody items={items}>
+                {(item) => (
+                  <TableRow key={item.idProducto}>
+                    {columns.map((column) => (
+                      <TableCell key={column.uid}>
+                        {column.uid === "acciones" ? (
+                          <Dropdown>
+                            <DropdownTrigger>
+                              <Button aria-label="Acciones" className="bg-transparent" isDisabled={item.estado === "Desactivado"}
+                              >
+                                <Ellipsis />
+                              </Button>
+                            </DropdownTrigger>
+                            <DropdownMenu
+                              onAction={(action) => console.log(action)}
+                            >
+                              <DropdownItem
+                                key="editar"
+                                href={`producto/editar/${item.idProducto}`}
+                                isDisabled={item.estado === "Desactivado"}
+                              >
+                                <Button className="bg-transparent w-full">
+                                  <Edit />
+                                  Editar
+                                </Button>
+                              </DropdownItem>
+                            </DropdownMenu>
+                          </Dropdown>
+                        ) : column.uid === "precio" ? (
+                          formatCurrency(item.precio)
+                        ) : column.uid === "precioporunidad" ? (
+                          formatCurrency(item.precioporunidad)
+                        ) : column.uid === "estado" ? (
+                          <Chip
+                            color={item.estado === "Activo" ? "success" : "danger"}
+                            variant="bordered"
+                            className="hover:scale-110 cursor-pointer transition-transform duration-100 ease-in-out"
+                            onClick={() =>
+                              handleOpenModal(item.idProducto)
+                            }
                           >
-                            <Button className="bg-transparent w-full" disabled={item.estado === "Desactivado"}>
-                              <Edit />
-                              Editar
-                            </Button>
-                          </DropdownItem>
-                        </DropdownMenu>
-                      </Dropdown>
-                    ) : column.uid === "precio" ? (
-                      formatCurrency(item.precio)
-                    ) : column.uid === "estado" ? (
-                      <Chip
-                        color={item.estado === "Activo" ? "success" : "danger"}
-                        variant="bordered"
-                        className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
-                        onClick={() =>
-                          handleOpenModal(item.idProducto)
+                            {item.estado}
+                          </Chip>
+                        ) : (
+                          item[column.uid as keyof Producto]
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
+
+          <div className="flex w-full justify-center mb-4">
+            <Pagination
+              showControls
+              color="warning"
+              page={page}
+              total={Math.ceil(productosFiltrados.length / rowsPerPage)}
+              onChange={(page) => setPage(page)}
+            />
+          </div>
+
+          {/* Modal Cambiar Estado */}
+          <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleHelp color="#fef08a" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">¿Desea cambiar el estado del producto?</h1>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="bg-[#609448]"
+                      onPress={() => {
+                        if (selectedProductoId) {
+                          handleToggleEstado(selectedProductoId);
                         }
-                      >
-                        {item.estado}
-                      </Chip>
-                    ): column.uid === "precio" ? (
-                      formatCurrency(item.precio)
-                    ) : column.uid === "precioporunidad" ? ( 
-                      formatCurrency(item.precioporunidad) 
-                    ) : (
-                      <span>{item[column.uid as keyof Producto]}</span>
-                    )}
-                  </div>
-                ))}
-              </CardBody>
-            </Card>
-          ))}
+                        onClose();
+                      }}
+                    >
+                      Cambiar Estado
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+          {/* Modal para mostrar advertencias */}
+          <Modal isOpen={isOpenWarning} onOpenChange={onOpenChangeWarning}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleHelp color="gold" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">Ups...</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+          {/* Modal de error */}
+          <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleX color="#894242" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">Error</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
         </div>
       ) : (
-        <Table className="mb-8" isStriped>
-          <TableHeader columns={columns}>
-            {(column) => (
-              <TableColumn className="text-base" key={column.uid}>
-                {column.name}
-              </TableColumn>
-            )}
-          </TableHeader>
-          <TableBody items={items}>
-            {(item) => (
-              <TableRow key={item.idProducto}>
-                {columns.map((column) => (
-                  <TableCell key={column.uid}>
-                    {column.uid === "acciones" ? (
-                      <Dropdown>
-                        <DropdownTrigger>
-                          <Button aria-label="Acciones" className="bg-transparent" isDisabled={item.estado === "Desactivado"}
-                          >
-                            <Ellipsis />
-                          </Button>
-                        </DropdownTrigger>
-                        <DropdownMenu
-                          onAction={(action) => console.log(action)}
-                        >
-                          <DropdownItem
-                            key="editar"
-                            href={`producto/editar/${item.idProducto}`}
-                            isDisabled={item.estado === "Desactivado"}
-                          >
-                            <Button className="bg-transparent w-full">
-                              <Edit />
-                              Editar
-                            </Button>
-                          </DropdownItem>
-                        </DropdownMenu>
-                      </Dropdown>
-                    ) : column.uid === "precio" ? (
-                      formatCurrency(item.precio)
-                    ) : column.uid === "precioporunidad" ? ( 
-                      formatCurrency(item.precioporunidad) 
-                    ) : column.uid === "estado" ? (
-                      <Chip
-                        color={item.estado === "Activo" ? "success" : "danger"}
-                        variant="bordered"
-                        className="hover:scale-110 cursor-pointer transition-transform duration-100 ease-in-out"
-                        onClick={() =>
-                          handleOpenModal(item.idProducto)
-                        }
-                      >
-                        {item.estado}
-                      </Chip>
-                    ) : (
-                      item[column.uid as keyof Producto]
-                    )}
-                  </TableCell>
-                ))}
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+        <CircularProgress color="warning" aria-label="Cargando..." />
       )}
-
-      <div className="flex w-full justify-center mb-4">
-        <Pagination
-          showControls
-          color="warning"
-          page={page}
-          total={Math.ceil(productosFiltrados.length / rowsPerPage)}
-          onChange={(page) => setPage(page)}
-        />
-      </div>
-
-      {/* Modal Cambiar Estado */}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleHelp color="#fef08a" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className="text-3xl">¿Desea cambiar el estado del producto?</h1>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button
-                  className="bg-[#609448]"
-                  onPress={() => {
-                    if (selectedProductoId) {
-                      handleToggleEstado(selectedProductoId);
-                    }
-                    onClose();
-                  }}
-                >
-                  Cambiar Estado
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
-      {/* Modal de error */}
-      <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleX color="#894242" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className="text-3xl">Error</h1>
-                <p>{mensajeError}</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-    </div>
-    ) :(
-      <CircularProgress color="warning" aria-label="Cargando..." />
-    )}
-</>
+    </>
   );
 }

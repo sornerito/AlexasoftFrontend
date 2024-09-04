@@ -37,7 +37,7 @@ import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/p
 
 const columns = [
   { name: "ID", uid: "idCompra" },
-  { name: "Proveedor", uid: "idProveedor" },  
+  { name: "Proveedor", uid: "idProveedor" },
   { name: "Subtotal", uid: "subtotal" },
   { name: "Precio", uid: "precio" },
   { name: "Fecha", uid: "fecha" },
@@ -55,17 +55,17 @@ interface Compra {
 }
 
 export default function ComprasPage() {
-   //Valida permiso
-   const [acceso, setAcceso] = React.useState<boolean>(false);
-   React.useEffect(() => {
-     if(typeof window !== "undefined"){
-     if(verificarAccesoPorPermiso("Gestionar Compras") == false){
-       window.location.href = "../../../../acceso/noAcceso"
-     }
-     setAcceso(verificarAccesoPorPermiso("Gestionar Compras"));
-   }
-   }, []);
- 
+  //Valida permiso
+  const [acceso, setAcceso] = React.useState<boolean>(false);
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (verificarAccesoPorPermiso("Gestionar Compras") == false) {
+        window.location.href = "../../../../acceso/noAcceso"
+      }
+      setAcceso(verificarAccesoPorPermiso("Gestionar Compras"));
+    }
+  }, []);
+
   const [compras, setCompras] = useState<Compra[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [compraDetalles, setCompraDetalles] = useState<any | null>([]);
@@ -78,7 +78,7 @@ export default function ComprasPage() {
   const [selectedCompra, setSelectedCompra] = useState<Compra | null>(null);
   const [agrupados, setAgrupados] = useState<any[]>([]);
   const [proveedores, setProveedores] = useState<Map<string, string>>(new Map());
-
+  const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
   const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
 
   const rowsPerPage = 6;
@@ -108,11 +108,16 @@ export default function ComprasPage() {
       };
 
       return mergedData;
-    } catch (error) {
-      console.error(error);
-      setMensajeError("Error al obtener los detalles de la venta. Por favor, inténtalo de nuevo.");
-      onOpenError();
     }
+    catch (err: any) {
+    
+        console.error("Error al obtener Detalle  de compras por producto:", err);
+        setMensajeError("Error al obtener Detalle  de compras por producto. Por favor, inténtalo de nuevo.");
+        onOpenError();
+    
+
+    }
+
   };
 
 
@@ -156,10 +161,16 @@ export default function ComprasPage() {
             motivoAnular: idCompra.motivoAnular || "",
           };
         }));
-      } catch (err) {
-        console.error("Error al obtener compras:", err);
-        setMensajeError("Error al obtener compras. Por favor, inténtalo de nuevo.");
-        onOpenError();
+      } catch (err: any) {
+        if (err.message === "Unexpected end of JSON input") {
+          setMensajeError("No hay Categoria Compras registradas aún.");
+          onOpenWarning();
+        } else {
+          console.error("Error al obtener Compras de producto:", err);
+          setMensajeError("Error al obtener Compras de producto. Por favor, inténtalo de nuevo.");
+          onOpenError();
+        }
+  
       }
     };
 
@@ -226,8 +237,8 @@ export default function ComprasPage() {
       const updatedInsumo = { ...selectedCompra, motivoAnular };
 
       try {
-        const response = await postWithAuth(`http://localhost:8080/compras/compras/${selectedCompra.idCompra}`, 
-        updatedInsumo
+        const response = await postWithAuth(`http://localhost:8080/compras/compras/${selectedCompra.idCompra}`,
+          updatedInsumo
         );
         if (response.ok) {
           setCompras((prevCompras) =>
@@ -260,316 +271,337 @@ export default function ComprasPage() {
   };
   return (
     <>
-{acceso ? (
-    <div>
-      <h1 className={title()}>Compras</h1>
-      <Toaster position="top-left" />
-
-      <div className="flex flex-col items-start sm:flex-row sm:items-center">
-        <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
-          <Input
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "shadow-xl",
-                "rounded-lg",
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focus=true]:bg-default-200/50",
-                "dark:group-data-[focus=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
-            placeholder="Buscar..."
-            onChange={(e: any) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="basis-1/2"></div>
-        <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
-          <Link href="/admin/compras/compra/crear">
-            <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Compra">
-              <PlusIcon /> Crear Compra
-            </Button>
-          </Link>
-        </div>
-      </div>
-      {tamanoMovil ? (
+      {acceso ? (
         <div>
-          {items.map((item) => (
-            <Card key={item.idCompra} className="mb-4">
-              <CardBody>
-                {columns.map((column) => (
-                  <div key={column.uid}>
-                    <strong>{column.name}: </strong>
-                    {column.uid === "acciones" ? (
-                      <Dropdown>
-                        <DropdownTrigger className="bg-transparent w-auto my-2">
-                          <Button
-                            isIconOnly
-                            className="border"
-                            aria-label="Actions"
-                          >
-                            <Ellipsis />
-                          </Button>
-                        </DropdownTrigger>
-                        <DropdownMenu
-                          onAction={(action) => console.log(action)}
-                        >
-                          <DropdownItem
-                            key="editar"
-                            onClick={() => handleEditClick(item)}>
-                            <Button>
-                              <Edit />
-                              Anular
-                            </Button>
-                          </DropdownItem>
-                        </DropdownMenu>
-                      </Dropdown>
-                    ) : column.uid === "precio" ? (
-                      formatCurrency(item.precio)
-                    ) : column.uid === "idProveedor" ? (
-                      <span>
-                        {proveedores.get(item.idProveedor) || item.idProveedor}
-                      </span>
+          <h1 className={title()}>Compras</h1>
+          <Toaster position="top-left" />
 
-                    ) : column.uid === "motivoAnular" ? (
-                      <Chip
-                        color={item.motivoAnular ? "danger" : "success"}
-                        variant="bordered"
-                        className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
-                        onClick={() =>
-                          handleOpenModal(item.idCompra)
-                        }
-                      >
-
-                      </Chip>
-                    ) : (
-                      <span>{item[column.uid as keyof Compra]}</span>
-                    )}
-                  </div>
-                ))}
-              </CardBody>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Table className="mb-8" isStriped>
-          <TableHeader columns={columns}>
-            {(column) => (
-              <TableColumn className="text-base" key={column.uid}>
-                {column.name}
-              </TableColumn>
-            )}
-          </TableHeader>
-          <TableBody items={items}>
-            {(item) => (
-              <TableRow key={item.idCompra}>
-                {columns.map((column) => (
-                  <TableCell key={column.uid}>
-                    {column.uid === "acciones" ? (
-                      <Dropdown>
-                        <DropdownTrigger>
-                          <Button aria-label="Acciones" className="bg-transparent">
-                            <Ellipsis />
-                          </Button>
-                        </DropdownTrigger>
-                        <DropdownMenu>
-                          <DropdownItem key="editar" isDisabled={item.motivoAnular != null} > 
-                            <Button className="bg-transparent w-full" onClick={() => handleEditClick(item)}>
-                              <Edit />
-                              Anular
-                            </Button>
-                          </DropdownItem>
-                          <DropdownItem key={"detalles"}>
-                            <Button
-                              className="bg-transparent w-full"
-                              onPress={async () => {
-                                const detalles = await fetchCompraDetalles(item.idCompra);
-                                setCompraDetalles(detalles);
-                                onOpenDetalles();
-                              }}
+          <div className="flex flex-col items-start sm:flex-row sm:items-center">
+            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+              <Input
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  input: [
+                    "bg-transparent",
+                    "text-black/90 dark:text-white/90",
+                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                  ],
+                  innerWrapper: "bg-transparent",
+                  inputWrapper: [
+                    "shadow-xl",
+                    "rounded-lg",
+                    "bg-default-200/50",
+                    "dark:bg-default/60",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-default-200/70",
+                    "dark:hover:bg-default/70",
+                    "group-data-[focus=true]:bg-default-200/50",
+                    "dark:group-data-[focus=true]:bg-default/60",
+                    "!cursor-text",
+                  ],
+                }}
+                placeholder="Buscar..."
+                onChange={(e: any) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="basis-1/2"></div>
+            <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
+              <Link href="/admin/compras/compra/crear">
+                <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Compra">
+                  <PlusIcon /> Crear Compra
+                </Button>
+              </Link>
+            </div>
+          </div>
+          {tamanoMovil ? (
+            <div>
+              {items.map((item) => (
+                <Card key={item.idCompra} className="mb-4">
+                  <CardBody>
+                    {columns.map((column) => (
+                      <div key={column.uid}>
+                        <strong>{column.name}: </strong>
+                        {column.uid === "acciones" ? (
+                          <Dropdown>
+                            <DropdownTrigger className="bg-transparent w-auto my-2">
+                              <Button
+                                isIconOnly
+                                className="border"
+                                aria-label="Actions"
+                              >
+                                <Ellipsis />
+                              </Button>
+                            </DropdownTrigger>
+                            <DropdownMenu
+                              onAction={(action) => console.log(action)}
                             >
-                              <Eye />
-                              Detalles
-                            </Button>
-                          </DropdownItem>
-                        </DropdownMenu>
-                      </Dropdown>
-                    ) : column.uid === "precio" ? (
-                      formatCurrency(item.precio)
-                    ) : column.uid === "subtotal" ? (
-                      formatCurrency(item.subtotal)
-                    ): column.uid === "idProveedor" ? (
-                      <span>{proveedores.get(item.idProveedor) || item.idProveedor}</span>
-                    ) : (
-                      item[column.uid as keyof Compra]
-                    )}
-                  </TableCell>
-                ))}
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      )}
+                              <DropdownItem
+                                key="editar"
+                                onClick={() => handleEditClick(item)}>
+                                <Button>
+                                  <Edit />
+                                  Anular
+                                </Button>
+                              </DropdownItem>
+                            </DropdownMenu>
+                          </Dropdown>
+                        ) : column.uid === "precio" ? (
+                          formatCurrency(item.precio)
+                        ) : column.uid === "idProveedor" ? (
+                          <span>
+                            {proveedores.get(item.idProveedor) || item.idProveedor}
+                          </span>
 
-      <div className="flex w-full justify-center mb-4">
-        <Pagination
-          showControls
-          color="warning"
-          page={page}
-          total={Math.ceil(comprasFiltradas.length / rowsPerPage)}
-          onChange={(page) => setPage(page)}
-        />
-      </div>
+                        ) : column.uid === "motivoAnular" ? (
+                          <Chip
+                            color={item.motivoAnular ? "danger" : "success"}
+                            variant="bordered"
+                            className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
+                            onClick={() =>
+                              handleOpenModal(item.idCompra)
+                            }
+                          >
 
-
-      {/* Modal de Compra de la venta */}
-      <Modal isOpen={isOpenDetalles} onOpenChange={onOpenChangeDetalles} className="max-w-5xl">
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col items-center border-b border-gray-200 pb-4">
-                <Eye color="#FFD700" size={100} />
-                <h1 className="text-3xl font-semibold mt-2">Detalle de la compra</h1>
-              </ModalHeader>
-              <ModalBody className="p-6 overflow-y-auto max-h-96">
-                {compraDetalles ? (
-                  <div className="flex flex-col lg:flex-row gap-6">
-                    <Table aria-label="Detalles de la Venta" className="flex-1">
-                      <TableHeader>
-                        <TableColumn>Compras AlexaSoft</TableColumn>
-                        <TableColumn>Información</TableColumn>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell>N° Fecha</TableCell>
-                          <TableCell>{compraDetalles.compra.fecha}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>Proveedor</TableCell>
-                          <TableCell>{proveedores.get(compraDetalles.compra.idProveedor.idProveedor) || compraDetalles.idProveedor}</TableCell>
-                        </TableRow>
-                        <TableRow>  
-                          <TableCell>Motivo Anular</TableCell>
-                          <TableCell>{compraDetalles.compra.motivoAnular}</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                    <Table aria-label="Productos" className="flex-1">
-                      <TableHeader>
-                        <TableColumn>Nombre</TableColumn>
-                        <TableColumn>Marca</TableColumn>
-                        <TableColumn>Cantidad</TableColumn>
-                        <TableColumn>Precio Venta</TableColumn>
-                      </TableHeader>
-                      <TableBody>
-                        {agrupados.map((producto: any) => (
-                          <TableRow key={producto.idProducto}>
-                            <TableCell>{producto.nombre}</TableCell>
-                            <TableCell>{producto.idMarca.nombre || "Marca no encontrada"}</TableCell>
-                            <TableCell>{producto.cantidad}</TableCell>
-                            <TableCell>{formatCurrency(producto.precio)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : isLoading ? (
-                  <div className="flex justify-center items-center">
-                    <Spinner color="warning" size="lg" />
-                  </div>
-                ) : (
-                  <p>No hay detalles para mostrar</p>
+                          </Chip>
+                        ) : (
+                          <span>{item[column.uid as keyof Compra]}</span>
+                        )}
+                      </div>
+                    ))}
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Table className="mb-8" isStriped>
+              <TableHeader columns={columns}>
+                {(column) => (
+                  <TableColumn className="text-base" key={column.uid}>
+                    {column.name}
+                  </TableColumn>
                 )}
-              </ModalBody>
-              <ModalFooter className="border-t border-gray-200 pt-4">
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
+              </TableHeader>
+              <TableBody items={items}>
+                {(item) => (
+                  <TableRow key={item.idCompra}>
+                    {columns.map((column) => (
+                      <TableCell key={column.uid}>
+                        {column.uid === "acciones" ? (
+                          <Dropdown>
+                            <DropdownTrigger>
+                              <Button aria-label="Acciones" className="bg-transparent">
+                                <Ellipsis />
+                              </Button>
+                            </DropdownTrigger>
+                            <DropdownMenu>
+                              <DropdownItem key="editar" isDisabled={item.motivoAnular != null} >
+                                <Button className="bg-transparent w-full" onClick={() => handleEditClick(item)}>
+                                  <Edit />
+                                  Anular
+                                </Button>
+                              </DropdownItem>
+                              <DropdownItem key={"detalles"}>
+                                <Button
+                                  className="bg-transparent w-full"
+                                  onPress={async () => {
+                                    const detalles = await fetchCompraDetalles(item.idCompra);
+                                    setCompraDetalles(detalles);
+                                    onOpenDetalles();
+                                  }}
+                                >
+                                  <Eye />
+                                  Detalles
+                                </Button>
+                              </DropdownItem>
+                            </DropdownMenu>
+                          </Dropdown>
+                        ) : column.uid === "precio" ? (
+                          formatCurrency(item.precio)
+                        ) : column.uid === "subtotal" ? (
+                          formatCurrency(item.subtotal)
+                        ) : column.uid === "idProveedor" ? (
+                          <span>{proveedores.get(item.idProveedor) || item.idProveedor}</span>
+                        ) : (
+                          item[column.uid as keyof Compra]
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           )}
-        </ModalContent>
-      </Modal>
+
+          <div className="flex w-full justify-center mb-4">
+            <Pagination
+              showControls
+              color="warning"
+              page={page}
+              total={Math.ceil(comprasFiltradas.length / rowsPerPage)}
+              onChange={(page) => setPage(page)}
+            />
+          </div>
+
+
+          {/* Modal de Compra de la venta */}
+          <Modal isOpen={isOpenDetalles} onOpenChange={onOpenChangeDetalles} className="max-w-5xl">
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center border-b border-gray-200 pb-4">
+                    <Eye color="#FFD700" size={100} />
+                    <h1 className="text-3xl font-semibold mt-2">Detalle de la compra</h1>
+                  </ModalHeader>
+                  <ModalBody className="p-6 overflow-y-auto max-h-96">
+                    {compraDetalles ? (
+                      <div className="flex flex-col lg:flex-row gap-6">
+                        <Table aria-label="Detalles de la Venta" className="flex-1">
+                          <TableHeader>
+                            <TableColumn>Compras AlexaSoft</TableColumn>
+                            <TableColumn>Información</TableColumn>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>N° Fecha</TableCell>
+                              <TableCell>{compraDetalles.compra.fecha}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Proveedor</TableCell>
+                              <TableCell>{proveedores.get(compraDetalles.compra.idProveedor.idProveedor) || compraDetalles.idProveedor}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Motivo Anular</TableCell>
+                              <TableCell>{compraDetalles.compra.motivoAnular}</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                        <Table aria-label="Productos" className="flex-1">
+                          <TableHeader>
+                            <TableColumn>Nombre</TableColumn>
+                            <TableColumn>Marca</TableColumn>
+                            <TableColumn>Cantidad</TableColumn>
+                            <TableColumn>Precio Venta</TableColumn>
+                          </TableHeader>
+                          <TableBody>
+                            {agrupados.map((producto: any) => (
+                              <TableRow key={producto.idProducto}>
+                                <TableCell>{producto.nombre}</TableCell>
+                                <TableCell>{producto.idMarca.nombre || "Marca no encontrada"}</TableCell>
+                                <TableCell>{producto.cantidad}</TableCell>
+                                <TableCell>{formatCurrency(producto.precio)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ) : isLoading ? (
+                      <div className="flex justify-center items-center">
+                        <Spinner color="warning" size="lg" />
+                      </div>
+                    ) : (
+                      <p>No hay detalles para mostrar</p>
+                    )}
+                  </ModalBody>
+                  <ModalFooter className="border-t border-gray-200 pt-4">
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
 
 
-      {/* Modal de edición */}
-      <Modal isOpen={isOpenEdit} onOpenChange={onOpenChangeEdit}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleHelp color="#fef08a" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className="text-3xl">Anular Insumo</h1>
-                <br />
-                <Select
-                  isRequired
-                  name="Motivo Anular"
-                  label="Motivo Anular"
-                  variant="bordered"
-                  value={motivoAnular}
-                  onChange={(e) => setMotivoAnular(e.target.value)}
-                >
-                  {MotivoAnular.map((motivo) => (
-                    <SelectItem key={motivo.key} value={motivo.key} textValue={motivo.label}>
-                      {motivo.label}
-                    </SelectItem>
-                  ))}
-                </Select>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button color="warning" variant="light" onPress={handleSave}>
-                  Guardar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+          {/* Modal de edición */}
+          <Modal isOpen={isOpenEdit} onOpenChange={onOpenChangeEdit}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleHelp color="#fef08a" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">Anular Insumo</h1>
+                    <br />
+                    <Select
+                      isRequired
+                      name="Motivo Anular"
+                      label="Motivo Anular"
+                      variant="bordered"
+                      value={motivoAnular}
+                      onChange={(e) => setMotivoAnular(e.target.value)}
+                    >
+                      {MotivoAnular.map((motivo) => (
+                        <SelectItem key={motivo.key} value={motivo.key} textValue={motivo.label}>
+                          {motivo.label}
+                        </SelectItem>
+                      ))}
+                    </Select>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cancelar
+                    </Button>
+                    <Button color="warning" variant="light" onPress={handleSave}>
+                      Guardar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
+          {/* Modal para mostrar advertencias */}
+          <Modal isOpen={isOpenWarning} onOpenChange={onOpenChangeWarning}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleHelp color="gold" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">Ups...</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
-      {/* Modal de error */}
-      <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleX color="#894242" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className="text-3xl">Error</h1>
-                <p>{mensajeError}</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-    </div>
-          
-        ) :(
-          <CircularProgress color="warning" aria-label="Cargando..." />
-        )}
+          {/* Modal de error */}
+          <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleX color="#894242" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">Error</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+        </div>
+
+      ) : (
+        <CircularProgress color="warning" aria-label="Cargando..." />
+      )}
     </>
   );
 }
