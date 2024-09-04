@@ -155,8 +155,8 @@ export default function EditarServicioPage() {
 
 
         try {
-            const servicioActualizado =  {
-                
+            const servicioActualizado = {
+                idServicio: idServicio,
                 nombre,
                 descripcion,
                 tiempoMinutos,
@@ -172,7 +172,7 @@ export default function EditarServicioPage() {
             console.log("Cantidad:", cantidad);
             console.log("Unidad de Medida:", unidadMedida);
 
-            const response = await postWithAuth(`http://localhost:8080/servicio/servicioActualizar/${idServicio}`, {
+            const response = await postWithAuth(`http://localhost:8080/servicio/servicio/${idServicio}`, {
                 servicio: servicioActualizado,
                 productosId,
                 cantidad,
@@ -342,6 +342,14 @@ export default function EditarServicioPage() {
                         <Button onPress={actualizarServicio} className="mt-4">
                             Actualizar Servicio
                         </Button>
+                        <Link href="/admin/servicios">
+                            <Button
+                                className="bg-gradient-to-tr from-red-600 to-red-300 mr-2"
+                                type="button"
+                            >
+                                Cancelar
+                            </Button>
+                        </Link>
                     </div>
 
                     <Modal isOpen={isOpenError} onOpenChange={onCloseError}>

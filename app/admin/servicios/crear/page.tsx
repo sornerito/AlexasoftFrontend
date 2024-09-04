@@ -146,7 +146,6 @@ export default function CrearServicioPage() {
         }
 
 
-
         try {
             const nuevoServicio: Servicio = {
                 idServicio: "",
