@@ -26,15 +26,15 @@ export default function EditarProveedorPage({
     params: { idProveedor: string };
 }) {
     //Valida permiso
-  const [acceso, setAcceso] = React.useState<boolean>(false);
-  React.useEffect(() => {
-    if(typeof window !== "undefined"){
-    if(verificarAccesoPorPermiso("Gestionar Proveedores") == false){
-      window.location.href = "../../../../acceso/noAcceso"
-    }
-    setAcceso(verificarAccesoPorPermiso("Gestionar Proveedores"));
-  }
-  }, []);
+    const [acceso, setAcceso] = React.useState<boolean>(false);
+    React.useEffect(() => {
+        if (typeof window !== "undefined") {
+            if (verificarAccesoPorPermiso("Gestionar Proveedores") == false) {
+                window.location.href = "../../../../acceso/noAcceso"
+            }
+            setAcceso(verificarAccesoPorPermiso("Gestionar Proveedores"));
+        }
+    }, []);
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [contacto, setContacto] = useState("");
@@ -79,7 +79,7 @@ export default function EditarProveedorPage({
     };
 
     const validarNumeroIdentificacion = (numeroIdentificacion: string) => {
-        const regex = /^[0-9]{9,10}$/; 
+        const regex = /^[0-9]{9,10}$/;
         return regex.test(numeroIdentificacion) ? "" : "El número de identificación debe tener entre 9 y 10 dígitos.";
     };
 
@@ -164,7 +164,7 @@ export default function EditarProveedorPage({
             idProveedor: params.idProveedor,
             nombre,
             descripcion,
-            contacto,
+            contacto: tipoEmpresa === 'Natural' ? null : contacto,
             telefono,
             estado,
             correo,
@@ -198,170 +198,177 @@ export default function EditarProveedorPage({
         { key: "Juridica", label: "Juridica" },
     ];
 
+    const inhabilitarInput = tipoEmpresa == "Juridica" ? (
+        <Input
+            isRequired
+            type="text"
+            label="Contacto"
+            variant="bordered"
+            value={contacto || ''}
+            onChange={handleChange}
+            name="contacto"
+            isInvalid={!!errores.contacto}
+            color={errores.contacto ? "danger" : "default"}
+            errorMessage={errores.contacto}
+
+        />
+    ) : (
+        ""
+    )
+
     return (
         <>
-{acceso ? (
-        <div className="lg:mx-60">
-            <h1 className={title()}>Editar Proveedor</h1>
-            <br />
-            <br />
-            <form onSubmit={handleFormSubmit}>
-                <div className="grid gap-3 sm:grid-cols-1">
-                <Select
-                        isRequired
-                        name="tipoEmpresa"
-                        label="Tipo empresa"
-                        variant="bordered"
-                        value={tipoEmpresa}
-                        onChange={(e) => setTipoEmpresa(e.target.value)}
-                        selectedKeys={[tipoEmpresa]}
-                    >
-                        {TipoEmpresa.map((tipo) => (
-                            <SelectItem key={tipo.key} value={tipo.key}>
-                                {tipo.label}
-                            </SelectItem>
-                        ))}
-                    </Select>
-                    <Input
-                        isRequired
-                        type="number"
-                        label="Número de Identificación"
-                        variant="bordered"
-                        value={numeroIdentificacion}
-                        onChange={handleChange}
-                        name="numeroIdentificacion"
-                        isInvalid={!!errores.numeroIdentificacion}
-                        color={errores.numeroIdentificacion ? "danger" : "default"}
-                        errorMessage={errores.numeroIdentificacion}
-                    />
-                    <Input
-                        isRequired
-                        type="text"
-                        label="Nombre Empresa o Persona"
-                        variant="bordered"
-                        value={nombre}
-                        onChange={handleChange}
-                        name="nombre"
-                        isInvalid={!!errores.nombre}
-                        color={errores.nombre ? "danger" : "default"}
-                        errorMessage={errores.nombre}
-                    />
-                    <Input
-                        isRequired
-                        type="text"
-                        label="Descripción"
-                        variant="bordered"
-                        value={descripcion}
-                        onChange={handleChange}
-                        name="descripcion"
-                        isInvalid={!!errores.descripcion}
-                        color={errores.descripcion ? "danger" : "default"}
-                        errorMessage={errores.descripcion}
-                    />
-                    <Input
-                        isRequired
-                        type="text"
-                        label="Contacto"
-                        variant="bordered"
-                        value={contacto}
-                        onChange={handleChange}
-                        name="contacto"
-                        isInvalid={!!errores.contacto}
-                        color={errores.contacto ? "danger" : "default"}
-                        errorMessage={errores.contacto}
-                    />
-                    <Input
-                        isRequired
-                        type="text"
-                        label="Teléfono"
-                        variant="bordered"
-                        value={telefono}
-                        onChange={handleChange}
-                        name="telefono"
-                        isInvalid={!!errores.telefono}
-                        color={errores.telefono ? "danger" : "default"}
-                        errorMessage={errores.telefono}
-                    />
-                    <Input
-                        isRequired
-                        type="email"
-                        label="Correo"
-                        variant="bordered"
-                        value={correo}
-                        onChange={handleChange}
-                        name="correo"
-                        isInvalid={!!errores.correo}
-                        color={errores.correo ? "danger" : "default"}
-                        errorMessage={errores.correo}
-                    />
-                    
-                    <div className="flex justify-end mt-4">
-                        <Link href="/admin/compras/proveedores">
-                            <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
-                                Cancelar
-                            </Button>
-                        </Link>
-                        <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" type="submit">
-                            Enviar
-                        </Button>
-                    </div>
+            {acceso ? (
+                <div className="lg:mx-60">
+                    <h1 className={title()}>Editar Proveedor</h1>
+                    <br />
+                    <br />
+                    <form onSubmit={handleFormSubmit}>
+                        <div className="grid gap-3 sm:grid-cols-1">
+                            <Select
+                                isRequired
+                                name="tipoEmpresa"
+                                label="Tipo empresa"
+                                variant="bordered"
+                                value={tipoEmpresa}
+                                onChange={(e) => setTipoEmpresa(e.target.value)}
+                                selectedKeys={[tipoEmpresa]}
+                            >
+                                {TipoEmpresa.map((tipo) => (
+                                    <SelectItem key={tipo.key} value={tipo.key}>
+                                        {tipo.label}
+                                    </SelectItem>
+                                ))}
+                            </Select>
+                            <Input
+                                isRequired
+                                type="number"
+                                label="Número de Identificación"
+                                variant="bordered"
+                                value={numeroIdentificacion}
+                                onChange={handleChange}
+                                name="numeroIdentificacion"
+                                isInvalid={!!errores.numeroIdentificacion}
+                                color={errores.numeroIdentificacion ? "danger" : "default"}
+                                errorMessage={errores.numeroIdentificacion}
+                            />
+                            <Input
+                                isRequired
+                                type="text"
+                                label="Nombre Empresa o Persona"
+                                variant="bordered"
+                                value={nombre}
+                                onChange={handleChange}
+                                name="nombre"
+                                isInvalid={!!errores.nombre}
+                                color={errores.nombre ? "danger" : "default"}
+                                errorMessage={errores.nombre}
+                            />
+                            {inhabilitarInput}
+                            <Input
+                                isRequired
+                                type="text"
+                                label="Descripción"
+                                variant="bordered"
+                                value={descripcion}
+                                onChange={handleChange}
+                                name="descripcion"
+                                isInvalid={!!errores.descripcion}
+                                color={errores.descripcion ? "danger" : "default"}
+                                errorMessage={errores.descripcion}
+                            />
+                            <Input
+                                isRequired
+                                type="text"
+                                label="Teléfono"
+                                variant="bordered"
+                                value={telefono}
+                                onChange={handleChange}
+                                name="telefono"
+                                isInvalid={!!errores.telefono}
+                                color={errores.telefono ? "danger" : "default"}
+                                errorMessage={errores.telefono}
+                            />
+                            <Input
+                                isRequired
+                                type="email"
+                                label="Correo"
+                                variant="bordered"
+                                value={correo}
+                                onChange={handleChange}
+                                name="correo"
+                                isInvalid={!!errores.correo}
+                                color={errores.correo ? "danger" : "default"}
+                                errorMessage={errores.correo}
+                            />
+
+                            <div className="flex justify-end mt-4">
+                                <Link href="/admin/compras/proveedores">
+                                    <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
+                                        Cancelar
+                                    </Button>
+                                </Link>
+                                <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" type="submit">
+                                    Enviar
+                                </Button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+                        <ModalContent>
+                            {(onClose) => (
+                                <>
+                                    <ModalHeader className="flex flex-col gap-1 items-center">
+                                        <CircleHelp color="#fef08a" size={100} />
+                                    </ModalHeader>
+                                    <ModalBody className="text-center">
+                                        <h1 className="text-3xl">¿Desea editar el proveedor?</h1>
+                                        <p>El proveedor se actualizará con la información proporcionada.</p>
+                                    </ModalBody>
+                                    <ModalFooter>
+                                        <Button color="danger" variant="light" onPress={onClose}>
+                                            Cancelar
+                                        </Button>
+                                        <Button
+                                            color="warning" variant="light"
+                                            onPress={() => {
+                                                handleConfirmSubmit();
+                                                onClose();
+                                            }}
+                                        >
+                                            Editar
+                                        </Button>
+                                    </ModalFooter>
+                                </>
+                            )}
+                        </ModalContent>
+                    </Modal>
+
+                    <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
+                        <ModalContent>
+                            {(onClose) => (
+                                <>
+                                    <ModalHeader className="flex flex-col gap-1 items-center">
+                                        <CircleX color="#894242" size={100} />
+                                    </ModalHeader>
+                                    <ModalBody className="text-center">
+                                        <h1 className="text-3xl">Error</h1>
+                                        <p>{mensajeError}</p>
+                                    </ModalBody>
+                                    <ModalFooter>
+                                        <Button color="danger" variant="light" onPress={onClose}>
+                                            Cerrar
+                                        </Button>
+                                    </ModalFooter>
+                                </>
+                            )}
+                        </ModalContent>
+                    </Modal>
                 </div>
-            </form>
-
-            <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-                <ModalContent>
-                    {(onClose) => (
-                        <>
-                            <ModalHeader className="flex flex-col gap-1 items-center">
-                                <CircleHelp color="#fef08a" size={100} />
-                            </ModalHeader>
-                            <ModalBody className="text-center">
-                                <h1 className="text-3xl">¿Desea editar el proveedor?</h1>
-                                <p>El proveedor se actualizará con la información proporcionada.</p>
-                            </ModalBody>
-                            <ModalFooter>
-                                <Button color="danger" variant="light" onPress={onClose}>
-                                    Cancelar
-                                </Button>
-                                <Button
-                                    color="warning" variant="light"
-                                    onPress={() => {
-                                        handleConfirmSubmit();
-                                        onClose();
-                                    }}
-                                >
-                                    Editar
-                                </Button>
-                            </ModalFooter>
-                        </>
-                    )}
-                </ModalContent>
-            </Modal>
-
-            <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
-                <ModalContent>
-                    {(onClose) => (
-                        <>
-                            <ModalHeader className="flex flex-col gap-1 items-center">
-                                <CircleX color="#894242" size={100} />
-                            </ModalHeader>
-                            <ModalBody className="text-center">
-                                <h1 className="text-3xl">Error</h1>
-                                <p>{mensajeError}</p>
-                            </ModalBody>
-                            <ModalFooter>
-                                <Button color="danger" variant="light" onPress={onClose}>
-                                    Cerrar
-                                </Button>
-                            </ModalFooter>
-                        </>
-                    )}
-                </ModalContent>
-            </Modal>
-        </div>
-         ) :(
-            <CircularProgress color="warning" aria-label="Cargando..." />
-          )}
-      </>
+            ) : (
+                <CircularProgress color="warning" aria-label="Cargando..." />
+            )}
+        </>
     );
 }
