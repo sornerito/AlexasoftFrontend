@@ -185,8 +185,8 @@ export default function InsumosPage() {
 
   };
   const MotivoAnular = [
-    { key: "Eleccion_de_producto_erronea", label: "Eleccion_de_producto_erronea" },
-    { key: "Cantidad_equivocada", label: "Cantidad_equivocada" },
+    { key: "Eleccion_de_producto_erronea", label: "Eleccion de producto erronea" },
+    { key: "Cantidad_equivocada", label: "Cantidad equivocada" },
 ];
 
 
