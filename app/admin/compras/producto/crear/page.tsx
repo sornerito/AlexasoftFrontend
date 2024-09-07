@@ -236,7 +236,7 @@ export default function CrearProductoPage() {
                 throw new Error("Error al intentar guardar el producto");
             }
 
-            router.push("/admin/Compras/producto");
+            router.push("/admin/compras/producto");
         } catch (error) {
             console.error("Error al enviar los datos:", error);
         }
@@ -344,7 +344,7 @@ export default function CrearProductoPage() {
                     </Select>
                 </div>
                 <div className="my-4 text-end">
-                    <Link href="/admin/Compras/producto">
+                    <Link href="/admin/compras/producto">
                         <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
                             Cancelar
                         </Button>
