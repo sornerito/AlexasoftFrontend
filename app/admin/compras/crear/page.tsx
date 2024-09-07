@@ -204,7 +204,7 @@ export default function VentasPageCrear() {
   const handleSubmit = async () => {
     try {
       const nuevaCompra = await crearCompra();
-      await crearDetallesCompra(nuevaCompra.idCompra); // Usa el idCompra de la nueva compra
+      await crearDetallesCompra(nuevaCompra.idCompra); 
 
       toast.success("Compra creada con éxito!");
       setTimeout(() => {
@@ -358,6 +358,41 @@ export default function VentasPageCrear() {
   // Función para manejar la presentación del formulario
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+  let isValid = true;
+  const newValidationErrors = { ...validationErrors }; 
+  productosSeleccionados.forEach((producto) => {
+    const precioError = validatePrecioPorUnidad(producto.precioporunidad);
+    const cantidadError = validateCantidad(producto.cantidad);
+
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors, 
+      [`precioporunidad-${producto.id}`]: precioError,
+      [`cantidad-${producto.id}`]: cantidadError,
+    }));
+    
+    if (precioError || cantidadError) {
+      isValid = false;
+    }
+  });
+
+  setValidationErrors(newValidationErrors); 
+
+  if (
+    isValid &&
+    productosSeleccionados.length > 0 &&
+    compra.subTotal > 0 &&
+    compra.precioTotal > 0
+  ) {
+    onOpen(); 
+  }else {
+    
+    if (!isValid) {
+     
+      toast.error('Por favor, completa los campos de precio y cantidad para todos los productos.'); 
+    }
+  }
+
+  
     if (productosSeleccionados.length === 0) {
       setValidationErrors((prevErrors) => ({
         ...prevErrors,
@@ -395,19 +430,7 @@ export default function VentasPageCrear() {
         precioTotal: "",
       }));
     }
-    if (compra.precioPorUnidad <= 0) {
-      setValidationErrors((prevErrors) => ({
-        ...prevErrors,
-        precioTotal: "El total no esta completo, falta llenar campos en los productos (Precio Por unidad)",
-      }));
-      return;
-    } else {
-      setValidationErrors((prevErrors) => ({
-        ...prevErrors,
-        precioTotal: "",
-      }));
-    }
-    onOpen();
+   
   };
 
   // Función para manejar la confirmación del envío del formulario
@@ -422,7 +445,7 @@ export default function VentasPageCrear() {
     precioTotal: "",
     subtotal: "",
     productos: "",
-    precioporunidad: ""
+    precioporunidad: 0,
   });
 
   // Función para validar un campo individual
@@ -593,10 +616,11 @@ export default function VentasPageCrear() {
                   />
                   {/* Mostrar sugerencias de productos */}
                   {productosFiltrados.length > 0 && busquedaProducto !== "" && (
-                    <ul
-                      className="absolute top-full left-0 w-full bg-white dark:bg-gray-800 rounded-md shadow-md z-10 max-h-40 overflow-y-auto"
-                      style={{ backgroundColor: "#303030" }}
-                    >
+                   <ul
+                   className="absolute top-full left-0 w-full bg-white dark:bg-gray-800 rounded-md shadow-md z-10 max-h-40 overflow-y-auto"
+                   style={{ backgroundColor: "#303030", zIndex: 1000, }}
+                  
+                 >
                       {productosFiltrados.map((producto) => (
                         <li
                           key={producto.idProducto}
