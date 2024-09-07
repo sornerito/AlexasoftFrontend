@@ -104,7 +104,7 @@ export default function EditarCategoriaProductoPage({
             if (response.ok) {
                 toast.success("Categoria editado con éxito!");
                 setTimeout(() => {
-                    router.push("/admin/compras/categoriaProducto");
+                    router.push("/admin/compras/categoria_producto");
                 }, 1000);}
             else {
                 console.error("Error al editar la categoría producto:", response.statusText);
@@ -142,7 +142,7 @@ export default function EditarCategoriaProductoPage({
                         errorMessage={errores.nombre}
                     />
                     <div className="flex justify-end mt-4">
-                    <Link href="/admin/compras/categoriaProducto">
+                    <Link href="/admin/compras/categoria_producto">
                         <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
                             Cancelar
                         </Button>

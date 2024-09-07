@@ -76,7 +76,7 @@ export default function CrearCategoriaProductoPage() {
                 throw new Error("Error al intentar guardar la categoría de producto");
             }
 
-            router.push("/admin/compras/categoriaProducto");
+            router.push("/admin/compras/categoria_producto");
         } catch (error) {
             console.error("Error al enviar los datos:", error);
         }
@@ -107,7 +107,7 @@ export default function CrearCategoriaProductoPage() {
                     />
                 </div>
                 <div className="my-4 text-end">
-                    <Link href="/admin/compras/categoriaProducto">
+                    <Link href="/admin/compras/categoria_producto">
                         <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
                             Cancelar
                         </Button>
