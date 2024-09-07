@@ -237,7 +237,7 @@ export default function ComprasPage() {
       const updatedInsumo = { ...selectedCompra, motivoAnular };
 
       try {
-        const response = await postWithAuth(`http://localhost:8080/compras/compras/${selectedCompra.idCompra}`,
+        const response = await postWithAuth(`http://localhost:8080/compras/${selectedCompra.idCompra}`,
           updatedInsumo
         );
         if (response.ok) {
