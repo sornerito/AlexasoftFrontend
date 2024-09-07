@@ -193,6 +193,7 @@ export default function ProveedoresPage() {
         console.error(error);
         setMensajeError(error.message);
         onOpenError();
+        onCloseEliminar();
       });
   };
 
@@ -206,8 +207,8 @@ export default function ProveedoresPage() {
 
         <div>
           <h1 className={title()}>Proveedores</h1>
-          <Toaster position="top-left" />
-
+          {/* Toaster para notificaciones */}
+          <Toaster position="bottom-right" />
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
             <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input

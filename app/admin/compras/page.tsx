@@ -395,7 +395,7 @@ export default function ComprasPage() {
                               </Button>
                             </DropdownTrigger>
                             <DropdownMenu>
-                              <DropdownItem key="editar" isDisabled={item.motivoAnular != null} >
+                              <DropdownItem key="editar" isDisabled={item.motivoAnular != ""} >
                                 <Button className="bg-transparent w-full" onClick={() => handleEditClick(item)}>
                                   <Edit />
                                   Anular
