@@ -278,7 +278,7 @@ export default function ProductosEditarPage() {
   return (
     <>
 {acceso ? (
-    <div className="container">
+    <div className="lg:mx-60">
       <h1 className={title()}>Editar Producto</h1>
       <br /><br />
 
