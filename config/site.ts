@@ -73,7 +73,7 @@ export const siteConfig = {
         { label: "Salida Insumos", href: "/admin/compras/salida_insumos", permiso: "Gestionar Insumos" },
         { label: "Categoría Producto", href: "/admin/compras/categoria_producto", permiso: "Gestionar Categoria de Productos" },
         { label: "Producto", href: "/admin/compras/producto", permiso: "Gestionar Producto" },
-        { label: "Compra", href: "/admin/compras/compra", permiso: "Gestionar Compras" }
+        { label: "Compra", href: "/admin/compras", permiso: "Gestionar Compras" }
       ]
     },
     {

@@ -265,14 +265,9 @@ const validarMotivoAnular = () => {
                             <Ellipsis />
                           </Button>
                         </DropdownTrigger>
-                        <DropdownMenu
-                          onAction={(action) => console.log(action)}
-                        >
-                          <DropdownItem
-                            key="editar"
-                            onClick={() => handleEditClick(item)}
-                          >
-                            <Button className="bg-transparent w-full">
+                        <DropdownMenu>
+                          <DropdownItem key="editar" isDisabled={item.motivoAnular != null}>
+                            <Button className="bg-transparent w-full" onClick={() => handleEditClick(item)}>
                               <Edit />
                               Anular
                             </Button>

@@ -253,15 +253,31 @@ export default function CategoriasProductoPage() {
                             <DropdownMenu
                               onAction={(action) => console.log(action)}
                             >
-                              <DropdownItem href={`categoriaProducto/editar/${item.idCategoriaProducto}`}>
-
+                              <DropdownItem href={`categoria_producto/editar/${item.idCategoriaProducto}`}>
                                 <Button className="bg-transparent w-full">
                                   <Edit />
                                   Editar
                                 </Button>
                               </DropdownItem>
+                              <DropdownItem>
+                                <Button className="bg-transparent w-full" onClick={() => handleEliminarCategoriaProducto(item.idCategoriaProducto)}>
+                                  <Delete />
+                                  Eliminar
+                                </Button>
+                              </DropdownItem>
                             </DropdownMenu>
                           </Dropdown>
+                        ) : column.uid === "estado" ? (
+                          <Chip
+                            color={item.estado === "Activo" ? "success" : "danger"}
+                            variant="bordered"
+                            className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
+                            onClick={() =>
+                              handleOpenModal(item.idCategoriaProducto)
+                            }
+                          >
+                            {item.estado}
+                          </Chip>
                         ) : (
                           <span>{item[column.uid as keyof CategoriaProducto]}</span>
                         )}
@@ -295,7 +311,7 @@ export default function CategoriasProductoPage() {
                             <DropdownMenu
                               onAction={(action) => console.log(action)}
                             >
-                              <DropdownItem href={`categoriaProducto/editar/${item.idCategoriaProducto}`}>
+                              <DropdownItem href={`categoria_producto/editar/${item.idCategoriaProducto}`}>
                                 <Button className="bg-transparent w-full">
                                   <Edit />
                                   Editar

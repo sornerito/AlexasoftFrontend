@@ -110,11 +110,11 @@ export default function ComprasPage() {
       return mergedData;
     }
     catch (err: any) {
-    
-        console.error("Error al obtener Detalle  de compras por producto:", err);
-        setMensajeError("Error al obtener Detalle  de compras por producto. Por favor, inténtalo de nuevo.");
-        onOpenError();
-    
+
+      console.error("Error al obtener Detalle  de compras por producto:", err);
+      setMensajeError("Error al obtener Detalle  de compras por producto. Por favor, inténtalo de nuevo.");
+      onOpenError();
+
 
     }
 
@@ -170,7 +170,7 @@ export default function ComprasPage() {
           setMensajeError("Error al obtener Compras de producto. Por favor, inténtalo de nuevo.");
           onOpenError();
         }
-  
+
       }
     };
 
@@ -329,41 +329,39 @@ export default function ComprasPage() {
                                 isIconOnly
                                 className="border"
                                 aria-label="Actions"
+                                
                               >
                                 <Ellipsis />
                               </Button>
                             </DropdownTrigger>
-                            <DropdownMenu
-                              onAction={(action) => console.log(action)}
-                            >
-                              <DropdownItem
-                                key="editar"
-                                onClick={() => handleEditClick(item)}>
-                                <Button>
+                            <DropdownMenu>
+                              <DropdownItem key="editar" isDisabled={item.motivoAnular != ""} >
+                                <Button className="bg-transparent w-full" onClick={() => handleEditClick(item)}>
                                   <Edit />
                                   Anular
+                                </Button>
+                              </DropdownItem>
+                              <DropdownItem key={"detalles"}>
+                                <Button
+                                  className="bg-transparent w-full"
+                                  onPress={async () => {
+                                    const detalles = await fetchCompraDetalles(item.idCompra);
+                                    setCompraDetalles(detalles);
+                                    onOpenDetalles();
+                                  }}
+                                >
+                                  <Eye />
+                                  Detalles
                                 </Button>
                               </DropdownItem>
                             </DropdownMenu>
                           </Dropdown>
                         ) : column.uid === "precio" ? (
                           formatCurrency(item.precio)
+                        ) : column.uid === "subtotal" ? (
+                          formatCurrency(item.subtotal)
                         ) : column.uid === "idProveedor" ? (
-                          <span>
-                            {proveedores.get(item.idProveedor) || item.idProveedor}
-                          </span>
-
-                        ) : column.uid === "motivoAnular" ? (
-                          <Chip
-                            color={item.motivoAnular ? "danger" : "success"}
-                            variant="bordered"
-                            className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
-                            onClick={() =>
-                              handleOpenModal(item.idCompra)
-                            }
-                          >
-
-                          </Chip>
+                          <span>{proveedores.get(item.idProveedor) || item.idProveedor}</span>
                         ) : (
                           <span>{item[column.uid as keyof Compra]}</span>
                         )}

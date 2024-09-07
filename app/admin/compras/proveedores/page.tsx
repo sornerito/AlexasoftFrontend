@@ -270,14 +270,20 @@ export default function ProveedoresPage() {
                             <DropdownMenu
                               onAction={(action) => console.log(action)}
                             >
-                              <DropdownItem
+                               <DropdownItem
                                 key="editar"
-                                href={'proveedores/editar/${item.idProveedor}'}
+                                href={`proveedores/editar/${item.idProveedor}`}
                                 isDisabled={item.estado === "Desactivado"}
                               >
                                 <Button className="bg-transparent w-full" disabled={item.estado === "Desactivado"}>
                                   <Edit />
                                   Editar
+                                </Button>
+                              </DropdownItem>
+                              <DropdownItem>
+                                <Button className="bg-transparent w-full" onClick={() => handleEliminarProveedor(item.idProveedor)}>
+                                  <Delete />
+                                  Eliminar
                                 </Button>
                               </DropdownItem>
                             </DropdownMenu>
