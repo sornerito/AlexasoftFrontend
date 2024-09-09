@@ -20,7 +20,8 @@ import {
   SelectItem,
   Spinner,
   Chip,
-  CircularProgress
+  CircularProgress,
+  Pagination
 } from "@nextui-org/react";
 
 // Importar funciones de configuración
@@ -711,24 +712,15 @@ export default function VentasPageCrear() {
                       <p>No se encontraron productos.</p>
                     )}
                     {/* Paginación */}
-                    {Object.values(productosSeleccionados).filter(item => item.producto.nombre.toLowerCase().includes(busquedaModal.toLowerCase())).length > 6 && busquedaModal === "" && (
+                    {Object.values(productosSeleccionados).filter(item => item.producto.nombre.toLowerCase().includes(busquedaModal.toLowerCase())).length > 6 && (
                       <div className="flex justify-center mt-4">
-                        <Button
-                          size="sm"
-                          variant="light"
-                          onClick={() => setPaginaModal(paginaModal - 1)}
-                          isDisabled={paginaModal === 1}
-                        >
-                          Anterior
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="light"
-                          onClick={() => setPaginaModal(paginaModal + 1)}
-                          isDisabled={paginaModal === Math.ceil(Object.values(productosSeleccionados).filter(item => item.producto.nombre.toLowerCase().includes(busquedaModal.toLowerCase())).length / 6)}
-                        >
-                          Siguiente
-                        </Button>
+                        <Pagination
+                          color="warning"
+                          total={Math.ceil(Object.values(productosSeleccionados).filter(item => item.producto.nombre.toLowerCase().includes(busquedaModal.toLowerCase())).length / 6)}
+                          initialPage={paginaModal}
+                          onChange={(page) => setPaginaModal(page)}
+                          showControls
+                        />
                       </div>
                     )}
                   </ModalBody>

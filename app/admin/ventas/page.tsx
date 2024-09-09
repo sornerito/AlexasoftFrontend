@@ -41,6 +41,10 @@ import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/p
 // Importar estilos
 import { title } from "@/components/primitives";
 
+// Importar la librería para generar PDFs
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
 
 // Definición de interfaces para tipos de datos
 interface Venta {
@@ -393,6 +397,71 @@ export default function VentasPage() {
     return date.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
 
+  // Función para generar el PDF de todas las ventas
+  const generarPDFVentas = () => {
+    const doc = new jsPDF();
+
+    // Agregar título
+    doc.setFontSize(20);
+    doc.text('Reporte de Ventas', 10, 20);
+
+    // Preparar datos para la tabla
+    const data = ventas.map((venta) => [
+      venta.idVenta,
+      venta.numeroFactura,
+      venta.fecha,
+      venta.total,
+      clientes.get(venta.idCliente) || venta.idCliente,
+      colaboradores.get(venta.idColaborador) || venta.idColaborador,
+      venta.estado,
+      venta.identificador,
+    ]);
+
+    // Agregar tabla al PDF
+    (doc as any).autoTable({
+      head: [['ID', 'N° Factura', 'Fecha', 'Total', 'Cliente', 'Colaborador', 'Estado', 'Identificador']],
+      body: data,
+    });
+
+    // Guardar el PDF
+    doc.save('reporte_ventas.pdf');
+  };
+
+  // Función para generar el PDF de un detalle de venta
+  const generarPDFDetalleVenta = () => {
+    if (!ventaDetalles) return;
+
+    const doc = new jsPDF();
+
+    // Agregar título
+    doc.setFontSize(20);
+    doc.text(`Detalle de Venta: ${ventaDetalles.ventas.numeroFactura}`, 10, 20);
+
+    // Agregar información de la venta
+    doc.setFontSize(12);
+    doc.text(`Cliente: ${clientes.get(ventaDetalles.ventas.idCliente)}`, 10, 40);
+    doc.text(`Colaborador: ${colaboradores.get(ventaDetalles.ventas.idColaborador)}`, 10, 50);
+    doc.text(`Total: ${formatCurrency(ventaDetalles.ventas.total)} COP`, 10, 60);
+    doc.text(`IVA: ${ventaDetalles.ventas.iva}%`, 10, 70);
+    doc.text(`Identificador: ${ventaDetalles.ventas.identificador}`, 10, 80);
+
+    // Agregar información de los productos
+    const productosData = agrupados.map((producto) => [
+      producto.nombre,
+      productos.get(producto.idProducto)?.idMarca.nombre || "Marca no encontrada",
+      producto.cantidad,
+      formatCurrency(producto.precio),
+    ]);
+
+    (doc as any).autoTable({
+      head: [['Nombre', 'Marca', 'Cantidad', 'Precio']],
+      body: productosData,
+      startY: 90,
+    });
+
+    // Guardar el PDF
+    doc.save(`detalle_venta_${ventaDetalles.ventas.numeroFactura}.pdf`);
+  };
 
   // Renderizar el componente
   return (
@@ -445,7 +514,7 @@ export default function VentasPage() {
             {/* Botones de acciones */}
             <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
               {/* Botón para crear reporte */}
-              <Button isIconOnly className="bg-gradient-to-tr from-red-600 to-red-100" aria-label="Crear Reporte">
+              <Button isIconOnly className="bg-gradient-to-tr from-red-600 to-red-100" aria-label="Crear Reporte" onClick={generarPDFVentas}>
                 <FileBarChart2 />
               </Button>
 
@@ -631,12 +700,12 @@ export default function VentasPage() {
                     <Eye color="#FFD700" size={100} />
                     <h1 className="text-3xl font-semibold mt-2">Detalles de la Venta</h1>
                   </ModalHeader>
-                  <ModalBody className="p-6 overflow-y-auto max-h-96">
+                  <ModalBody className="p-6">
                     {/* Mostrar detalles de la venta si están disponibles */}
                     {ventaDetalles ? (
                       <div className="flex flex-col lg:flex-row gap-6">
                         {/* Tabla para información de la venta */}
-                        <div className="mb-4">
+                        <div style={{ width: "50%" }}>
                           <Table aria-label="Detalles de la Venta">
                             <TableHeader>
                               <TableColumn>Venta AlexaSoft</TableColumn>
@@ -669,9 +738,13 @@ export default function VentasPage() {
                               </TableRow>
                             </TableBody>
                           </Table>
+                          <br />
+                          <Button color="warning" onPress={generarPDFDetalleVenta}>
+                            Generar PDF
+                          </Button>
                         </div>
                         {/* Tabla para información de los productos */}
-                        <div>
+                        <div style={{ width: "50%" }}>
                           <Table aria-label="Productos">
                             <TableHeader>
                               <TableColumn>Nombre</TableColumn>
@@ -691,15 +764,17 @@ export default function VentasPage() {
                             </TableBody>
                           </Table>
                           {/* Paginación para productos */}
-                          <div className="flex w-full justify-center mt-4">
-                            <Pagination
-                              showControls
-                              color="warning"
-                              page={productPage}
-                              total={Math.ceil(agrupados.length / rowsPerPage)}
-                              onChange={(page) => setProductPage(page)}
-                            />
-                          </div>
+                          {agrupados.length > rowsPerPage && ( // Mostrar paginación solo si hay más de rowsPerPage productos
+                            <div className="flex w-full justify-center mt-4">
+                              <Pagination
+                                showControls
+                                color="warning"
+                                page={productPage}
+                                total={Math.ceil(agrupados.length / rowsPerPage)}
+                                onChange={(page) => setProductPage(page)}
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     ) : isLoading ? (
