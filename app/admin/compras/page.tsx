@@ -85,40 +85,57 @@ export default function ComprasPage() {
   const tamanoMovil = useMediaQuery({ maxWidth: 768 });
 
   // Función para obtener los detalles de la venta
-  const fetchCompraDetalles = async (idCompra: string) => {
-    try {
-      const compraResponse = await getWithAuth(`http://localhost:8080/compras/detalle-producto-compra/${idCompra}`);
-      const compraData = await compraResponse.json();
-      console.log(compraData)
+const fetchCompraDetalles = async (idCompra: string) => {
+  try {
+    // Petición para obtener los detalles del producto (primera petición)
+    const productosResponse = await getWithAuth(`http://localhost:8080/compras/detalle-producto-compra-producto`);
+    const productosData = await productosResponse.json();
+    
+    // Petición para obtener los detalles de la compra (segunda petición)
+    const compraResponse = await getWithAuth(`http://localhost:8080/compras/detalle-producto-compra/${idCompra}`);
+    const compraData = await compraResponse.json();
+    console.log(compraData);
 
-      const updatedProductos = compraData.productos.reduce((acc: any, producto: any) => {
-        if (!acc[producto.idProducto]) {
-          acc[producto.idProducto] = { ...producto, cantidad: 0 };
-        }
-        acc[producto.idProducto].cantidad++;
-        return acc;
-      }, {});
+    // Mapeamos las unidades de la primera petición por idProducto
+    const unidadesPorProducto: any = productosData.reduce((acc: any, detalle: any) => {
+      acc[detalle.idProducto] = detalle.unidades;
+      return acc;
+    }, {});
 
-      const productosAgrupados: any[] = Object.values(updatedProductos);
-      setAgrupados(productosAgrupados);
-
-      const mergedData = {
-        ...compraData,
-        productos: productosAgrupados,
+    // Actualizamos los productos con la cantidad obtenida en la primera petición
+    const updatedProductos = compraData.productos.map((producto: any) => {
+      return {
+        ...producto,
+        unidadesVendidas: unidadesPorProducto[producto.idProducto] || 0, // Aquí añadimos las unidades
       };
+    });
 
-      return mergedData;
-    }
-    catch (err: any) {
+    // Agrupamos los productos por idProducto
+    const productosAgrupados: any[] = updatedProductos.reduce((acc: any, producto: any) => {
+      if (!acc[producto.idProducto]) {
+        acc[producto.idProducto] = { ...producto, cantidad: 0 };
+      }
+      acc[producto.idProducto].cantidad++;
+      return acc;
+    }, {});
 
-      console.error("Error al obtener Detalle  de compras por producto:", err);
-      setMensajeError("Error al obtener Detalle  de compras por producto. Por favor, inténtalo de nuevo.");
-      onOpenError();
+    const productosAgrupadosArray: any[] = Object.values(productosAgrupados);
+    setAgrupados(productosAgrupadosArray);
 
+    // Combinamos la respuesta con los productos actualizados
+    const mergedData = {
+      ...compraData,
+      productos: productosAgrupadosArray, 
+    };
 
-    }
+    return mergedData;
+  } catch (err: any) {
+    console.error("Error al obtener Detalle de compras por producto:", err);
+    setMensajeError("Error al obtener Detalle de compras por producto. Por favor, inténtalo de nuevo.");
+    onOpenError();
+  }
+};
 
-  };
 
 
 
@@ -486,7 +503,7 @@ export default function ComprasPage() {
                               <TableRow key={producto.idProducto}>
                                 <TableCell>{producto.nombre}</TableCell>
                                 <TableCell>{producto.idMarca.nombre || "Marca no encontrada"}</TableCell>
-                                <TableCell>{producto.cantidad}</TableCell>
+                                <TableCell>{producto.unidades}</TableCell>
                                 <TableCell>{formatCurrency(producto.precio)}</TableCell>
                               </TableRow>
                             ))}
