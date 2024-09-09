@@ -11,7 +11,7 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@nextui-org/react";
-import { CircleHelp, CircleX, Eye, EyeOff } from "lucide-react";
+import { CircleHelp, CircleX } from "lucide-react";
 import { getWithAuth, postWithAuth } from "@/config/peticionesConfig";
 
 export default function EditarColaboradorPage({
@@ -60,13 +60,13 @@ export default function EditarColaboradorPage({
     };
 
     try {
-      const response = await postWithAuth(`http://localhost:8080/colaborador/${params.idColaborador}`,(colaboradorActualizado));
+      const response = await postWithAuth(`http://localhost:8080/colaborador/${params.idColaborador}`, colaboradorActualizado);
       if (response.ok) {
         console.log("Colaborador editado exitosamente.");
         window.location.href = "/admin/Agendamiento/colaboradores";
       } else {
         console.error("Error al editar el colaborador:", response.statusText);
-        setMensajeError("La cedula proporcionada ya está en uso.");
+        setMensajeError("La cédula proporcionada ya está en uso.");
         onOpenError();
       }
     } catch (error) {
@@ -86,6 +86,11 @@ export default function EditarColaboradorPage({
 
   const validarTelefono = (valor: string) => {
     return /^[0-9]{10}$/.test(valor);
+  };
+
+  const validarCorreo = (valor: string) => {
+    // Regex básica para validar el formato del correo electrónico
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor);
   };
 
   const handleFormSubmit = (e: { preventDefault: () => void; }) => {
@@ -109,6 +114,12 @@ export default function EditarColaboradorPage({
       return;
     }
 
+    if (!validarCorreo(correo)) {
+      setMensajeError("El correo electrónico debe tener un formato válido.");
+      onOpenError();
+      return;
+    }
+
     onOpen();
   };
 
@@ -117,45 +128,65 @@ export default function EditarColaboradorPage({
     onOpenChange();
   };
 
+  const isInvalid = !validarNombre() || !validarCedula(cedula) || !validarTelefono(telefono) || !validarCorreo(correo);
+
   return (
-    <div>
+    <div className="lg:mx-60">
       <h1 className={title()}>Editar Colaborador</h1>
+      <br /><br />
       <form onSubmit={handleFormSubmit}>
-        <Input
-          isRequired
-          type="text"
-          label="Nombre"
-          className="max-w-xs mt-4"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-        />
-        <Input
-          isRequired
-          type="text"
-          label="Cédula"
-          className="max-w-xs mt-4"
-          value={cedula}
-          onChange={(e) => setCedula(e.target.value)}
-        />
-        <Input
-          isRequired
-          type="email"
-          label="Correo"
-          className="max-w-xs mt-4"
-          value={correo}
-          onChange={(e) => setCorreo(e.target.value)}
-        />
-        <Input
-          isRequired
-          type="tel"
-          label="Teléfono"
-          className="max-w-xs mt-4"
-          value={telefono}
-          onChange={(e) => setTelefono(e.target.value)}
-        />
-        <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300 mt-4" type="submit">
-          Editar Colaborador
-        </Button>
+        <div className="grid gap-3 sm">
+          <Input
+            isRequired
+            type="text"
+            label="Nombre"
+            variant="bordered"
+            className="block w-full"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            isInvalid={!validarNombre()}
+            color={!validarNombre() ? "danger" : "success"}
+            errorMessage={!validarNombre() ? "El nombre no puede contener números." : ""}
+          />
+          <Input
+            isRequired
+            type="text"
+            label="Cédula"
+            variant="bordered"
+            className="block w-full"
+            value={cedula}
+            onChange={(e) => setCedula(e.target.value)}
+            isInvalid={!validarCedula(cedula)}
+            color={!validarCedula(cedula) ? "danger" : "success"}
+            errorMessage={!validarCedula(cedula) ? "La cédula debe tener entre 8 y 13 dígitos." : ""}
+          />
+          <Input
+            isRequired
+            type="email"
+            label="Correo"
+            variant="bordered"
+            className="block w-full"
+            value={correo}
+            onChange={(e) => setCorreo(e.target.value)}
+            isInvalid={!validarCorreo(correo)}
+            color={!validarCorreo(correo) ? "danger" : "success"}
+            errorMessage={!validarCorreo(correo) ? "El correo electrónico debe tener un formato válido." : ""}
+          />
+          <Input
+            isRequired
+            type="tel"
+            label="Teléfono"
+            variant="bordered"
+            className="block w-full"
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
+            isInvalid={!validarTelefono(telefono)}
+            color={!validarTelefono(telefono) ? "danger" : "success"}
+            errorMessage={!validarTelefono(telefono) ? "El teléfono debe ser de 10 dígitos." : ""}
+          />
+        </div>
+
+
       </form>
 
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>

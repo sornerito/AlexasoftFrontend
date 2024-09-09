@@ -23,7 +23,7 @@ const columns = [
     { name: "Día", uid: "numeroDia" },
     { name: "Inicio Jornada", uid: "inicioJornada" },
     { name: "Fin Jornada", uid: "finJornada" },
-    { name: "Estado", uid: "estado" },
+    { name: "Número de Citas", uid: "numeroCitas" },
     { name: "Ver Citas", uid: "acciones" },
 ];
 
@@ -32,7 +32,6 @@ interface Horario {
     numeroDia: string;
     inicioJornada: string;
     finJornada: string;
-    estado: string;
 }
 
 interface Cita {
@@ -94,24 +93,27 @@ export default function HorarioPage() {
     useEffect(() => {
         const idUsuario = typeof window !== "undefined" ? sessionStorage.getItem("idUsuario") : null;
         console.log(idUsuario)
-      
+
         if (idUsuario) {
-          getWithAuth(`http://localhost:8080/cita/colaborador/${idUsuario}`)
-            .then((response) => response.json())
-            .then((data) => {
-              const processedData = data.map((item: Cita) => ({
-                ...item,
-                fecha: new Date(item.fecha).toISOString().split('T')[0], // Formatear fecha a YYYY-MM-DD
-              }));
-              setCitas(processedData);
-            })
-            .catch((err) => {
-              console.log(err.message);
-            });
+            getWithAuth(`http://localhost:8080/cita/colaborador/${idUsuario}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    const citasFiltradas = data.filter((item: Cita) => item.estado === "Aceptado");
+
+                    const processedData = citasFiltradas.map((item: Cita) => ({
+                      ...item,
+                      fecha: new Date(item.fecha).toISOString().split('T')[0], // Formatear fecha a YYYY-MM-DD
+                    }));
+                    
+                      setCitas(processedData);
+                })
+                .catch((err) => {
+                    console.log(err.message);
+                });
         } else {
-          console.log("No se encontró el ID del usuario en sessionStorage.");
+            console.log("No se encontró el ID del usuario en sessionStorage.");
         }
-      }, []);
+    }, []);
 
     useEffect(() => {
         const fetchClientes = async () => {
@@ -165,11 +167,14 @@ export default function HorarioPage() {
         fetchMotivos();
     }, [citas]);
 
+    const getNumeroCitasForDia = (numeroDia: number) => {
+        return getCitasForDia(numeroDia).length;
+    };
+
     const getCitasForDia = (numeroDia: number) => {
         return citas.filter((cita) => {
             const fecha = new Date(cita.fecha);
             let diaSemana = fecha.getDay() + 1; // 0 = Domingo, 1 = Lunes, etc.
-
             // Ajustar el formato del día de la semana para que coincida con 1 = Lunes, ..., 7 = Domingo
             diaSemana = (diaSemana === 0 ? 7 : diaSemana); // Convertir Domingo (0) a 7
 
@@ -191,7 +196,8 @@ export default function HorarioPage() {
         <>
             {acceso ? (
                 <div>
-                    <h1 className={title()}>Horario</h1>
+                    <h1 className={title()}>Agendamientos</h1>
+                    <br />
 
                     <Table>
                         <TableHeader columns={columns}>
@@ -208,12 +214,12 @@ export default function HorarioPage() {
                                         <TableCell>
                                             {columnKey === "numeroDia" ? (
                                                 diasSemana[parseInt(item.numeroDia) as keyof typeof diasSemana] || "Desconocido"
+                                            ) : columnKey === "numeroCitas" ? (
+                                                getNumeroCitasForDia(parseInt(item.numeroDia))
                                             ) : columnKey === "acciones" ? (
-
                                                 <Button
-                                                    onClick={() => handleShowCitas(parseInt(item.numeroDia))}
-                                                >
-                                                    <Eye className="mr-2"/>
+                                                    onClick={() => handleShowCitas(parseInt(item.numeroDia))}>
+                                                    <Eye className="mr-2" />
                                                 </Button>
                                             ) : (
                                                 item[columnKey as keyof Horario]
@@ -226,22 +232,34 @@ export default function HorarioPage() {
                     </Table>
 
                     <Modal isOpen={isModalOpen} onClose={closeModal}>
-                        <ModalContent>
-                            <ModalHeader>Citas para el día seleccionado</ModalHeader>
-                            <ModalBody>
+                        <ModalContent style={{ maxWidth: '90%', width: '90%', maxHeight: '90vh', overflow: 'hidden' }}>
+                            <ModalHeader>Citas para el día</ModalHeader>
+                            <ModalBody style={{ display: 'flex', flexDirection: 'column', maxHeight: 'calc(90vh - 80px)', overflowY: 'auto' }}>
                                 {selectedCitas.length > 0 ? (
-                                    selectedCitas.map((cita) => (
-                                        <div key={cita.idCita}>
-                                            <p><strong>Fecha:</strong> {cita.fecha}</p>
-                                            <p><strong>Hora:</strong> {cita.hora}</p>
-                                            <p><strong>Cliente:</strong> {clientes[cita.idCliente]}</p>
-                                            <p><strong>Paquete:</strong> {paquetes[cita.idPaquete]}</p>
-                                            <p><strong>Detalle:</strong> {cita.detalle || "N/A"}</p>
-                                            <p><strong>Motivo:</strong> {cita.idMotivo !== null ? motivos[cita.idMotivo] : "N/A"}</p>
-                                            <p><strong>Estado:</strong> {cita.estado}</p>
-                                            <hr />
-                                        </div>
-                                    ))
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                        gap: '10px',
+                                        padding: '10px'
+                                    }}>
+                                        {selectedCitas.map((cita) => (
+                                            <div key={cita.idCita} style={{
+                                                border: '1px solid #FFC300',
+                                                padding: '10px',
+                                                borderRadius: '8px',
+                                                backgroundColor: '#494949',
+                                                color: '#fff'
+                                            }}>
+                                                <p><strong>Fecha:</strong> {cita.fecha}</p>
+                                                <p><strong>Hora:</strong> {cita.hora}</p>
+                                                <p><strong>Cliente:</strong> {clientes[cita.idCliente]}</p>
+                                                <p><strong>Paquete:</strong> {paquetes[cita.idPaquete]}</p>
+                                                <p><strong>Detalle:</strong> {cita.detalle || "N/A"}</p>
+                                                <p><strong>Motivo:</strong> {cita.idMotivo !== null ? motivos[cita.idMotivo] : "N/A"}</p>
+                                                <p><strong>Estado:</strong> {cita.estado}</p>
+                                            </div>
+                                        ))}
+                                    </div>
                                 ) : (
                                     <p>No hay citas para este día.</p>
                                 )}
@@ -251,6 +269,8 @@ export default function HorarioPage() {
                             </ModalFooter>
                         </ModalContent>
                     </Modal>
+
+
                 </div>
             ) : (
                 <CircularProgress />

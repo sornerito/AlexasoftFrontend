@@ -12,7 +12,7 @@ import {
   useDisclosure,
   CircularProgress,
 } from "@nextui-org/react";
-import { CircleHelp, CircleX} from "lucide-react";
+import { CircleHelp, CircleX } from "lucide-react";
 import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
 
 export default function EditarHorarioPage({
@@ -20,15 +20,15 @@ export default function EditarHorarioPage({
 }: {
   params: { idHorario: string };
 }) {
-  //Valida permiso
+  // Valida permiso
   const [acceso, setAcceso] = React.useState<boolean>(false);
   React.useEffect(() => {
-    if(typeof window !== "undefined"){
-    if(verificarAccesoPorPermiso("Gestionar Horario") == false){
-      window.location.href = "../../../../acceso/noAcceso"
+    if (typeof window !== "undefined") {
+      if (verificarAccesoPorPermiso("Gestionar Horario") == false) {
+        window.location.href = "../../../../acceso/noAcceso";
+      }
+      setAcceso(verificarAccesoPorPermiso("Gestionar Horario"));
     }
-    setAcceso(verificarAccesoPorPermiso("Gestionar Horario"));
-  }
   }, []);
 
   const [numeroDia, setnumeroDia] = useState("");
@@ -44,8 +44,8 @@ export default function EditarHorarioPage({
       .then((response) => response.json())
       .then((data) => {
         setnumeroDia(data.numeroDia);
-        setInicioJornada(data.inicioJornada);
-        setFinJornada(data.finJornada);
+        setInicioJornada(data.inicioJornada.slice(0, 5));
+        setFinJornada(data.finJornada.slice(0, 5));
         setEstado(data.estado);
       })
       .catch((error) => {
@@ -54,9 +54,14 @@ export default function EditarHorarioPage({
   }, [params.idHorario]);
 
   const validateTime = (time: string) => {
+    // Valida solo horas y minutos en formato HH:MM
     const timePattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
     return timePattern.test(time);
   };
+
+  const isInvalid = React.useMemo(() => {
+    return !validateTime(inicioJornada) || !validateTime(finJornada);
+  }, [inicioJornada, finJornada]);
 
   const handleEditarHorario = async () => {
     const horarioActualizado = {
@@ -64,11 +69,14 @@ export default function EditarHorarioPage({
       numeroDia,
       inicioJornada,
       finJornada,
-      estado
+      estado,
     };
 
     try {
-      const response = await postWithAuth(`http://localhost:8080/horario/${params.idHorario}`,(horarioActualizado));
+      const response = await postWithAuth(
+        `http://localhost:8080/horario/${params.idHorario}`,
+        horarioActualizado
+      );
       if (response.ok) {
         console.log("Horario editado exitosamente.");
         window.location.href = "/admin/Agendamiento/horario";
@@ -84,13 +92,15 @@ export default function EditarHorarioPage({
     }
   };
 
-  const handleFormSubmit = (e: { preventDefault: () => void; }) => {
+  const handleFormSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    if (!validateTime(inicioJornada) || !validateTime(finJornada)) {
+
+    if (isInvalid) {
       setMensajeError("Por favor, ingrese una hora válida en formato HH:MM.");
       onOpenError();
       return;
     }
+
     onOpen();
   };
 
@@ -99,86 +109,109 @@ export default function EditarHorarioPage({
     onOpenChange();
   };
 
-  return (  
-<>
-{acceso ? (
-      
-    <div>
-      <h1 className={title()}>Editar Horarios</h1>
-      <form onSubmit={handleFormSubmit}>
-        <Input
-          isRequired
-          type="time"
-          label="Inicio Jornada"
-          className="max-w-xs mt-4"
-          value={inicioJornada}
-          onChange={(e) => setInicioJornada(e.target.value)}
-        />
-        <Input
-          isRequired
-          type="time"
-          label="Fin Jornada"
-          className="max-w-xs mt-4"
-          value={finJornada}
-          onChange={(e) => setFinJornada(e.target.value)}
-        />
-        <Button type="submit">Editar Horario</Button>
-      </form>
+  return (
+    <>
+      {acceso ? (
+        <div className="lg:mx-60">
+          <h1 className={title()}>Editar Horarios</h1>
+          <br /><br />
+          <form onSubmit={handleFormSubmit}>
+            <div className="grid gap-3 sm">
+              <Input
+                type="time"
+                label="Inicio Jornada"
+                variant="bordered"
+                placeholder="Seleccione una hora"
+                className="block w-full"
+                value={inicioJornada}
+                isInvalid={!validateTime(inicioJornada)}
+                errorMessage={
+                  !validateTime(inicioJornada)
+                    ? "Hora no válida. Formato HH:MM."
+                    : ""
+                }
+                onChange={(e) => setInicioJornada(e.target.value)}
+              />
+              <Input
+                type="time"
+                label="Fin Jornada"
+                placeholder="Seleccione una hora"
+                variant="bordered"
+                className="block w-full"
+                value={finJornada}
+                isInvalid={!validateTime(finJornada)}
+                errorMessage={
+                  !validateTime(finJornada) ? "Hora no válida. Formato HH:MM." : ""
+                }
+                onChange={(e) => setFinJornada(e.target.value)}
+              />
+            </div>
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleHelp color="#fef08a" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className="text-3xl">¿Desea editar el horario?</h1>
-                <p>El horario se actualizará con la información proporcionada.</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button
-                  className="bg-[#609448]"
-                  onPress={() => {
-                    handleConfirmSubmit();
-                    onClose();
-                  }}
-                >
-                  Editar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+            <div className="mt-6 flex justify-end">
+              <Button
+                type="submit"
+                className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                disabled={isInvalid}
+              >
+                Editar Horario
+              </Button>
+            </div>
+          </form>
 
-      <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleX color="#894242" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className="text-3xl">Error</h1>
-                <p>{mensajeError}</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-    </div>
-        ) :(
-          <CircularProgress color="warning" aria-label="Cargando..." />
-        )}
+          <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleHelp color="#fef08a" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">¿Desea editar el horario?</h1>
+                    <p>El horario se actualizará con la información proporcionada.</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="bg-[#609448]"
+                      onPress={() => {
+                        handleConfirmSubmit();
+                        onClose();
+                      }}
+                    >
+                      Editar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+
+          <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleX color="#894242" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">Error</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+        </div>
+      ) : (
+        <CircularProgress color="warning" aria-label="Cargando..." />
+      )}
     </>
   );
 }

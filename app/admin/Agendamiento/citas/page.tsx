@@ -23,6 +23,8 @@ import {
   useDisclosure,
   Link,
   CircularProgress,
+  Select,
+  SelectItem,
 } from "@nextui-org/react";
 import { PlusIcon, Ellipsis, Edit, Info, FileBarChart2 } from "lucide-react";
 import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
@@ -32,8 +34,8 @@ const columns = [
   { name: "Cliente", uid: "idCliente" },
   { name: "Colaborador", uid: "idColaborador" },
   { name: "Fecha", uid: "fecha" },
-  { name: "Motivo", uid: "idMotivo" },
   { name: "Estado", uid: "estado" },
+  { name: "Motivo", uid: "idMotivo" },
   { name: "Acciones", uid: "acciones" },
 ];
 
@@ -64,6 +66,7 @@ const estadoColors: { [key: string]: string } = {
   "En_espera": "yellow",
   "Aceptado": "green",
   "Cancelado": "red",
+  "Finalizado": "blue"
 };
 
 export default function CitasPage() {
@@ -184,17 +187,18 @@ export default function CitasPage() {
   }, [page, citasFiltradas]);
 
   const handleChangeEstado = async () => {
-    if (!selectedCita) return;
+    if (!selectedCita || !nuevoEstado) return;
 
     try {
-      const response = await postWithAuth(`http://localhost:8080/cita/${selectedCita.idCita}`, {
-        ...selectedCita,
+      const response = await postWithAuth(`http://localhost:8080/cita/${selectedCita.idCita}/estado`, {
         estado: nuevoEstado
       });
 
       if (response.ok) {
         const updatedCita = await response.json();
         console.log("Cita después de cambiar estado:", updatedCita);
+
+        // Actualiza solo el estado en el estado local
         setCitas(citas.map(cita =>
           cita.idCita === selectedCita.idCita ? { ...cita, estado: nuevoEstado } : cita
         ));
@@ -209,15 +213,17 @@ export default function CitasPage() {
     }
   };
 
-  const handleEstadoSelect = (cita: Cita, estado: string) => {
+
+  const handleEstadoSelect = (cita: Cita, e: React.ChangeEvent<HTMLSelectElement>) => {
+    const estadoSeleccionado = e.target.value;
     setSelectedCita(cita);
-    setNuevoEstado(estado);
+    setNuevoEstado(estadoSeleccionado);
     onOpenEstado();
   };
 
   const handleShowDetails = (cita: Cita) => {
     setSelectedCita(cita);
-    onOpenDetails(); // Abre el modal de detalles
+    onOpenDetails();
   };
 
   return (
@@ -294,9 +300,12 @@ export default function CitasPage() {
                   {columns.map((column) => (
                     <TableCell key={column.uid}>
                       {column.uid === "estado" ? (
-                        <select
+                        <Select
                           value={item.estado}
-                          onChange={(e) => handleEstadoSelect(item, e.target.value)}
+                          variant="bordered"
+                          placeholder={item.estado}
+                          onChange={(e) => handleEstadoSelect(item, e)}
+                          className="hover:scale-105 focus:outline-none"
                           style={{
                             backgroundColor: "transparent",
                             color: 'white',
@@ -307,47 +316,28 @@ export default function CitasPage() {
                             cursor: 'pointer',
                             transition: 'transform 0.1s ease-in-out',
                           }}
-                          className="hover:scale-105 focus:outline-none"
                         >
-                          <option value="En_espera" style={{ border: '2px solid', borderColor: estadoColors["En_espera"], backgroundColor: "transparent", color: "white" }}>
+                          <SelectItem key="En_espera" value="En_espera" style={{ backgroundColor: "transparent", color: "white", border: '2px solid', borderColor: estadoColors["En_espera"], borderRadius: '9999px' }}>
                             En espera
-                          </option>
-                          <option value="Aceptado" style={{ backgroundColor: estadoColors["Aceptado"], color: 'white' }}>
+                          </SelectItem>
+                          <SelectItem key="Aceptado" value="Aceptado" style={{ backgroundColor: "transparent", color: 'white', border: '2px solid', borderColor: estadoColors["Aceptado"], borderRadius: '9999px' }}>
                             Aceptado
-                          </option>
-                          <option value="Cancelado" style={{ backgroundColor: estadoColors["Cancelado"], color: 'white' }}>
+                          </SelectItem>
+                          <SelectItem key="Cancelado" value="Cancelado" style={{ backgroundColor: "transparent", color: 'white', border: '2px solid', borderColor: estadoColors["Cancelado"], borderRadius: '9999px' }}>
                             Cancelado
-                          </option>
-                        </select>
+                          </SelectItem>
+                          <SelectItem key="Finalizado" value="Finalizado" style={{ backgroundColor: "transparent", color: 'white', border: '2px solid', borderColor: estadoColors["Finalizado"], borderRadius: '9999px' }}>
+                            Finalizado
+                          </SelectItem>
+                        </Select>
+
                       ) : column.uid === "acciones" ? (
-                        <Dropdown>
-                          <DropdownTrigger>
-                            <Button
-                              aria-label="Acciones"
-                              className="bg-transparent"
-                              isDisabled={item.estado === "Desactivado"}
-                            >
-                              <Ellipsis />
-                            </Button>
-                          </DropdownTrigger>
-                          <DropdownMenu onAction={(action) => console.log(action)}>
-                            <DropdownItem>
-                              <Button
-                                className="bg-transparent w-full"
-                                onClick={() => handleShowDetails(item)}
-                              >
-                                <Info className="mr-2" /> Detalles
-                              </Button>
-                            </DropdownItem>
-                            {
-                              /*<DropdownItem href={`/admin/Agendamiento/citas/reagendar/${item.idCita}`}>
-                                <Button className="bg-transparent w-full">
-                                  <Edit className="mr-2" /> Reagendar Cita
-                                </Button>
-                              </DropdownItem>*/
-                            }
-                          </DropdownMenu>
-                        </Dropdown>
+                        <Button
+                          className="bg-transparent"
+                          onClick={() => handleShowDetails(item)}
+                        >
+                          <Info className="mr-2" />Detalles
+                        </Button>
                       ) : column.uid === "idMotivo" ? (
                         item.idMotivo !== null ? motivos[item.idMotivo] : "N/A"
                       ) : column.uid === "idCliente" ? (
@@ -380,12 +370,10 @@ export default function CitasPage() {
                     <p><strong>ID de Cita:</strong> {selectedCita.idCita}</p>
                     <p><strong>Cliente:</strong> {clientes[selectedCita.idCliente]}</p>
                     <p><strong>Colaborador:</strong> {colaboradores[selectedCita.idColaborador]}</p>
-                    <p><strong>Fecha:</strong> {new Date(selectedCita.fecha).toLocaleDateString()}</p>
+                    <p><strong>Fecha:</strong> {selectedCita.fecha}</p>
                     <p><strong>Hora:</strong> {selectedCita.hora}</p>
                     <p><strong>Paquete:</strong> {paquetes[selectedCita.idPaquete]}</p>
                     <p><strong>Detalle:</strong> {selectedCita.detalle || "N/A"}</p>
-                    <p><strong>Motivo:</strong> {selectedCita.idMotivo !== null ? motivos[selectedCita.idMotivo] : "N/A"}</p>
-                    <p><strong>Estado:</strong> {selectedCita.estado}</p>
                   </div>
                 )}
               </ModalBody>
