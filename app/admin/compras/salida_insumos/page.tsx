@@ -76,6 +76,7 @@ export default function InsumosPage() {
   const { isOpen: isOpenEdit, onOpen: onOpenEdit, onOpenChange: onOpenChangeEdit } = useDisclosure();
   const [selectedInsumo, setSelectedInsumo] = useState<Insumo | null>(null);
   const [motivoAnular, setMotivoAnular] = useState("");
+  const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
   const [errores, setErrores] = useState<any>({});
   const fecha = new Date();
   
@@ -95,11 +96,18 @@ export default function InsumosPage() {
           cantidad: item.cantidad,
           motivoAnular: item.motivoAnular,
         })));
-      } catch (err) {
-        console.error("Error al obtener insumos:", err);
-        setMensajeError("Error al obtener insumos. Por favor, inténtalo de nuevo.");
+      } catch (err:any) {
+        if (err.message === "Unexpected end of JSON input") {
+          setMensajeError("No hay Categoria Salida insumos registradas aún.");
+          onOpenWarning();
+        }else{
+          console.error("Error al obtener Salida insumos:", err);
+        setMensajeError("Error al obtener Salida insumos. Por favor, inténtalo de nuevo.");
         onOpenError();
+        }
+       
       }
+
     };
 
     fetchInsumos();
@@ -177,8 +185,8 @@ export default function InsumosPage() {
 
   };
   const MotivoAnular = [
-    { key: "Eleccion_de_producto_erronea", label: "Eleccion_de_producto_erronea" },
-    { key: "Cantidad_equivocada", label: "Cantidad_equivocada" },
+    { key: "Eleccion_de_producto_erronea", label: "Eleccion de producto erronea" },
+    { key: "Cantidad_equivocada", label: "Cantidad equivocada" },
 ];
 
 
@@ -197,7 +205,8 @@ const validarMotivoAnular = () => {
     
     <div>
       <h1 className={title()}>Salida de Insumos</h1>
-      <Toaster position="top-left" />
+       {/* Toaster para notificaciones */}
+       <Toaster position="bottom-right" />
 
       <div className="flex flex-col items-start sm:flex-row sm:items-center">
         <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
@@ -230,7 +239,7 @@ const validarMotivoAnular = () => {
         </div>
         <div className="basis-1/2"></div>
         <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
-          <Link href="/admin/compras/SalidaInusmos/crear">
+          <Link href="/admin/compras/salida_inusmos/crear">
             <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Insumo">
               <PlusIcon /> Crear Insumo
             </Button>
@@ -256,14 +265,9 @@ const validarMotivoAnular = () => {
                             <Ellipsis />
                           </Button>
                         </DropdownTrigger>
-                        <DropdownMenu
-                          onAction={(action) => console.log(action)}
-                        >
-                          <DropdownItem
-                            key="editar"
-                            onClick={() => handleEditClick(item)}
-                          >
-                            <Button className="bg-transparent w-full">
+                        <DropdownMenu>
+                          <DropdownItem key="editar" isDisabled={item.motivoAnular != null}>
+                            <Button className="bg-transparent w-full" onClick={() => handleEditClick(item)}>
                               <Edit />
                               Anular
                             </Button>
@@ -356,6 +360,28 @@ const validarMotivoAnular = () => {
           )}
         </ModalContent>
       </Modal>
+
+        {/* Modal para mostrar advertencias */}
+        <Modal isOpen={isOpenWarning} onOpenChange={onOpenChangeWarning}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleHelp color="gold" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">Ups...</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
       {/* Modal de edición */}
       <Modal isOpen={isOpenEdit} onOpenChange={onOpenChangeEdit}>

@@ -75,6 +75,9 @@ export default function UsuariosPage() {
   const [searchTerm, setSearchTerm] = React.useState(""); // Hook para buscar
   const [page, setPage] = React.useState(1); // Hook, dice la pagina que carga por defecto
   const { isOpen, onOpen, onOpenChange } = useDisclosure(); //Hook del modal para cambiar estado
+  const { isOpen: isOpenWarning, 
+    onOpen: onOpenWarning, 
+    onOpenChange: onOpenChangeWarning } = useDisclosure();
   const {
     isOpen: isOpenError,
     onOpen: onOpenError,
@@ -84,7 +87,15 @@ export default function UsuariosPage() {
   // Hacer Fetch para obtener usuarios y acomodarlos a conveniencia
   React.useEffect(() => {
       getWithAuth("http://localhost:8080/usuario")
-        .then((response: any) => response.json())
+        .then((response: any) => {
+          if(response.status === 204){
+            setMensajeError("No hay usuarios, ¡Crea uno nuevo!");
+            onOpenWarning()
+            return [];
+          }else{
+            return response.json();
+          }
+        })
         .then((data: any) => {
           const processedData: Usuario[] = data.map(
             (item: {
@@ -418,6 +429,29 @@ export default function UsuariosPage() {
               )}
             </ModalContent>
           </Modal>
+
+          {/* Modal para mostrar advertencias */}
+          <Modal isOpen={isOpenWarning} onOpenChange={onOpenChangeWarning}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleHelp color="gold" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">Ups...</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+
         </div>
       ) : (
         <CircularProgress color="warning" aria-label="Cargando..." />

@@ -67,7 +67,7 @@ export default function CrearPaquetePage() {
 
   // Hacer Fetch para obtener permisos y acomodarlos a conveniencia
   React.useEffect(() => {
-    getWithAuth("http://localhost:8080/servicio/servicios")
+    getWithAuth("http://localhost:8080/servicio")
       .then((response) => response.json())
       .then((data) => {
         // Procesar los datos para que coincidan con la estructura de columnas
@@ -99,7 +99,6 @@ export default function CrearPaquetePage() {
       (servicio) =>
         servicio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         servicio.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        servicio.tiempoMinutos.toLowerCase().includes(searchTerm.toLowerCase()) ||
         servicio.estado.toLowerCase().includes(searchTerm.toLowerCase()) ||
         servicio.idServicio.toString().includes(searchTerm.toLowerCase())
     );
@@ -298,13 +297,13 @@ export default function CrearPaquetePage() {
         </TableBody>
       </Table>
 
-      <div className="my-4 text-end">
-      <Link href="/admin/clientes">
-              <Button className="bg-[#894242] mr-2" type="button">
+      <div className="my-4 flex justify-end">
+      <Link href="/admin/paquetes">
+              <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
                 Cancelar
               </Button>
             </Link>
-        <Button className="bg-[#609448]" onPress={onOpen}>
+        <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" onPress={onOpen}>
           <PlusIcon />
           Crear Paquete
         </Button>
@@ -322,11 +321,11 @@ export default function CrearPaquetePage() {
                 <p>El paquete no podrá eliminarse, pero si podrá desactivarse.</p>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
+                <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onPress={onClose}>
                   Cancelar
                 </Button>
                 <Button
-                  className="bg-[#609448]"
+                  className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
                   onPress={onClose}
                   onClick={guardarPaquete}
                 >

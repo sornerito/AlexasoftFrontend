@@ -236,7 +236,7 @@ export default function ProductosEditarPage() {
       if (response.ok) {
         toast.success("Producto editado con éxito!");
         setTimeout(() => {
-          router.push("/admin/Compras/producto");
+          router.push("/admin/compras/producto");
         }, 1000);
       } else {
         const errores = await response.json();
@@ -278,7 +278,7 @@ export default function ProductosEditarPage() {
   return (
     <>
 {acceso ? (
-    <div className="container">
+    <div className="lg:mx-60">
       <h1 className={title()}>Editar Producto</h1>
       <br /><br />
 
@@ -348,7 +348,7 @@ export default function ProductosEditarPage() {
 
           </div>
           <div className="flex justify-end mt-4">
-            <Link href="/admin/Compras/producto">
+            <Link href="/admin/compras/producto">
               <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
                 Cancelar
               </Button>

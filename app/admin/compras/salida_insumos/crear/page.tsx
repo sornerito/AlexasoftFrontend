@@ -195,7 +195,7 @@ export default function CrearProductoPage() {
                    
                 </div>
                 <div className="my-4 text-end">
-                    <Link href="/admin/compras/SalidaInusmos">
+                    <Link href="/admin/compras/salida_inusmos">
                         <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
                             Cancelar
                         </Button>
