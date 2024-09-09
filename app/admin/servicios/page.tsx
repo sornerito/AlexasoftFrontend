@@ -75,11 +75,12 @@ export default function ServiciosPage() {
     onOpenChange: onOpenChangeError,
   } = useDisclosure(); //Hook de modal error
   const [mensajeError, setMensajeError] = React.useState(""); //Mensaje de error
+  const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
   const router = useRouter(); // Hook para manejar la navegación
 
   // Hacer Fetch para obtener ventas y procesar datos
   React.useEffect(() => {
-    getWithAuth("http://localhost:8080/servicio/servicios")
+    getWithAuth("http://localhost:8080/servicio")
       .then((response) => response.json())
       .then((data) => {
         // Procesar los datos para que coincidan con la estructura de columnas
@@ -97,8 +98,15 @@ export default function ServiciosPage() {
         );
         setServicios(processedData);
       })
-      .catch((err) => {
-        console.log(err.message);
+      .catch((err: any) => {
+        if (err.message === "Unexpected end of JSON input") {
+          setMensajeError("No hay Servicios registradas aún.");
+          onOpenWarning();
+        }else{
+          console.error("Error al obtener los servicios:", err);
+        setMensajeError("Error al obtener los servicios. Por favor, inténtalo de nuevo.");
+        onOpenError();
+        }
       });
   }, []);
 
@@ -116,7 +124,6 @@ export default function ServiciosPage() {
         servicio.idServicio.toString().includes(searchTerm.toLowerCase()) ||
         servicio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         servicio.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        servicio.tiempoMinutos.toLowerCase().includes(searchTerm.toLowerCase()) ||
         servicio.estado.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [servicios, searchTerm]);
@@ -182,7 +189,6 @@ export default function ServiciosPage() {
     {acceso ? (
       <div>
       <h1 className={title()}>Servicios</h1>
-
       <div className="flex flex-col items-start sm:flex-row sm:items-center">
         <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
           <Input
@@ -215,7 +221,7 @@ export default function ServiciosPage() {
         <div className="basis-1/2"></div>
         <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
           <Link href="/admin/servicios/crear">
-            <Button className="bg-[#609448]" aria-label="Crear Servicio">
+            <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Servicio">
               <PlusIcon /> Crear Servicio
             </Button>
           </Link>
@@ -364,11 +370,11 @@ export default function ServiciosPage() {
                 <h1 className=" text-3xl">¿Desea cambiar el estado del servicio?</h1>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
+                <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onPress={onClose}>
                   Cancelar
                 </Button>
                 <Button
-                  className="bg-[#609448]"
+                  className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
                   onPress={() => {
                     cambiarEstado(servicioId, estadoActual);
                     onClose();
@@ -381,6 +387,29 @@ export default function ServiciosPage() {
           )}
         </ModalContent>
       </Modal>
+
+       {/* Modal para mostrar advertencias */}
+       <Modal isOpen={isOpenWarning} onOpenChange={onOpenChangeWarning}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleHelp color="gold" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">Ups...</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+
 
       {/*Modal de error*/}
       <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>

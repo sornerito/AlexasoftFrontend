@@ -120,7 +120,7 @@ export default function PaquetesPage() {
     );
   }, [paquetes, searchTerm]);
 
-  // Distribuye los registros segun los roles filtrados (si no hay filtro muestra todos)
+  // Distribuye los registros segun los paquetes filtrados (si no hay filtro muestra todos)
   const items = React.useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
@@ -179,8 +179,6 @@ export default function PaquetesPage() {
     
 <>
 {acceso ? (
-      
-    
     <div>
       <h1 className={title()}>Paquetes</h1>
       <div className="flex flex-col items-start sm:flex-row sm:items-center">
@@ -215,7 +213,7 @@ export default function PaquetesPage() {
         <div className="basis-1/2"></div>
         <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
           <Link href="/admin/paquetes/crear">
-            <Button className="bg-[#609448]" aria-label="Crear Paquete">
+            <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Paquete">
               <PlusIcon /> Crear Paquete
             </Button>
           </Link>

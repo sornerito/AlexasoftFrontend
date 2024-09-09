@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
-    Input, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Table, TableColumn, TableHeader, TableBody, TableRow, TableCell, Select, SelectItem, CircularProgress
+    Input, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Table, TableColumn, TableHeader, TableBody, TableRow, TableCell, Select, SelectItem, CircularProgress,
+    Divider
 } from "@nextui-org/react";
 import { CircleHelp, CircleX, Link, PlusIcon } from "lucide-react";
 import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
@@ -41,6 +42,7 @@ export default function EditarServicioPage() {
     const [acceso, setAcceso] = useState<boolean>(false);
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const { isOpen: isOpenError, onOpen: onOpenError, onClose: onCloseError } = useDisclosure();
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [mensajeError, setMensajeError] = useState("");
     const [productos, setProductos] = useState<Producto[]>([]);
     const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoSeleccionado[]>([]);
@@ -53,6 +55,25 @@ export default function EditarServicioPage() {
     const [cantidad, setCantidad] = useState<number>(0);
     const [unidadMedida, setUnidadMedida] = useState("");
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5; // Número de productos por página
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = productosSeleccionados.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(productosSeleccionados.length / itemsPerPage);
+    const [nombreError, setNombreError] = useState("");
+    const [descripcionError, setDescripcionError] = useState("");
+    const [tiempoMinutosError, setTiempoMinutosError] = useState("");
+    const [cantidadError, setCantidadError] = useState("");
+
+    const [isFormValid, setIsFormValid] = useState(false);
+
+    const handlePageChange = (pageNumber: number) => {
+        setCurrentPage(pageNumber);
+    };
+
+
     const unidadesMedida = [
         { key: "ml", label: "ml" },
         { key: "g", label: "g" },
@@ -61,6 +82,8 @@ export default function EditarServicioPage() {
     const router = useRouter();
     const { idServicio } = useParams();
     const [isLoading, setIsLoading] = useState(true);
+
+
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -88,7 +111,7 @@ export default function EditarServicioPage() {
 
     const fetchServicio = async (idServicio: string) => {
         try {
-            const response = await getWithAuth(`http://localhost:8080/servicio/servicio/${idServicio}`);
+            const response = await getWithAuth(`http://localhost:8080/servicio/${idServicio}`);
             if (response.ok) {
                 const data = await response.json();
                 setNombre(data.servicios.nombre);
@@ -132,8 +155,38 @@ export default function EditarServicioPage() {
         }
     };
 
+    useEffect(() => {
+        validarNombre(nombre);
+        validarDescripcion(descripcion);
+        validarTiempo(tiempoMinutos);
+        validarCantidad(cantidad, unidadMedida);
+
+        // Si no hay errores, habilitar el botón de Guardar
+        setIsFormValid(!nombreError && !descripcionError && !tiempoMinutosError && !cantidadError);
+    }, [nombre, descripcion, tiempoMinutos, cantidad, nombreError, descripcionError, tiempoMinutosError, cantidadError]);
+
+
     const agregarProducto = () => {
+        const error = validarCantidad(cantidad, unidadMedida);
+
+        if (error) {
+            setCantidadError(error);  // Show the validation error message
+            return;  // Stop execution if there is an error
+        }
+
         if (productoSeleccionado && cantidad > 0 && unidadMedida) {
+            // Asegurarse de no duplicar productos seleccionados
+            const productoExiste = productosSeleccionados.find(
+                (p) => p.idProducto === productoSeleccionado.idProducto
+            );
+
+            if (productoExiste) {
+                setMensajeError("El producto ya ha sido agregado.");
+                onOpenError();
+                return;
+            }
+
+            // Mantener los productos ya seleccionados
             setProductosSeleccionados((prevProductosSeleccionados) => [
                 ...prevProductosSeleccionados,
                 { ...productoSeleccionado, cantidad, unidadMedida },
@@ -141,6 +194,7 @@ export default function EditarServicioPage() {
             setProductoSeleccionado(null);
             setCantidad(0);
             setUnidadMedida("");
+            setCantidadError("");  
         } else {
             setMensajeError("Seleccione un producto y complete todos los campos necesarios.");
             onOpenError();
@@ -151,175 +205,206 @@ export default function EditarServicioPage() {
         setProductosSeleccionados(productosSeleccionados.filter((_, i) => i !== index));
     };
 
+    const confirmarActualizacion = () => {
+        setIsConfirmModalOpen(true); // Abrir el modal de confirmación
+    };
+
     const actualizarServicio = async () => {
+        if (isFormValid) {
+            try {
+                const servicioActualizado = {
+                    idServicio: idServicio,
+                    nombre,
+                    descripcion,
+                    tiempoMinutos,
+                    estado: "Activo",
+                };
 
+                const productosId = productosSeleccionados.map((producto) => producto.idProducto);
+                const cantidad = productosSeleccionados.map((producto) => producto.cantidad);
+                const unidadMedida = productosSeleccionados.map((producto) => producto.unidadMedida);
 
-        try {
-            const servicioActualizado = {
-                idServicio: idServicio,
-                nombre,
-                descripcion,
-                tiempoMinutos,
-                estado: "Activo",
-            };
+                console.log("Servicio Actualizado:", servicioActualizado);
+                console.log("Productos Id:", productosId);
+                console.log("Cantidad:", cantidad);
+                console.log("Unidad de Medida:", unidadMedida);
 
-            const productosId = productosSeleccionados.map((producto) => producto.idProducto);
-            const cantidad = productosSeleccionados.map((producto) => producto.cantidad);
-            const unidadMedida = productosSeleccionados.map((producto) => producto.unidadMedida);
+                const response = await postWithAuth(`http://localhost:8080/servicio/${idServicio}`, {
+                    servicio: servicioActualizado,
+                    productosId,
+                    cantidad,
+                    unidadMedida
+                });
 
-            console.log("Servicio Actualizado:", servicioActualizado);
-            console.log("Productos Id:", productosId);
-            console.log("Cantidad:", cantidad);
-            console.log("Unidad de Medida:", unidadMedida);
-
-            const response = await postWithAuth(`http://localhost:8080/servicio/servicio/${idServicio}`, {
-                servicio: servicioActualizado,
-                productosId,
-                cantidad,
-                unidadMedida
-            });
-
-            if (response.ok) {
-                router.push("/admin/servicios");
-            } else {
-                const errorData = await response.json();
-                setMensajeError(errorData.message || "Error al actualizar el servicio");
+                if (response.ok) {
+                    setIsConfirmModalOpen(false); // Cerrar el modal
+                    router.push("/admin/servicios");
+                } else {
+                    const errorData = await response.json();
+                    setMensajeError(errorData.message || "Error al actualizar el servicio");
+                    onOpenError();
+                }
+            } catch (error) {
+                setMensajeError("Error en la comunicación con el servidor");
                 onOpenError();
             }
-        } catch (error) {
-            setMensajeError("Error en la comunicación con el servidor");
-            onOpenError();
         }
     };
 
-    const errors = React.useMemo(() => {
-        return {
+    const cerrarConfirmacion = () => {
+        setIsConfirmModalOpen(false); // Cerrar el modal de confirmación
+    };
 
+    const caracteresValidos = /^[a-zA-Z0-9\s]*$/;
 
-        };
-    }, [nombre, descripcion, tiempoMinutos]);
+    const validarNombre = (value: string) => {
 
-    const handleChangeNombre = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        switch (name) {
-            case "nombre":
-                setNombre(value);
-                break;
+        if (!caracteresValidos.test(nombre)) {
+            return "El nombre no puede contener caracteres especiales.";
+        }
+        else if (!value) {
+            setNombreError("El nombre no puede estar vacío.");
+        } else if (value.length < 5) {
+            setNombreError("El nombre debe tener al menos 5 caracteres.");
+        } else {
+            setNombreError(""); // Sin errores
         }
     };
 
-    const handleChangeDescripcion = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        switch (name) {
-            case "descripcion":
-                setDescripcion(value);
-                break;
+    const validarDescripcion = (value: string) => {
+
+        if (!caracteresValidos.test(descripcion)) {
+            return "La descripcion no puede contener caracteres especiales";
+        }
+        else if (!value) {
+            setDescripcionError("La descripción no puede estar vacía.");
+        } else if (value.length < 10) {
+            setDescripcionError("La descripción debe tener al menos 10 caracteres.");
+        } else {
+            setDescripcionError(""); // Sin errores
         }
     };
 
-    const handleChangeTiempoMinutos = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        switch (name) {
-            case "tiempoMinutos":
-                setTiempoMinutos(value);
-                break;
+    const validarTiempo = (value: string) => {
+        const tiempo = parseInt(value);
+        if (!value) {
+            setTiempoMinutosError("El tiempo en minutos no puede estar vacío.");
+        } else if (isNaN(tiempo) || tiempo < 10) {
+            setTiempoMinutosError("El tiempo debe ser al menos de 10 minutos.");
+        } else if (tiempo > 120) {
+            setTiempoMinutosError("El tiempo no puede exceder de 120 minutos (2 horas).");
+        } else {
+            setTiempoMinutosError(""); // Sin errores
         }
     };
 
+    const validarCantidad = (cantidad: number, unidadMedida: string) => {
+        if (!cantidad) {
+            return "La cantidad no puede estar vacía.";
+        }
+
+        if (unidadMedida === "g") {
+            if (cantidad < 100) {
+                return "La cantidad mínima en gramos es 100g.";
+            } else if (cantidad > 10000) {
+                return "La cantidad máxima en gramos es 10000g.";
+            }
+        } else if (unidadMedida === "ml") {
+            if (cantidad < 1000) {
+                return "La cantidad mínima en mililitros es 1000ml.";
+            } else if (cantidad > 10000) {
+                return "La cantidad máxima en mililitros es 10000ml.";
+            }
+        } else {
+            return "Seleccione una unidad de medida válida.";
+        }
+
+        return ""; // Si no hay errores, retornar cadena vacía.
+    };
+
+    const cancelarEdicion = () => {
+        window.location.href = '/admin/servicios';
+    };
 
     return (
         <>
             {acceso ? (
-                <div className="flex flex-col lg:flex-row lg:mx-60 gap-4">
-                    <div className="w-full lg:w-1/2 pr-4">
-                        <h1 className="text-2xl font-bold mb-4">Editar Servicio</h1>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <Input
-                                isRequired
-                                type="text"
-                                label="Nombre"
-                                variant="bordered"
-                                value={nombre}
-                                onChange={handleChangeNombre}
-                                name="nombre"
-                                className="w-full"
-                            />
-                            <Input
-                                isRequired
-                                type="number"
-                                label="Tiempo en minutos"
-                                variant="bordered"
-                                value={tiempoMinutos}
-                                onChange={handleChangeTiempoMinutos}
-                                name="tiempoMinutos"
-                                className="w-full"
-                            />
-                            <div className="col-span-2">
+                <div className="mx-auto w-full lg:w-3/5 space-y-8">
+                    {/* Sección de Campos de Servicio */}
+                    <div className="p-6 shadow-md rounded-lg">
+                        <h1 className="text-2xl font-bold mb-6">Editar Servicio</h1>
+                        <div className="grid gap-6">
+                            <div>
+                                <Input
+                                    isRequired
+                                    type="text"
+                                    label="Nombre"
+                                    variant="bordered"
+                                    value={nombre}
+                                    errorMessage={nombreError}
+                                    onValueChange={(value) => {
+                                        setNombre(value);
+                                        validarNombre(value);  // Validar mientras el usuario escribe
+                                    }}
+                                    className="w-full"
+                                />
+                                {nombreError && <span className="text-red-500">{nombreError}</span>}
+                            </div>
+                            <div>
+                                <Input
+                                    isRequired
+                                    type="number"
+                                    label="Tiempo en minutos"
+                                    variant="bordered"
+                                    value={tiempoMinutos}
+                                    errorMessage={tiempoMinutosError}
+                                    onValueChange={(value) => {
+                                        setTiempoMinutos(value);
+                                        validarTiempo(value);  // Validar mientras el usuario escribe
+                                    }}
+                                    className="w-full"
+                                />
+                                {tiempoMinutosError && <span className="text-red-500">{tiempoMinutosError}</span>}
+                            </div>
+                            <div>
                                 <Input
                                     isRequired
                                     type="text"
                                     label="Descripción"
                                     variant="bordered"
                                     value={descripcion}
-                                    onChange={handleChangeDescripcion}
-                                    name="descripcion"
-                                    className="w-full h-32"
+                                    errorMessage={descripcionError}
+                                    onValueChange={(value) => {
+                                        setDescripcion(value);
+                                        validarDescripcion(value);  // Validar mientras el usuario escribe
+                                    }}
+                                    className="w-full"
                                 />
-                            </div>
-                            <div className="col-span-2">
-                                <h2 className="text-xl font-semibold mb-2">Seleccionar Producto</h2>
-                                <div className="flex flex-col gap-4">
-                                    <div className="max-h-64 overflow-y-auto">
-                                        {productos.map((producto) => (
-                                            <div key={producto.idProducto} className="flex justify-between items-center mb-2">
-                                                <span>{producto.nombre}</span>
-                                                <Button size="sm" onPress={() => setProductoSeleccionado(producto)}>
-                                                    Seleccionar
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    {productoSeleccionado && (
-                                        <div className="flex flex-col gap-4">
-                                            <div>
-                                                <span className="block font-semibold">Producto Seleccionado:</span>
-                                                <span>{productoSeleccionado.nombre}</span>
-                                            </div>
-                                            <div className="flex gap-4">
-                                                <Input
-                                                    isRequired
-                                                    type="number"
-                                                    label="Cantidad"
-                                                    variant="bordered"
-                                                    value={cantidad.toString()}
-                                                    onValueChange={(value) => setCantidad(parseInt(value))}
-                                                />
-                                                <Select
-                                                    label="Unidad de medida"
-                                                    placeholder="Seleccione una unidad"
-                                                    value={unidadMedida}
-                                                    onChange={(e) => setUnidadMedida(e.target.value)}
-                                                >
-                                                    {unidadesMedida.map((unidad) => (
-                                                        <SelectItem key={unidad.key} value={unidad.key}>
-                                                            {unidad.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </Select>
-                                            </div>
-                                            <Button onPress={agregarProducto}>Agregar Producto</Button>
-                                        </div>
-                                    )}
-                                </div>
+                                {descripcionError && <span className="text-red-500">{descripcionError}</span>}
                             </div>
                         </div>
                     </div>
 
-                    <div className="w-full lg:w-1/2">
-                        <h2 className="text-xl font-semibold mb-2">Productos Seleccionados</h2>
-                        <Table>
+                    <Divider className="h-1 my-4" />
+                    {/* Sección de Productos Seleccionados */}
+                    <div className="p-6 shadow-md rounded-lg">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold">Productos Seleccionados</h2>
+                            <Button
+                                size="sm"
+                                className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                                startContent={<PlusIcon className="text-white" />}
+                                onClick={() => {
+                                    onOpen();
+                                    fetchProductos();
+                                }}
+                            >
+                                Agregar Producto
+                            </Button>
+                        </div>
+                        <Table aria-label="Productos seleccionados">
                             <TableHeader>
-                                <TableColumn>Nombre</TableColumn>
+                                <TableColumn>Producto</TableColumn>
                                 <TableColumn>Cantidad</TableColumn>
                                 <TableColumn>Unidad de Medida</TableColumn>
                                 <TableColumn>Acciones</TableColumn>
@@ -331,45 +416,148 @@ export default function EditarServicioPage() {
                                         <TableCell>{producto.cantidad}</TableCell>
                                         <TableCell>{producto.unidadMedida}</TableCell>
                                         <TableCell>
-                                            <Button color="danger" onPress={() => eliminarProducto(index)}>
-                                                Eliminar
+                                            <Button
+                                                size="sm"
+                                                color="danger"
+                                                variant="light"
+                                                onClick={() => eliminarProducto(index)}
+                                            >
+                                                <CircleX />
                                             </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
-                        <Button onPress={actualizarServicio} className="mt-4">
-                            Actualizar Servicio
-                        </Button>
-                        <Link href="/admin/servicios">
-                            <Button
-                                className="bg-gradient-to-tr from-red-600 to-red-300 mr-2"
-                                type="button"
-                            >
-                                Cancelar
+                        <div className="flex justify-center my-4">
+                            <Button disabled={currentPage === 1} onPress={() => handlePageChange(currentPage - 1)}>
+                                Anterior
                             </Button>
-                        </Link>
+                            <span className="mx-2">
+                                Página {currentPage} de {totalPages}
+                            </span>
+                            <Button disabled={currentPage === totalPages} onPress={() => handlePageChange(currentPage + 1)}>
+                                Siguiente
+                            </Button>
+                        </div>
                     </div>
 
-                    <Modal isOpen={isOpenError} onOpenChange={onCloseError}>
-                        <ModalContent>
-                            <ModalHeader>Error</ModalHeader>
-                            <ModalBody>
-                                {mensajeError && <p>{mensajeError}</p>}
-                            </ModalBody>
-                            <ModalFooter>
-                                <Button color="danger" onPress={onCloseError}>
-                                    Cerrar
-                                </Button>
-                            </ModalFooter>
-                        </ModalContent>
-                    </Modal>
+
+                    {/* Botones Guardar y Cancelar */}
+                    <div className="flex justify-end space-x-4">
+                        <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onClick={cancelarEdicion}>
+                            Cancelar
+                        </Button>
+                        <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" onClick={confirmarActualizacion}>
+                            Actualizar Servicio
+                        </Button>
+                    </div>
                 </div>
             ) : (
-                <CircularProgress />
+                <CircularProgress color="primary" size="lg" />
             )}
+
+            <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+                <ModalContent>
+                    <ModalHeader>Seleccionar Producto</ModalHeader>
+                    <div>
+                        <span className="block font-semibold">Producto Seleccionado:</span>
+                        <span>{productoSeleccionado?.nombre}</span>
+                    </div>
+                    <ModalBody>
+                        <Select
+                            placeholder="Selecciona un producto"
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                const producto = productos.find((producto) => producto.idProducto.toString() === value);
+                                if (producto) {
+                                    setProductoSeleccionado(producto);
+                                }
+                            }}
+                        >
+                            {productos.map((producto) => (
+                                <SelectItem key={producto.idProducto} value={producto.idProducto.toString()}>
+                                    {producto.nombre}
+                                </SelectItem>
+                            ))}
+                        </Select>
+                        <Input
+                            type="number"
+                            label="Cantidad"
+                            value={cantidad.toString()}
+                            errorMessage={cantidadError}
+                            onValueChange={(value) => {
+                                setCantidad(Number(value));
+                                setCantidadError(validarCantidad(Number(value), unidadMedida));
+                            }}
+                            className="mt-4"
+                        />
+                        {cantidadError && <span className="text-red-500">{cantidadError}</span>}
+                        <Select
+                            label="Unidad de Medida"
+                            placeholder="Selecciona la unidad de medida"
+                            value={unidadMedida}
+                            onChange={(e) => setUnidadMedida(e.target.value)}
+                            className="mt-4"
+                        >
+                            {unidadesMedida.map((unidad) => (
+                                <SelectItem key={unidad.key} value={unidad.key}>
+                                    {unidad.label}
+                                </SelectItem>
+                            ))}
+                        </Select>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" onClick={() => onOpenChange()}>Cancelar</Button>
+                        <Button onClick={() => {
+                            agregarProducto();
+                            onOpenChange();
+                        }}>
+                            Agregar Producto
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            {/* Modal de Confirmación */}
+            <Modal isOpen={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
+                <ModalContent>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader className="flex flex-col gap-1 items-center">
+                                <CircleHelp color="#fef08a" size={100} />
+                            </ModalHeader>
+                            <ModalBody className="text-center">
+                                <h1 className=" text-3xl">¿Desea actualizar el servicio?</h1>
+                                <p>Esta acción actualizará la información del servicio.</p>
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onClick={cerrarConfirmacion}>
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                                    onClick={actualizarServicio}
+                                >
+                                    Actualizar Servicio
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
+
+            <Modal isOpen={isOpenError} onClose={onCloseError}>
+                <ModalContent>
+                    <ModalHeader>Error</ModalHeader>
+                    <ModalBody>
+                        <p>{mensajeError}</p>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button onClick={onCloseError}>Cerrar</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </>
     );
 }
-;

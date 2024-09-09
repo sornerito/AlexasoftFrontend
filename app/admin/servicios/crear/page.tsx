@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Input, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Table, TableColumn, TableHeader, TableBody, TableRow, TableCell, Select, SelectItem, CircularProgress } from "@nextui-org/react";
+import { Input, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Table, TableColumn, TableHeader, TableBody, TableRow, TableCell, Select, SelectItem, CircularProgress, Divider } from "@nextui-org/react";
 import { CircleHelp, CircleX, Link, PlusIcon } from "lucide-react";
 import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
 import { validarCampoString, validarDescripcionModal, validarTiempoModal, validarCantidadModal } from "@/config/validaciones2";
@@ -51,6 +51,9 @@ export default function CrearServicioPage() {
     const [productos, setProductos] = useState<Producto[]>([]);
     const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoSeleccionado[]>([]);
 
+    // Modal de confirmación
+    const { isOpen: isOpenConfirm, onOpen: onOpenConfirm, onClose: onCloseConfirm } = useDisclosure();
+
     // Datos del formulario
     const [nombre, setNombre] = useState("");
     const [descripcion, setDescripcion] = useState("");
@@ -58,6 +61,7 @@ export default function CrearServicioPage() {
     const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
     const [cantidad, setCantidad] = useState<number>(0);
     const [unidadMedida, setUnidadMedida] = useState("");
+    const [cantidadError, setCantidadError] = useState("");
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5; // Número de productos por página
@@ -71,6 +75,8 @@ export default function CrearServicioPage() {
         setCurrentPage(pageNumber);
     };
 
+    const [isLoading, setIsLoading] = useState(true);
+
     // Unidades de medida disponibles
     const unidadesMedida = [
         { key: "ml", label: "ml" },
@@ -80,25 +86,37 @@ export default function CrearServicioPage() {
     const router = useRouter();
 
     useEffect(() => {
-        const fetchProductos = async () => {
+        const fetchData = async () => {
             try {
-                const response = await getWithAuth("http://localhost:8080/compras/productos");
-                if (response.ok) {
-                    const data = await response.json();
-                    setProductos(data);
-                } else {
-                    const errorData = await response.json();
-                    setMensajeError(errorData.error || "Hubo un problema al obtener los productos.");
-                    onOpenError();
-                }
+                setIsLoading(true);
+                await Promise.all([fetchProductos()]);
             } catch (error) {
-                setMensajeError("Error en la comunicación con el servidor");
-                onOpenError();
+                console.error("Error al obtener datos:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
-        fetchProductos();
-    }, []);
+        fetchData();
+    },);
+
+
+    const fetchProductos = async () => {
+        try {
+            const response = await getWithAuth("http://localhost:8080/compras/productos");
+            if (response.ok) {
+                const data = await response.json();
+                setProductos(data);
+            } else {
+                const errorData = await response.json();
+                setMensajeError(errorData.error || "Hubo un problema al obtener los productos.");
+                onOpenError();
+            }
+        } catch (error) {
+            setMensajeError("Error en la comunicación con el servidor");
+            onOpenError();
+        }
+    };
 
 
     // Función para agregar un producto
@@ -122,12 +140,17 @@ export default function CrearServicioPage() {
     };
 
 
-    // Función de validación y envío del formulario
-    const guardarServicio = async () => {
+    const confirmarGuardarServicio = () => {
         const errorNombre = validarCampoString(nombre, "Nombre del servicio");
         const errorDescripcion = validarDescripcionModal(descripcion);
         const errorTiempoMinutos = validarTiempoModal(tiempoMinutos);
-        const errorCantidad = validarCantidad(cantidad);
+        const cantidadError = validarCantidad(cantidad, unidadMedida);
+
+        if (cantidadError) {
+            setCantidadError(cantidadError);
+            onOpenError(); // Mostrar el error en un modal o donde prefieras
+            return;
+        }
 
         if (errorNombre != "") {
             setMensajeError(errorNombre);
@@ -145,6 +168,11 @@ export default function CrearServicioPage() {
             return;
         }
 
+        onOpenConfirm(); // Abrir modal de confirmación
+    };
+
+    // Función de validación y envío del formulario
+    const guardarServicio = async () => {
 
         try {
             const nuevoServicio: Servicio = {
@@ -160,9 +188,9 @@ export default function CrearServicioPage() {
             const productosId = productosSeleccionados.map(producto => producto.idProducto).filter(id => id != null);
             const cantidad = productosSeleccionados.map(producto => producto.cantidad);
             const unidadMedida = productosSeleccionados.map(producto => producto.unidadMedida);
-            
 
-            const response = await postWithAuth("http://localhost:8080/servicio/servicio", {
+
+            const response = await postWithAuth("http://localhost:8080/servicio", {
                 servicio: nuevoServicio,
                 productosId,
                 cantidad,
@@ -186,16 +214,27 @@ export default function CrearServicioPage() {
 
     };
 
-    // Validación en tiempo real
+    // Expresión regular para validar caracteres permitidos (alfanuméricos y espacios)
+    const caracteresValidos = /^[a-zA-Z0-9\s]*$/;
+
+    // Validación en tiempo real para el nombre
     const validarNombre = (nombre: any) => {
+        // Verificar si hay caracteres especiales
+        if (!caracteresValidos.test(nombre)) {
+            return "El nombre no puede contener caracteres especiales.";
+        }
         if (validarCampoString(nombre, "Nombre") != "") {
             return false;
         }
         return nombre.length >= 5;
     };
 
-
+    // Validación en tiempo real para la descripción
     const validarDescripcion = (descripcion: any) => {
+        // Verificar si hay caracteres especiales
+        if (!caracteresValidos.test(descripcion)) {
+            return "La descripción no puede contener caracteres especiales.";
+        }
         if (validarDescripcionModal(descripcion) != "") {
             return false;
         }
@@ -212,11 +251,28 @@ export default function CrearServicioPage() {
         return !isNaN(tiempoNumerico) && tiempoNumerico > 0 && tiempoNumerico <= 300; // Max 5 hours (300 minutes)
     };
 
-    const validarCantidad = (cantidad: any) => {
-        if (validarDescripcionModal(cantidad) != "") {
-            return false;
+    const validarCantidad = (cantidad: number, unidadMedida: string) => {
+        if (!cantidad) {
+            return "La cantidad no puede estar vacía.";
         }
-        return descripcion.length >= 0;
+
+        if (unidadMedida === "g") {
+            if (cantidad < 100) {
+                return "La cantidad mínima en gramos es 100g.";
+            } else if (cantidad > 10000) {
+                return "La cantidad máxima en gramos es 10000g.";
+            }
+        } else if (unidadMedida === "ml") {
+            if (cantidad < 1000) {
+                return "La cantidad mínima en mililitros es 1000ml.";
+            } else if (cantidad > 10000) {
+                return "La cantidad máxima en mililitros es 10000ml.";
+            }
+        } else {
+            return "Seleccione una unidad de medida válida.";
+        }
+
+        return ""; // Si no hay errores, retornar cadena vacía.
     };
 
 
@@ -234,17 +290,23 @@ export default function CrearServicioPage() {
 
 
     // Componente principal
+    const cancelarEdicion = () => {
+        window.location.href = '/admin/servicios';
+    };
+
     return (
         <>
             {acceso ? (
-                <div className="flex flex-col lg:flex-row lg:mx-60 gap-4">
-                    <div className="w-full lg:w-1/2 pr-4">
-                        <h1 className="text-2xl font-bold mb-4">Crear Servicio</h1>
-                        <div className="grid gap-4 sm:grid-cols-2">
+                <div className="mx-auto w-full lg:w-3/5 space-y-8">
+                    {/* Sección de Campos de Servicio */}
+                    <div className="p-6 shadow-md rounded-lg">
+                        <h1 className="text-2xl font-bold mb-6">Crear Servicio</h1>
+                        <div className="grid gap-6">
                             <Input
                                 isRequired
                                 type="text"
                                 label="Nombre"
+                                pattern="[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+"
                                 variant="bordered"
                                 value={nombre}
                                 isInvalid={errors.nombre}
@@ -270,131 +332,167 @@ export default function CrearServicioPage() {
                                     isRequired
                                     type="text"
                                     label="Descripción"
+                                    pattern="[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+"
                                     variant="bordered"
                                     value={descripcion}
                                     isInvalid={errors.descripcion}
                                     color={errors.descripcion ? "danger" : "default"}
-                                    errorMessage={errors.descripcion}
+                                    errorMessage="La descripcion debe tener al menos 10 caracteres, no puede contener números ni caracteres especiales"
                                     onValueChange={setDescripcion}
                                     className="w-full h-32" // Aumenta la altura del campo
                                 />
                             </div>
-                            <div className="col-span-2">
-                                <h2 className="text-xl font-semibold mb-2">Seleccionar Producto</h2>
-                                <div className="flex flex-col gap-4">
-                                    <div className="max-h-64 overflow-y-auto">
-                                        {productos.map((producto) => (
-                                            <div key={producto.idProducto} className="flex justify-between items-center border-b py-2">
-                                                <span className="text-lg">{producto.nombre}</span>
-                                                <Button
-                                                    onPress={() => setProductoSeleccionado(producto)}
-                                                    color={productoSeleccionado?.idProducto === producto.idProducto ? "primary" : "default"}
-                                                    className="ml-2"
-                                                >
-                                                    Seleccionar
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    {productoSeleccionado && (
-                                        <div className="flex flex-col gap-4">
-                                            <Input
-                                                isRequired
-                                                type="number"
-                                                label="Cantidad"
-                                                variant="bordered"
-                                                value={cantidad.toString()} // Convertir a string
-                                                onValueChange={(value) => setCantidad(parseInt(value, 10) || 0)}
-                                                className="w-full h-12" // Aumenta la altura del campo
-                                            />
-                                            <Select
-                                                isRequired
-                                                name="UnidadMedida"
-                                                label="Unidad de Medida"
-                                                variant="bordered"
-                                                value={unidadMedida}
-                                                onChange={(e) => setUnidadMedida(e.target.value)}
-                                                className="w-full h-12" // Aumenta la altura del campo
-                                            >
-                                                {unidadesMedida.map((tipo) => (
-                                                    <SelectItem key={tipo.key} value={tipo.key}>
-                                                        {tipo.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </Select>
-                                            <Button color="warning" variant="light" onPress={agregarProducto} className="w-full">
-                                                Agregar Producto
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
                         </div>
                     </div>
 
-                    {/* Tabla de productos seleccionados con paginación */}
-
-                    <div className="w-full lg:w-1/2 pl-4">
-                        <h2 className="text-xl font-semibold mb-2">Productos Seleccionados</h2>
-                        <Table aria-label="Tabla de productos seleccionados" className="min-w-full">
+                    <Divider className="h-1 my-4" />
+                    {/* Sección de Productos Seleccionados */}
+                    <div className="p-6 shadow-md rounded-lg">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold">Productos Seleccionados</h2>
+                            <Button
+                                size="sm"
+                                className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                                startContent={<PlusIcon className="text-white" />}
+                                onClick={() => {
+                                    onOpen();
+                                    fetchProductos();
+                                }}
+                            >
+                                Agregar Producto
+                            </Button>
+                        </div>
+                        <Table aria-label="Productos seleccionados">
                             <TableHeader>
                                 <TableColumn>Producto</TableColumn>
                                 <TableColumn>Cantidad</TableColumn>
-                                <TableColumn>Unidad</TableColumn>
+                                <TableColumn>Unidad de Medida</TableColumn>
                                 <TableColumn>Acciones</TableColumn>
                             </TableHeader>
                             <TableBody>
-                                {currentItems.map((producto, index) => (
+                                {productosSeleccionados.map((producto, index) => (
                                     <TableRow key={index}>
                                         <TableCell>{producto.nombre}</TableCell>
                                         <TableCell>{producto.cantidad}</TableCell>
                                         <TableCell>{producto.unidadMedida}</TableCell>
                                         <TableCell>
-                                            <Button color="danger" variant="light" onPress={() => eliminarProducto(index + indexOfFirstItem)}>
-                                                Eliminar
+                                            <Button
+                                                size="sm"
+                                                color="danger"
+                                                variant="light"
+                                                onClick={() => eliminarProducto(index)}
+                                            >
+                                                <CircleX />
                                             </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
-
-                        <div className="flex justify-center my-4">
-                            <Button disabled={currentPage === 1} onPress={() => handlePageChange(currentPage - 1)}>
+                        <div className="flex justify-center my-4 ">
+                            <Button disabled={currentPage === 1} onPress={() => handlePageChange(currentPage - 1)} color="primary">
                                 Anterior
                             </Button>
                             <span className="mx-2">
                                 Página {currentPage} de {totalPages}
                             </span>
-                            <Button disabled={currentPage === totalPages} onPress={() => handlePageChange(currentPage + 1)}>
+                            <Button disabled={currentPage === totalPages} onPress={() => handlePageChange(currentPage + 1)} color="primary">
                                 Siguiente
                             </Button>
                         </div>
                     </div>
+
+
+                    {/* Botones Guardar y Cancelar */}
+                    <div className="flex justify-end space-x-4">
+                        <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onClick={cancelarEdicion}>
+                            Cancelar
+                        </Button>
+                        <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" onClick={confirmarGuardarServicio}>
+                            Crear Servicio
+                        </Button>
+                    </div>
                 </div>
             ) : (
-                <CircularProgress color="warning" aria-label="Cargando..." />
+                <CircularProgress color="primary" size="lg" />
             )}
 
-            <div className="mt-6 flex justify-end">
-                <Link href="/admin/servicios">
-                    <Button
-                        className="bg-gradient-to-tr from-red-600 to-red-300 mr-2"
-                        type="button"
-                    >
-                        Cancelar
-                    </Button>
-                </Link>
-                <Button
-                    className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-                    onPress={onOpen}
-                >
-                    <PlusIcon />
-                    Crear Usuario
-                </Button>
-            </div>
-
             <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+                <ModalContent>
+                    <ModalHeader>Seleccionar Producto</ModalHeader>
+                    <div>
+                        <span className="block font-semibold">Producto Seleccionado:</span>
+                        <span>{productoSeleccionado?.nombre}</span>
+                    </div>
+                    <ModalBody>
+                        <Select
+                            placeholder="Selecciona un producto"
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                const producto = productos.find((producto) => producto.idProducto.toString() === value);
+                                if (producto) {
+                                    setProductoSeleccionado(producto);
+                                }
+                            }}
+                        >
+                            {productos.map((producto) => (
+                                <SelectItem key={producto.idProducto} value={producto.idProducto.toString()}>
+                                    {producto.nombre}
+                                </SelectItem>
+                            ))}
+                        </Select>
+                        <Input
+                            type="number"
+                            label="Cantidad"
+                            value={cantidad.toString()}
+                            errorMessage={cantidadError}
+                            onValueChange={(value) => {
+                                setCantidad(Number(value));
+                                setCantidadError(validarCantidad(Number(value), unidadMedida));
+                            }}
+                            className="mt-4"
+                        />
+                        {cantidadError && <span className="text-red-500">{cantidadError}</span>}
+                        <Select
+                            label="Unidad de Medida"
+                            placeholder="Selecciona la unidad de medida"
+                            value={unidadMedida}
+                            onChange={(e) => setUnidadMedida(e.target.value)}
+                            className="mt-4"
+                        >
+                            {unidadesMedida.map((unidad) => (
+                                <SelectItem key={unidad.key} value={unidad.key}>
+                                    {unidad.label}
+                                </SelectItem>
+                            ))}
+                        </Select>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" onClick={() => onOpenChange()}>Cancelar</Button>
+                        <Button onClick={() => {
+                            agregarProducto();
+                            onOpenChange();
+                        }}>
+                            Agregar Producto
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            <Modal isOpen={isOpenError} onClose={onCloseError}>
+                <ModalContent>
+                    <ModalHeader>Error</ModalHeader>
+                    <ModalBody>
+                        <p>{mensajeError}</p>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button onClick={onCloseError}>Cerrar</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            {/* Modal de confirmación */}
+            <Modal isOpen={isOpenConfirm} onOpenChange={onCloseConfirm}>
                 <ModalContent>
                     {(onClose) => (
                         <>
@@ -402,42 +500,23 @@ export default function CrearServicioPage() {
                                 <CircleHelp color="#fef08a" size={100} />
                             </ModalHeader>
                             <ModalBody className="text-center">
-                                <h1 className=" text-3xl">¿Desea crear el servicio?</h1>
-                                <p>El servicio se creará con la información proporcionada.</p>
+                                <h1 className="text-3xl">¿Desea crear el servicio?</h1>
+                                <p>El servicio no podrá eliminarse, pero podrá desactivarse.</p>
                             </ModalBody>
                             <ModalFooter>
-                                <Button color="danger" variant="light" onPress={onClose}>
+                                <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onPress={onClose}>
                                     Cancelar
                                 </Button>
                                 <Button
-                                    color="warning"
-                                    variant="light"
-                                    onPress={() => {
-                                        guardarServicio();
-                                        onClose(); // Cierra el modal después de guardar el servicio
-                                    }}
+                                    className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                                    onPress={onClose}
+                                    onClick={() => { guardarServicio(); onClose(); }}
                                 >
                                     Crear
                                 </Button>
                             </ModalFooter>
                         </>
                     )}
-                </ModalContent>
-            </Modal>
-            <Modal isOpen={isOpenError} onClose={onCloseError}>
-                <ModalContent>
-                    <ModalHeader className="flex flex-col gap-1 items-center">
-                        <CircleX color="#894242" size={100} />
-                    </ModalHeader>
-                    <ModalBody className="text-center">
-                        <h1 className="text-3xl font-semibold">Error</h1>
-                        <p>{mensajeError}</p>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button color="danger" variant="light" onPress={onCloseError} className="w-full">
-                            Cerrar
-                        </Button>
-                    </ModalFooter>
                 </ModalContent>
             </Modal>
         </>
