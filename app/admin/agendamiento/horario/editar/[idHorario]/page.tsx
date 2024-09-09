@@ -79,7 +79,7 @@ export default function EditarHorarioPage({
       );
       if (response.ok) {
         console.log("Horario editado exitosamente.");
-        window.location.href = "/admin/Agendamiento/horario";
+        window.location.href = "/admin/agendamiento/horario";
       } else {
         console.error("Error al editar el horario:", response.statusText);
         setMensajeError("Error al editar el horario.");

@@ -66,7 +66,7 @@ export default function EditarMotivosPage({
       const response = await postWithAuth(`http://localhost:8080/motivocancelacion/${params.idMotivo}`, motivoActualizado);
       if (response.ok) {
         console.log("Motivo editado exitosamente.");
-        window.location.href = "/admin/Agendamiento/motivo";
+        window.location.href = "/admin/agendamiento/motivo";
       } else {
         console.error("Error al editar el motivo:", response.statusText);
         setMensajeError("Error al editar el motivo.");

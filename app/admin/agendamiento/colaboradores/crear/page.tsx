@@ -50,12 +50,12 @@ export default function CrearColaboradorPage() {
       estado,
       idRol,
     };
-
+    
     try {
       const response = await postWithAuth("http://localhost:8080/colaborador", nuevoColaborador);
       if (response.ok) {
         console.log("Colaborador creado exitosamente.");
-        window.location.href = "/admin/Agendamiento/colaboradores";
+        window.location.href = "/admin/agendamiento/colaboradores";
       } else {
         const errorData = await response.json();
         console.error("Error al crear el colaborador:", errorData.message);

@@ -1,6 +1,6 @@
 "use client";
-import { title } from "@/components/primitives";
 import React, { useState, useEffect } from "react";
+import { title } from "@/components/primitives";
 import {
   Input,
   Button,
@@ -11,8 +11,10 @@ import {
   ModalFooter,
   useDisclosure,
   CircularProgress,
+  Select,
+  SelectItem,
 } from "@nextui-org/react";
-import { PlusIcon, CircleCheck, CircleX } from "lucide-react";
+import { PlusIcon, CircleHelp, CircleX } from "lucide-react";
 import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
 
 interface Colaborador {
@@ -25,7 +27,6 @@ interface Cita {
   idCliente: number;
   idColaborador: number;
   idPaquete: number;
-  idHorario: number;
   fecha: string;
   hora: string;
   detalle: string | null;
@@ -33,99 +34,114 @@ interface Cita {
 }
 
 export default function CrearCitaPage() {
-  //Valida permiso
-  const [acceso, setAcceso] = React.useState<boolean>(false);
-  React.useEffect(() => {
-    if(typeof window !== "undefined"){
-    if(verificarAccesoPorPermiso("Gestionar Agendamiento") == false){
-      window.location.href = "../../../../acceso/noAcceso"
+  // Valida permiso
+  const [acceso, setAcceso] = useState<boolean>(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (verificarAccesoPorPermiso("Gestionar Agendamiento") === false) {
+        window.location.href = "../../../../acceso/noAcceso";
+      }
+      setAcceso(verificarAccesoPorPermiso("Gestionar Agendamiento"));
     }
-    setAcceso(verificarAccesoPorPermiso("Gestionar Agendamiento"));
-  }
   }, []);
+
   const [clientes, setClientes] = useState<{ [key: number]: string }>({});
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
   const [paquetes, setPaquetes] = useState<{ [key: number]: string }>({});
-  const [horario, setHorarios] = useState<{ [key: number]: number }>({});
   const [formData, setFormData] = useState<Cita>({
     idCliente: 0,
     idColaborador: 0,
     idPaquete: 0,
-    idHorario: 0,
     fecha: "",
     hora: "",
     detalle: "",
     estado: "En_espera",
   });
-  const { isOpen: isOpenSuccess, onOpen: onOpenSuccess, onClose: onCloseSuccess } = useDisclosure();
+  const { isOpen: isOpenConfirm, onOpen: onOpenConfirm, onClose: onCloseConfirm } = useDisclosure();
   const { isOpen: isOpenError, onOpen: onOpenError, onClose: onCloseError } = useDisclosure();
   const [mensajeError, setMensajeError] = useState("");
+  const [minDate, setMinDate] = useState("");
+  const [maxDate, setMaxDate] = useState("");
+
+  // Validaciones
+  const validarCliente = () => formData.idCliente !== 0;
+  const validarColaborador = () => formData.idColaborador !== 0;
+  const validarPaquete = () => formData.idPaquete !== 0;
+  const validarFecha = () => formData.fecha !== "";
+  const validarHora = () => formData.hora !== "";
+
+  const formIsValid =
+    validarCliente() &&
+    validarColaborador() &&
+    validarPaquete() &&
+    validarFecha() &&
+    validarHora();
 
   useEffect(() => {
-    // Fetch clients, collaborators, packages and reasons
+    // Fetch clientes, colaboradores, paquetes
     getWithAuth("http://localhost:8080/cliente")
       .then((response) => response.json())
       .then((data) => {
         const fetchedClientes: { [key: number]: string } = {};
-        data.forEach((cliente: { idCliente: number, nombre: string }) => {
+        data.forEach((cliente: { idCliente: number; nombre: string }) => {
           fetchedClientes[cliente.idCliente] = cliente.nombre;
         });
         setClientes(fetchedClientes);
       })
-      .catch((err) => {
-        console.log(err.message);
-      });
+      .catch((err) => console.log(err.message));
 
-      getWithAuth("http://localhost:8080/colaborador")
+    getWithAuth("http://localhost:8080/colaborador")
       .then((response) => response.json())
       .then((data) => setColaboradores(data))
-      .catch((err) => {
-        console.log(err.message);
-      });
+      .catch((err) => console.log(err.message));
 
-      getWithAuth("http://localhost:8080/servicio/paquetes")
+    getWithAuth("http://localhost:8080/servicio/paquetes")
       .then((response) => response.json())
       .then((data) => {
         const fetchedPaquetes: { [key: number]: string } = {};
-        data.forEach((item: { paquete: { idPaquete: number, nombre: string } }) => {
+        data.forEach((item: { paquete: { idPaquete: number; nombre: string } }) => {
           const { idPaquete, nombre } = item.paquete;
           fetchedPaquetes[idPaquete] = nombre;
         });
         setPaquetes(fetchedPaquetes);
       })
-      .catch((err) => {
-        console.log(err.message);
-      });
+      .catch((err) => console.log(err.message));
 
-      getWithAuth("http://localhost:8080/horario")
-      .then((response) => response.json())
-      .then((data) => {
-        const fetchedHorario: { [key: number]: number } = {};
-        data.forEach((horario: { idHorario: number, numeroDia: number }) => {
-          fetchedHorario[horario.idHorario] = horario.numeroDia;
-        });
-        setHorarios(fetchedHorario);
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
+    // Configurar fechas mínimas y máximas
+    const today = new Date();
+    const minDate = new Date(today);
+    minDate.setDate(today.getDate() + 3);
+    const maxDate = new Date(today);
+    maxDate.setFullYear(today.getFullYear() + 1);
+    setMinDate(minDate.toISOString().split("T")[0]);
+    setMaxDate(maxDate.toISOString().split("T")[0]);
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({ ...prevState, [name]: value }));
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (formIsValid) {
+      onOpenConfirm();
+    } else {
+      setMensajeError("Por favor, complete todos los campos correctamente.");
+      onOpenError();
+    }
+  };
 
+  const handleConfirmSubmit = async () => {
     const horaConSegundos = `${formData.hora}:00`;
 
     const datosParaEnviar = {
       idCliente: formData.idCliente,
       idColaborador: formData.idColaborador,
       idPaquete: formData.idPaquete,
-      idHorario: formData.idHorario,
       fecha: formData.fecha,
       hora: horaConSegundos,
       detalle: formData.detalle,
@@ -133,11 +149,9 @@ export default function CrearCitaPage() {
     };
 
     try {
-      const response = await postWithAuth("http://localhost:8080/cita",(datosParaEnviar));
-
+      const response = await postWithAuth("http://localhost:8080/cita", datosParaEnviar);
       if (response.ok) {
-        onOpenSuccess();
-        window.location.href = "/admin/Agendamiento/citas";
+        window.location.href = "/admin/agendamiento/citas";
       } else {
         setMensajeError("Error al crear la cita");
         onOpenError();
@@ -146,113 +160,155 @@ export default function CrearCitaPage() {
       setMensajeError("Error al enviar la solicitud");
       onOpenError();
     }
+    onCloseConfirm();
   };
 
   return (
     <>
-{acceso ? (
+      {acceso ? (
+        <div className="lg:mx-60">
+          <h1 className={title()}>Crear Cita</h1>
+          <br /> <br />
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-3 sm">
+              <Select
+                label="Cliente"
+                name="idCliente"
+                variant="bordered"
+                placeholder="Seleccione un cliente"
+                onChange={handleInputChange}
+                size="lg"
+                className="block w-full"
+                isInvalid={!validarCliente()}
+                color={!validarCliente() ? "danger" : "default"}
+                errorMessage={!validarCliente() ? "Seleccione un cliente válido." : ""}
+              >
+                {Object.entries(clientes).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </Select>
 
-    <div>
-      <h1 className={title()}>Crear Cita</h1>
-      <form onSubmit={handleSubmit}>
-        <div className="flex flex-col gap-4">
-          <label>
-            Cliente
-            <select name="idCliente" onChange={handleInputChange}>
-              <option value="">Seleccione un cliente</option>
-              {Object.entries(clientes).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Colaborador
-            <select name="idColaborador" onChange={handleInputChange}>
-              <option value="">Seleccione un colaborador</option>
-              {colaboradores.map((colaborador) => (
-                <option key={colaborador.idColaborador} value={colaborador.idColaborador}>{colaborador.nombre}</option>
-              ))}
-            </select>
-          </label>
-          <Input
-            type="date"
-            name="fecha"
-            label="Fecha"
-            placeholder="Seleccione una fecha"
-            onChange={handleInputChange}
-          />
-          <Input
-            type="time"
-            name="hora"
-            label="Hora"
-            placeholder="Seleccione una hora"
-            onChange={handleInputChange}
-          />
-          <label>
-            Horario
-            <select name="idHorario" onChange={handleInputChange}>
-              <option value="">Seleccione un Día</option>
-              {Object.entries(horario).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Paquete
-            <select name="idPaquete" onChange={handleInputChange}>
-              <option value="">Seleccione un paquete</option>
-              {Object.entries(paquetes).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-          </label>
-          <Input
-            type="text"
-            name="detalle"
-            label="Detalle"
-            placeholder="Ingrese un detalle"
-            onChange={handleInputChange}
-          />
-          <Button type="submit" className="bg-gradient-to-tr from-yellow-600 to-yellow-300">
-            <PlusIcon /> Crear Cita
-          </Button>
+              <Select
+                label="Colaborador"
+                name="idColaborador"
+                variant="bordered"
+                placeholder="Seleccione un colaborador"
+                onChange={handleInputChange}
+                size="lg"
+                className="block w-full"
+                isInvalid={!validarColaborador()}
+                color={!validarColaborador() ? "danger" : "default"}
+                errorMessage={!validarColaborador() ? "Seleccione un colaborador válido." : ""}
+              >
+                {colaboradores.map((colaborador) => (
+                  <SelectItem key={colaborador.idColaborador} value={colaborador.idColaborador}>
+                    {colaborador.nombre}
+                  </SelectItem>
+                ))}
+              </Select>
+
+              <Input
+                type="date"
+                name="fecha"
+                label="Fecha"
+                variant="bordered"
+                placeholder="Seleccione una fecha"
+                onChange={handleInputChange}
+                className="block w-full"
+                min={minDate}
+                max={maxDate}
+                isInvalid={!validarFecha()}
+                color={!validarFecha() ? "danger" : "default"}
+                errorMessage={!validarFecha() ? "Seleccione una fecha válida." : ""}
+              />
+
+              <Input
+                type="time"
+                name="hora"
+                label="Hora"
+                variant="bordered"
+                placeholder="Seleccione una hora"
+                onChange={handleInputChange}
+                className="block w-full"
+                disabled={!formData.fecha}
+                isInvalid={!validarHora()}
+                color={!validarHora() ? "danger" : "default"}
+                errorMessage={!validarHora() ? "Seleccione una hora válida." : ""}
+              />
+
+              <Select
+                label="Paquete"
+                name="idPaquete"
+                variant="bordered"
+                placeholder="Seleccione un paquete"
+                onChange={handleInputChange}
+                size="lg"
+                className="block w-full"
+                isInvalid={!validarPaquete()}
+                color={!validarPaquete() ? "danger" : "default"}
+                errorMessage={!validarPaquete() ? "Seleccione un paquete válido." : ""}
+              >
+                {Object.entries(paquetes).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </Select>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <Button
+                type="submit"
+                className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                disabled={!formIsValid}
+              >
+                Crear Cita
+              </Button>
+            </div>
+          </form>
+
+          <Modal isOpen={isOpenConfirm} onOpenChange={onCloseConfirm}>
+            <ModalContent>
+              <ModalHeader className="flex flex-col gap-1 items-center">
+                <CircleHelp color="#fef08a" size={100} />
+              </ModalHeader>
+              <ModalBody className="text-center">
+                <h1 className="text-3xl">¿Desea crear la cita?</h1>
+                <p>La cita se creará con la información proporcionada.</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" onClick={onCloseConfirm}>
+                  Cancelar
+                </Button>
+                <Button color="warning" onClick={handleConfirmSubmit}>
+                  Crear
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          <Modal isOpen={isOpenError} onOpenChange={onCloseError}>
+            <ModalContent>
+              <ModalHeader className="flex flex-col gap-1 items-center">
+                <CircleX color="#894242" size={100} />
+              </ModalHeader>
+              <ModalBody className="text-center">
+                <h1 className="text-3xl">Error</h1>
+                <p>{mensajeError}</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" onClick={onCloseError}>
+                  Cerrar
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
         </div>
-      </form>
-
-      <Modal isOpen={isOpenSuccess} onClose={onCloseSuccess}>
-        <ModalContent>
-          <ModalHeader className="flex flex-col gap-1 items-center">
-            <CircleCheck color="green" size={100} />
-          </ModalHeader>
-          <ModalBody className="text-center">
-            <h1 className="text-3xl">Cita creada</h1>
-            <p>La cita se ha creado exitosamente.</p>
-          </ModalBody>
-          <ModalFooter>
-            <Button color="success" onClick={onCloseSuccess}>Cerrar</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      <Modal isOpen={isOpenError} onClose={onCloseError}>
-        <ModalContent>
-          <ModalHeader className="flex flex-col gap-1 items-center">
-            <CircleX color="red" size={100} />
-          </ModalHeader>
-          <ModalBody className="text-center">
-            <h1 className="text-3xl">Error</h1>
-            <p>{mensajeError}</p>
-          </ModalBody>
-          <ModalFooter>
-            <Button color="danger" onClick={onCloseError}>Cerrar</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </div>
-          
-        ) :(
-          <CircularProgress color="warning" aria-label="Cargando..." />
-        )}
+      ) : (
+        <CircularProgress aria-label="Loading..." />
+      )}
     </>
   );
 }

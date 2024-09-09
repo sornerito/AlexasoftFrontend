@@ -79,10 +79,10 @@ export const siteConfig = {
     {
       categoryLabel: "Agendamiento",
       items: [
-        { label: "Citas", href: "/admin/Agendamiento/citas", permiso: "Gestionar Agendamiento" },
-        { label: "Colaboradores", href: "/admin/Agendamiento/colaboradores", permiso: "Gestionar Colaboradores" },
-        { label: "Horarios", href: "/admin/Agendamiento/horario", permiso: "Gestionar Horario" },
-        { label: "Motivos", href: "/admin/Agendamiento/motivo", permiso: "Gestionar Agendamiento" }
+        { label: "Citas", href: "/admin/agendamiento/citas", permiso: "Gestionar Agendamiento" },
+        { label: "Colaboradores", href: "/admin/agendamiento/colaboradores", permiso: "Gestionar Colaboradores" },
+        { label: "Horarios", href: "/admin/agendamiento/horario", permiso: "Gestionar Horario" },
+        { label: "Motivos", href: "/admin/agendamiento/motivo", permiso: "Gestionar Agendamiento" }
       ]
     },
     {

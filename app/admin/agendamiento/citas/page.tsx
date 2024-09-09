@@ -267,7 +267,7 @@ export default function CitasPage() {
               <Button isIconOnly className="bg-gradient-to-tr from-red-600 to-red-100" aria-label="Crear Reporte">
                 <FileBarChart2 />
               </Button>
-              <Link href="/admin/Agendamiento/citas/crear">
+              <Link href="/admin/agendamiento/citas/crear">
                 <Button className="bg-gradient-to-tr from-red-600 to-orange-300 ml-2" aria-label="Crear Cita">
                   <PlusIcon />Crear Cita
                 </Button>

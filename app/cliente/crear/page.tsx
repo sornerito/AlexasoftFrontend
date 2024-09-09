@@ -34,7 +34,7 @@ interface Cita {
 }
 
 export default function CrearCitaPage() {
-  //Valida permiso
+  // Valida permiso
   const [acceso, setAcceso] = React.useState<boolean>(false);
   React.useEffect(() => {
     if (typeof window !== "undefined") {
@@ -44,11 +44,12 @@ export default function CrearCitaPage() {
       setAcceso(verificarAccesoPorPermiso("Gestionar Cita"));
     }
   }, []);
+
   const idUsuario = typeof window !== "undefined" ? sessionStorage.getItem("idUsuario") : null;
   const idCliente = idUsuario !== null ? Number(idUsuario) : 0;
+
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
   const [paquetes, setPaquetes] = useState<{ [key: number]: string }>({});
-  const [horario, setHorarios] = useState<{ [key: number]: number }>({});
   const [formData, setFormData] = useState<Cita>({
     idCliente: idCliente,
     idColaborador: 0,
@@ -65,7 +66,7 @@ export default function CrearCitaPage() {
   const { isOpen: isOpenError, onOpen: onOpenError, onClose: onCloseError } = useDisclosure();
 
   useEffect(() => {
-    // Fetch colaboradores, paquetes, motivos
+    // Fetch colaboradores y paquetes
     getWithAuth("http://localhost:8080/colaborador")
       .then((response) => response.json())
       .then((data) => setColaboradores(data))
@@ -87,19 +88,6 @@ export default function CrearCitaPage() {
         console.log(err.message);
       });
 
-    getWithAuth("http://localhost:8080/horario")
-      .then((response) => response.json())
-      .then((data) => {
-        const fetchedHorario: { [key: number]: number } = {};
-        data.forEach((horario: { idHorario: number; numeroDia: number }) => {
-          fetchedHorario[horario.idHorario] = horario.numeroDia;
-        });
-        setHorarios(fetchedHorario);
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
-
     // Configura las fechas mínimas y máximas
     const today = new Date();
     const minDate = new Date(today);
@@ -110,30 +98,39 @@ export default function CrearCitaPage() {
     setMaxDate(maxDate.toISOString().split("T")[0]);
   }, []);
 
+  // Validaciones
+  const validarFecha = (fecha: string) => !!fecha && new Date(fecha) >= new Date(minDate) && new Date(fecha) <= new Date(maxDate);
+  const validarHora = (hora: string) => !!hora;
+  const validarPaquete = (idPaquete: number) => idPaquete !== 0;
+  const validarColaborador = (idColaborador: number) => idColaborador !== 0;
+
+  const formIsValid =
+    validarFecha(formData.fecha) &&
+    validarHora(formData.hora) &&
+    validarPaquete(formData.idPaquete) &&
+    validarColaborador(formData.idColaborador);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prevState) => {
-      const updatedFormData = { ...prevState, [name]: value };
-      console.log('FormData en handleInputChange:', updatedFormData);
-      return updatedFormData;
-    });
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
   };
-  
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const horaConSegundos = `${formData.hora}:00`;
-    console.log('Datos del formulario:', formData);
-    console.log(horaConSegundos)
-    console.log(formData)
 
-    const datosParaEnviar = {
-      ...formData,
-      hora: horaConSegundos,
-    };
+    if (!formIsValid) {
+      setMensajeError("Por favor, complete todos los campos correctamente.");
+      onOpenError();
+      return;
+    }
+
+    const horaConSegundos = `${formData.hora}:00`;
 
     try {
-      const response = await postWithAuth("http://localhost:8080/cita", datosParaEnviar);
+      const response = await postWithAuth("http://localhost:8080/cita", { ...formData, hora: horaConSegundos });
       if (response.ok) {
         onOpenSuccess();
         window.location.href = "/cliente";
@@ -163,6 +160,8 @@ export default function CrearCitaPage() {
                 onChange={handleInputChange}
                 size="lg"
                 className="block w-full"
+                isInvalid={!validarColaborador(formData.idColaborador)}
+                errorMessage={!validarColaborador(formData.idColaborador) ? "Debe seleccionar un colaborador" : ""}
               >
                 {colaboradores.map((colaborador) => (
                   <SelectItem key={colaborador.idColaborador} value={colaborador.idColaborador}>
@@ -181,6 +180,8 @@ export default function CrearCitaPage() {
                 className="block w-full"
                 min={minDate}
                 max={maxDate}
+                isInvalid={!validarFecha(formData.fecha)}
+                errorMessage={!validarFecha(formData.fecha) ? "Fecha fuera del rango permitido" : ""}
               />
 
               <Input
@@ -192,6 +193,8 @@ export default function CrearCitaPage() {
                 onChange={handleInputChange}
                 className="block w-full"
                 disabled={!formData.fecha}
+                isInvalid={!validarHora(formData.hora)}
+                errorMessage={!validarHora(formData.hora) ? "Debe seleccionar una hora válida" : ""}
               />
 
               <Select
@@ -202,6 +205,8 @@ export default function CrearCitaPage() {
                 onChange={handleInputChange}
                 size="lg"
                 className="block w-full"
+                isInvalid={!validarPaquete(formData.idPaquete)}
+                errorMessage={!validarPaquete(formData.idPaquete) ? "Debe seleccionar un paquete" : ""}
               >
                 {Object.entries(paquetes).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
@@ -215,14 +220,14 @@ export default function CrearCitaPage() {
                 name="detalle"
                 label="Detalle"
                 variant="bordered"
-                placeholder="Ingrese un detalle"
+                placeholder="Ingrese un detalle (opcional)"
                 onChange={handleInputChange}
                 className="block w-full"
               />
             </div>
 
             <div className="mt-6 flex justify-end">
-              <Button type="submit" className="bg-gradient-to-tr from-yellow-600 to-yellow-300">
+              <Button type="submit" className="bg-gradient-to-tr from-yellow-600 to-yellow-300" disabled={!formIsValid}>
                 <PlusIcon /> Crear Cita
               </Button>
             </div>
@@ -265,9 +270,7 @@ export default function CrearCitaPage() {
           </Modal>
         </div>
       ) : (
-        <div className="flex justify-center text-center h-screen">
-          <CircularProgress color="warning" aria-label="Cargando..." />
-        </div>
+        <CircularProgress />
       )}
     </>
   );

@@ -202,7 +202,7 @@ export default function MotivoCancelacionPage() {
                           <DropdownMenu
                             onAction={(action) => console.log(action)}
                           >
-                            <DropdownItem href={`/admin/Agendamiento/motivo/editar/${item.idMotivo}`}>
+                            <DropdownItem href={`/admin/agendamiento/motivo/editar/${item.idMotivo}`}>
                               <Button className="bg-transparent w-full">
                                 <Edit />
                                 Editar Motivo

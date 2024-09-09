@@ -63,7 +63,7 @@ export default function EditarColaboradorPage({
       const response = await postWithAuth(`http://localhost:8080/colaborador/${params.idColaborador}`, colaboradorActualizado);
       if (response.ok) {
         console.log("Colaborador editado exitosamente.");
-        window.location.href = "/admin/Agendamiento/colaboradores";
+        window.location.href = "/admin/agendamiento/colaboradores";
       } else {
         console.error("Error al editar el colaborador:", response.statusText);
         setMensajeError("La cédula proporcionada ya está en uso.");

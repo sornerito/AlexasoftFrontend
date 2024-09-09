@@ -85,7 +85,7 @@ export default function EditarContrasenaColaboradorPage({
 
       if (response.ok) {
         onCloseConfirm(); // Cierra el modal de confirmación y redirige
-        window.location.href = "/admin/Agendamiento/colaboradores";
+        window.location.href = "/admin/agendamiento/colaboradores";
       } else {
         console.error("Error al actualizar la contraseña:", response.statusText);
         setMensajeError("Error al actualizar la contraseña.");

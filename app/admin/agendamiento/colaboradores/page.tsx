@@ -198,7 +198,7 @@ export default function ColaboradorPage() {
           <Button isIconOnly className="bg-gradient-to-tr from-red-600 to-red-100" aria-label="Crear Colaborador">
             <FileBarChart2 />
           </Button>
-          <Link href="/admin/Agendamiento/colaboradores/crear">
+          <Link href="/admin/agendamiento/colaboradores/crear">
             <Button className="bg-gradient-to-tr from-red-600 to-orange-300 ml-2" aria-label="Crear Colaborador">
               <PlusIcon />Crear Colaborador
             </Button>
@@ -257,7 +257,7 @@ export default function ColaboradorPage() {
                         <DropdownMenu
                           onAction={(action) => console.log(action)}
                         >
-                          <DropdownItem href={`/admin/Agendamiento/colaboradores/editar/${item.idColaborador}`}>
+                          <DropdownItem href={`/admin/agendamiento/colaboradores/editar/${item.idColaborador}`}>
                             <Button className="bg-transparent w-full">
                               <Edit />
                               Editar Colaborador
@@ -272,7 +272,7 @@ export default function ColaboradorPage() {
                               Eliminar Colaborador
                             </Button>
                           </DropdownItem>
-                          <DropdownItem href={`/admin/Agendamiento/colaboradores/contrasena/${item.idColaborador}`}>
+                          <DropdownItem href={`/admin/agendamiento/colaboradores/contrasena/${item.idColaborador}`}>
                             <Button className="bg-transparent w-full">
                               <Edit />
                               Editar Contraseña

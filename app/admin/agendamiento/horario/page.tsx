@@ -213,7 +213,7 @@ export default function HorarioPage() {
                                                         <DropdownMenu
                                                             onAction={(action) => console.log(action)}
                                                         >
-                                                            <DropdownItem href={`/admin/Agendamiento/horario/editar/${item.idHorario}`}>
+                                                            <DropdownItem href={`/admin/agendamiento/horario/editar/${item.idHorario}`}>
                                                                 <Button className="bg-transparent w-full">
                                                                     <Edit />
                                                                     Editar Horario
