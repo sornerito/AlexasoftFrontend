@@ -89,7 +89,7 @@ export default function CrearServicioPage() {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                await Promise.all([fetchProductos()]);
+                await fetchProductos();  // No need for Promise.all if you're just calling one function
             } catch (error) {
                 console.error("Error al obtener datos:", error);
             } finally {
@@ -98,7 +98,7 @@ export default function CrearServicioPage() {
         };
 
         fetchData();
-    },);
+    }, []);
 
 
     const fetchProductos = async () => {
@@ -121,7 +121,8 @@ export default function CrearServicioPage() {
 
     // Función para agregar un producto
     const agregarProducto = () => {
-        if (productoSeleccionado && cantidad > 0 && unidadMedida) {
+        const error = validarCantidad(cantidad, unidadMedida);
+        if (productoSeleccionado && cantidad > 0 && unidadMedida && error === "") {
             setProductosSeleccionados((prevProductosSeleccionados) => [
                 ...prevProductosSeleccionados,
                 { ...productoSeleccionado, cantidad, unidadMedida },
@@ -129,8 +130,9 @@ export default function CrearServicioPage() {
             setProductoSeleccionado(null);
             setCantidad(0);
             setUnidadMedida("");
+            setCantidadError("");
         } else {
-            setMensajeError("Seleccione un producto y complete todos los campos necesarios.");
+            setCantidadError(error || "Seleccione un producto y complete todos los campos necesarios.");
             onOpenError();
         }
     };
@@ -141,17 +143,10 @@ export default function CrearServicioPage() {
 
 
     const confirmarGuardarServicio = () => {
+
         const errorNombre = validarCampoString(nombre, "Nombre del servicio");
         const errorDescripcion = validarDescripcionModal(descripcion);
         const errorTiempoMinutos = validarTiempoModal(tiempoMinutos);
-        const cantidadError = validarCantidad(cantidad, unidadMedida);
-
-        if (cantidadError) {
-            setCantidadError(cantidadError);
-            onOpenError(); // Mostrar el error en un modal o donde prefieras
-            return;
-        }
-
         if (errorNombre != "") {
             setMensajeError(errorNombre);
             onOpenError();
@@ -168,8 +163,18 @@ export default function CrearServicioPage() {
             return;
         }
 
+
+        if (productosSeleccionados.length === 0) {
+            setMensajeError("Debe seleccionar al menos un producto para crear el servicio.");
+            onOpenError(); // Mostrar el modal de error si no hay productos seleccionados
+            return;
+        }
+
+
+
         onOpenConfirm(); // Abrir modal de confirmación
     };
+
 
     // Función de validación y envío del formulario
     const guardarServicio = async () => {
@@ -483,7 +488,7 @@ export default function CrearServicioPage() {
                 <ModalContent>
                     <ModalHeader>Error</ModalHeader>
                     <ModalBody>
-                        <p>{mensajeError}</p>
+                        <p>{mensajeError}</p> {/* Mostrar el mensaje de error personalizado */}
                     </ModalBody>
                     <ModalFooter>
                         <Button onClick={onCloseError}>Cerrar</Button>
