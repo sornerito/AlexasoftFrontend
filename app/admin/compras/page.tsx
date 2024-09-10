@@ -212,13 +212,14 @@ export default function ComprasPage() {
   const comprasFiltradas = React.useMemo(() =>
     compras.filter((compra) =>
       Object.entries(compra).some(([key, value]) =>
-        key === "precio" && typeof value === "number"
+        (key === "precio" || key ==="subtotal") && typeof value === "number"
           ? value.toString().toLowerCase().includes(searchTerm.replace(/[$,.]/g, "").toLowerCase())
           : String(value).toLowerCase().includes(searchTerm.toLowerCase())
       )
     ),
     [compras, searchTerm]
   );
+
 
   const items = React.useMemo(() => {
     const start = (page - 1) * rowsPerPage;
@@ -305,7 +306,7 @@ export default function ComprasPage() {
       {acceso ? (
         <div>
           <h1 className={title()}>Compras</h1>
-          <Toaster position="bottom-right" />
+         <Toaster position="bottom-right" />
 
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
             <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">

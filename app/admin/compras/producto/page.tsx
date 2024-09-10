@@ -36,7 +36,7 @@ const columns = [
   { name: "ID", uid: "idProducto" },
   { name: "Nombre", uid: "nombre" },
   { name: "Marca", uid: "marca" },
-  { name: "Precio Compra", uid: "precioporunidad" }, // Ahora se muestra "Precio Compra"
+  { name: "Precio Compra", uid: "precioporunidad" }, 
   { name: "Precio venta", uid: "precio" },
   { name: "Unidades", uid: "unidades" },
   { name: "Estado", uid: "estado" },
@@ -135,9 +135,9 @@ export default function ProductosPage() {
           .sort((a: { idCompra: number }, b: { idCompra: number }) => b.idCompra - a.idCompra)
         );
       } catch (err) {
-        console.error("Error al obtener detalle de compras:", err);
-        setMensajeError("Error al obtener detalle de compras. Por favor, inténtalo de nuevo.");
-        onOpenError();
+        console.error("Advertencia! al obtener el precio de Producto:", err);
+        setMensajeError("Haga una compra para que se actualize el precio");
+        onOpenWarning();
       }
     };
 
@@ -157,8 +157,8 @@ export default function ProductosPage() {
   const productosFiltrados = React.useMemo(() =>
     productosConPrecioCompra.filter((producto) =>
       Object.entries(producto).some(([key, value]) =>
-        key === "precio" && typeof value === "number"
-          ? value.toString().toLowerCase().includes(searchTerm.replace(/[$,.]/g, "").toLowerCase())
+        ( key === "precio" || key === "precioporunidad") && typeof value === "number"
+          ? value.toString().toLowerCase().includes(searchTerm.replace(/[$,,.]/g, "").toLowerCase())
           : String(value).toLowerCase().includes(searchTerm.toLowerCase())
       )
     ),
@@ -313,6 +313,8 @@ export default function ProductosPage() {
                           </Dropdown>
                         ) : column.uid === "precio" ? (
                           formatCurrency(item.precio)
+                        ): column.uid === "precioporunidad" ? (
+                          formatCurrency(item.precioporunidad)
                         ) : column.uid === "estado" ? (
                           <Chip
                             color={item.estado === "Activo" ? "success" : "danger"}
@@ -326,6 +328,8 @@ export default function ProductosPage() {
                           </Chip>
                         ) : column.uid === "precio" ? (
                           formatCurrency(item.precio)
+                        ): column.uid === "precioporunidad" ? (
+                          formatCurrency(item.precioporunidad)
                         ) : column.uid === "precioporunidad" ? (
                           formatCurrency(item.precioporunidad)
                         ) : (
