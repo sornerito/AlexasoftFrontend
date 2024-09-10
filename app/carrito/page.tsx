@@ -415,292 +415,305 @@ export default function Carrito() {
 
   // Retorno del componente
   return (
-    <div className="flex flex-col min-h-screen">
-      <Toaster position="bottom-right" />
+    <>
+      {acceso ? (
+        <div className="flex flex-col min-h-screen">
+          <Toaster position="bottom-right" />
+          {/* Modal de error */}
+          <Modal isOpen={isErrorOpen} onOpenChange={onCloseError}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <XCircle color="#894242" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">Error</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
-      {/* Modal de error */}
-      <Modal isOpen={isErrorOpen} onOpenChange={onCloseError}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <XCircle color="#894242" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className="text-3xl">Error</h1>
-                <p>{mensajeError}</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
-      {/* Barra de búsqueda */}
-      <h1 className={title()}>Carrito de Compras</h1>
-      <Toaster position="bottom-right" />
-      <div className="flex flex-col items-start sm:flex-row sm:items-center px-4 py-2">
-        <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
-          <Input
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "shadow-xl",
-                "rounded-lg",
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focus=true]:bg-default-200/50",
-                "dark:group-data-[focus=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
-            placeholder="Buscar..."
-            onChange={(e: any) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* Lista de productos y Resumen del Pedido */}
-      <div className="flex flex-col md:flex-row gap-4 px-4 py-2">
-        {/* Cards de productos */}
-        <div className="flex flex-wrap gap-4 flex-grow- min-h-[calc(100vh - 100px)]" style={{ width: "100%", height: "100%" }}>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-screen">
-              <Spinner color="warning" size="lg" />
+          {/* Barra de búsqueda */}
+          <h1 className={title()}>Carrito de Compras</h1>
+          <Toaster position="bottom-right" />
+          <div className="flex flex-col items-start sm:flex-row sm:items-center px-4 py-2">
+            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+              <Input
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  input: [
+                    "bg-transparent",
+                    "text-black/90 dark:text-white/90",
+                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                  ],
+                  innerWrapper: "bg-transparent",
+                  inputWrapper: [
+                    "shadow-xl",
+                    "rounded-lg",
+                    "bg-default-200/50",
+                    "dark:bg-default/60",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-default-200/70",
+                    "dark:hover:bg-default/70",
+                    "group-data-[focus=true]:bg-default-200/50",
+                    "dark:group-data-[focus=true]:bg-default/60",
+                    "!cursor-text",
+                  ],
+                }}
+                style={{ width: "284px" }}
+                placeholder="Buscar..."
+                onChange={(e: any) => setSearchTerm(e.target.value)}
+              />
             </div>
-          ) : (
-            productosActuales.map((producto) => (
-              <div key={producto.idProducto} className="w-full md:w-1/4 lg:w-1/4">
-                <Card className="h-full shadow-md hover:scale-105 transition-transform duration-100 ease-in-out">
-                  <Image
-                    src={producto.imagenes}
-                    alt={producto.nombre}
-                    className="rounded-t-lg"
-                    width="100%"
-                    height={200}
-                  />
-                  <CardBody className="flex flex-col space-y-2 p-4">
-                    <div className="font-bold">{producto.nombre}</div>
-                    <div className="text-gray-500">{formatCurrency(producto.precio)}</div>
-                    {carrito.find((item) => item.idProducto === producto.idProducto)?.cantidad ?? 0 > 0 ? (
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          className="bg-gradient-to-tr from-gray-600 to-gray-300"
-                          isIconOnly
-                          onPress={() => {
-                            const itemCantidad = carrito.find(
-                              (item) => item.idProducto === producto.idProducto
-                            )?.cantidad;
-                            if (itemCantidad !== undefined) {
-                              actualizarCantidad(producto.idProducto, itemCantidad + 1);
-                            }
-                          }}
-                          disabled={producto.unidades >= 10}
-                        >
-                          <PlusIcon />
-                        </Button>
-                        <div className="font-bold">
-                          {
-                            carrito.find((item) => item.idProducto === producto.idProducto)?.cantidad
-                          }
-                        </div>
-                        <Button
-                          className="bg-gradient-to-tr from-gray-600 to-gray-300"
-                          isIconOnly
-                          onPress={() => {
-                            const itemCantidad = carrito.find(
-                              (item) => item.idProducto === producto.idProducto
-                            )?.cantidad;
-                            if (itemCantidad !== undefined && itemCantidad > 0) {
-                              actualizarCantidad(producto.idProducto, itemCantidad - 1);
-                            }
-                          }}
-                          disabled={producto.unidades <= 0}
-                        >
-                          <MinusIcon />
-                        </Button>
-                        <Button
-                          className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-                          isIconOnly
-                          onPress={() => removeDelCarrito(producto.idProducto)}
-                        >
-                          <TrashIcon />
+          </div>
+
+          {/* Lista de productos y Resumen del Pedido */}
+          <div className="flex flex-col md:flex-row gap-4 px-4 py-2">
+            {/* Cards de productos */}
+            <div className="flex flex-wrap gap-4 flex-grow- min-h-[calc(100vh - 100px)]" style={{ width: "100%", height: "100%" }}>
+              {isLoading ? (
+                <div className="flex justify-center text-center h-screen">
+                  <div className="text-center">
+                    <Spinner color="warning" size="lg" />
+                  </div>
+                </div>
+              ) : (
+                productosActuales.map((producto) => (
+                  <div key={producto.idProducto} className="w-full md:w-1/4 lg:w-1/4">
+                    <Card className="h-full shadow-md hover:scale-105 transition-transform duration-100 ease-in-out">
+                      <Image
+                        src={producto.imagenes}
+                        alt={producto.nombre}
+                        className="rounded-t-lg"
+                        width="100%"
+                        height={200}
+                      />
+                      <CardBody className="flex flex-col space-y-2 p-4">
+                        <div className="font-bold">{producto.nombre}</div>
+                        <div className="text-gray-500">{formatCurrency(producto.precio)}</div>
+                        {carrito.find((item) => item.idProducto === producto.idProducto)?.cantidad ?? 0 > 0 ? (
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              className="bg-gradient-to-tr from-gray-600 to-gray-300"
+                              isIconOnly
+                              onPress={() => {
+                                const itemCantidad = carrito.find(
+                                  (item) => item.idProducto === producto.idProducto
+                                )?.cantidad;
+                                if (itemCantidad !== undefined) {
+                                  actualizarCantidad(producto.idProducto, itemCantidad + 1);
+                                }
+                              }}
+                              disabled={producto.unidades >= 10}
+                            >
+                              <PlusIcon />
+                            </Button>
+                            <div className="font-bold">
+                              {
+                                carrito.find((item) => item.idProducto === producto.idProducto)?.cantidad
+                              }
+                            </div>
+                            <Button
+                              className="bg-gradient-to-tr from-gray-600 to-gray-300"
+                              isIconOnly
+                              onPress={() => {
+                                const itemCantidad = carrito.find(
+                                  (item) => item.idProducto === producto.idProducto
+                                )?.cantidad;
+                                if (itemCantidad !== undefined && itemCantidad > 0) {
+                                  actualizarCantidad(producto.idProducto, itemCantidad - 1);
+                                }
+                              }}
+                              disabled={producto.unidades <= 0}
+                            >
+                              <MinusIcon />
+                            </Button>
+                            <Button
+                              className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                              isIconOnly
+                              onPress={() => removeDelCarrito(producto.idProducto)}
+                            >
+                              <TrashIcon />
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            className="bg-gradient-to-tr from-gray-600 to-gray-300 rounded-lg"
+                            onPress={() => addToCarrito(producto)}
+                            disabled={carrito.length >= 100}
+                          >
+                            <PlusIcon className="mr-2" />
+                            Agregar al carrito
+                          </Button>
+                        )}
+                      </CardBody>
+                    </Card>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Resumen del Pedido se mantiene como antes */}
+            <FormularioEnvio />
+          </div>
+
+          {/* Paginación */}
+          <div className="flex justify-center mt-4">
+            <Pagination
+              total={Math.ceil(productosFiltrados.length / productosPorPagina)}
+              initialPage={1}
+              onChange={handlePageChange}
+              color="warning"
+              showControls
+            />
+          </div>
+
+          {/* Modal del carrito */}
+          <Modal isOpen={showCarritoModal} onClose={closeCarritoModal} aria-label="Cart">
+            <ModalContent className="max-w-screen-lg">
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center border-b border-gray-200 pb-4">
+                    <h1 className="text-3xl font-semibold mt-2">Carrito de Compras</h1>
+                    <div className="text-gray-500">
+                      Productos: {carrito.filter((item) => item.cantidad > 0).length}
+                    </div>
+                  </ModalHeader>
+                  <ModalBody className="p-6 overflow-y-auto max-h-96">
+                    {carrito.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full">
+                        <div className="text-gray-500">Tu carrito está vacío.</div> <br /> <br />
+                        <Button className="bg-gradient-to-tr from-gray-600 to-gray-300" onPress={() => setShowCarritoModal(false)}>
+                          {" "}
+                          Volver a la tienda
                         </Button>
                       </div>
                     ) : (
-                      <Button
-                        className="bg-gradient-to-tr from-gray-600 to-gray-300 rounded-lg"
-                        onPress={() => addToCarrito(producto)}
-                        disabled={carrito.length >= 100}
-                      >
-                        <PlusIcon className="mr-2" />
-                        Agregar al carrito
-                      </Button>
+                      <>
+                        <div ref={carritoRef}>
+                          {carrito.map((item) =>
+                            item.cantidad > 0 ? (
+                              <Card key={item.idProducto} className="mb-4">
+                                <CardBody className="flex flex-row justify-between items-center">
+                                  <div className="flex items-center">
+                                    <Image
+                                      src={item.imagenes}
+                                      alt={item.nombre}
+                                      className="rounded-full"
+                                      width={50}
+                                      height={50}
+                                    />
+                                    <div className="ml-4">
+                                      <div className="font-bold">{item.nombre}</div>
+                                      <div className="text-gray-500">{formatCurrency(item.precioUnitario)}</div>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <Button
+                                      className="bg-gradient-to-tr from-gray-600 to-gray-300"
+                                      isIconOnly
+                                      onPress={() => actualizarCantidad(item.idProducto, item.cantidad + 1)}
+                                      disabled={item.cantidad >= 10}
+                                    >
+                                      <PlusIcon />
+                                    </Button>
+                                    <div className="font-bold">{item.cantidad}</div>
+                                    <Button
+                                      className="bg-gradient-to-tr from-gray-600 to-gray-300"
+                                      isIconOnly
+                                      onPress={() => actualizarCantidad(item.idProducto, item.cantidad - 1)}
+                                      disabled={item.cantidad <= 1}
+                                    >
+                                      <MinusIcon />
+                                    </Button>
+                                    <Button
+                                      className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                                      isIconOnly
+                                      onPress={() => removeDelCarrito(item.idProducto)}
+                                    >
+                                      <TrashIcon />
+                                    </Button>
+                                  </div>
+                                </CardBody>
+                              </Card>
+                            ) : null
+                          )}
+                        </div>
+                        <Divider className="my-4" />
+                        <div className="flex justify-between items-center">
+                          <div className="font-bold">Total:</div>
+                          <div className="font-bold">{formatCurrency(total)}</div>
+                        </div>
+                      </>
                     )}
-                  </CardBody>
-                </Card>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Resumen del Pedido se mantiene como antes */}
-        <FormularioEnvio />
-      </div>
-
-      {/* Paginación */}
-      <div className="flex justify-center mt-4">
-        <Pagination
-          total={Math.ceil(productosFiltrados.length / productosPorPagina)}
-          initialPage={1}
-          onChange={handlePageChange}
-          color="warning"
-          showControls
-        />
-      </div>
-
-      {/* Modal del carrito */}
-      <Modal isOpen={showCarritoModal} onClose={closeCarritoModal} aria-label="Cart">
-        <ModalContent className="max-w-screen-lg">
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col items-center border-b border-gray-200 pb-4">
-                <h1 className="text-3xl font-semibold mt-2">Carrito de Compras</h1>
-                <div className="text-gray-500">
-                  Productos: {carrito.filter((item) => item.cantidad > 0).length}
-                </div>
-              </ModalHeader>
-              <ModalBody className="p-6 overflow-y-auto max-h-96">
-                {carrito.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <div className="text-gray-500">Tu carrito está vacío.</div> <br /> <br />
-                    <Button className="bg-gradient-to-tr from-gray-600 to-gray-300" onPress={() => setShowCarritoModal(false)}>
-                      {" "}
-                      Volver a la tienda
+                  </ModalBody>
+                  <ModalFooter className="border-t border-gray-200 pt-4">
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
                     </Button>
-                  </div>
-                ) : (
-                  <>
-                    <div ref={carritoRef}>
-                      {carrito.map((item) =>
-                        item.cantidad > 0 ? (
-                          <Card key={item.idProducto} className="mb-4">
-                            <CardBody className="flex flex-row justify-between items-center">
-                              <div className="flex items-center">
-                                <Image
-                                  src={item.imagenes}
-                                  alt={item.nombre}
-                                  className="rounded-full"
-                                  width={50}
-                                  height={50}
-                                />
-                                <div className="ml-4">
-                                  <div className="font-bold">{item.nombre}</div>
-                                  <div className="text-gray-500">{formatCurrency(item.precioUnitario)}</div>
-                                </div>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  className="bg-gradient-to-tr from-gray-600 to-gray-300"
-                                  isIconOnly
-                                  onPress={() => actualizarCantidad(item.idProducto, item.cantidad + 1)}
-                                  disabled={item.cantidad >= 10}
-                                >
-                                  <PlusIcon />
-                                </Button>
-                                <div className="font-bold">{item.cantidad}</div>
-                                <Button
-                                  className="bg-gradient-to-tr from-gray-600 to-gray-300"
-                                  isIconOnly
-                                  onPress={() => actualizarCantidad(item.idProducto, item.cantidad - 1)}
-                                  disabled={item.cantidad <= 1}
-                                >
-                                  <MinusIcon />
-                                </Button>
-                                <Button
-                                  className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-                                  isIconOnly
-                                  onPress={() => removeDelCarrito(item.idProducto)}
-                                >
-                                  <TrashIcon />
-                                </Button>
-                              </div>
-                            </CardBody>
-                          </Card>
-                        ) : null
-                      )}
-                    </div>
-                    <Divider className="my-4" />
-                    <div className="flex justify-between items-center">
-                      <div className="font-bold">Total:</div>
-                      <div className="font-bold">{formatCurrency(total)}</div>
-                    </div>
-                  </>
-                )}
-              </ModalBody>
-              <ModalFooter className="border-t border-gray-200 pt-4">
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
-      {/* Modal de confirmación */}
-      <Modal isOpen={isOpenConfirm} onClose={onCloseConfirm} onOpenChange={onOpenChangeConfirm}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <h1 className="text-2xl font-bold">Confirmar Pedido</h1>
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <p>¿Estás seguro de que deseas enviar este pedido?</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button
-                  color="warning"
-                  variant="light"
-                  onPress={handleConfirmSubmit}
-                  isLoading={isLoadingVenta}
-                >
-                  Confirmar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+          {/* Modal de confirmación */}
+          <Modal isOpen={isOpenConfirm} onClose={onCloseConfirm} onOpenChange={onOpenChangeConfirm}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <h1 className="text-2xl font-bold">Confirmar Pedido</h1>
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <p>¿Estás seguro de que deseas enviar este pedido?</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      color="warning"
+                      variant="light"
+                      onPress={handleConfirmSubmit}
+                      isLoading={isLoadingVenta}
+                    >
+                      Confirmar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
-      {showCartPreview && <CarritoPreview />}
+          {showCartPreview && <CarritoPreview />}
 
-      {/* Botón para subir al inicio */}
-      <Button
-        className="fixed bottom-10 right-10 bg-gradient-to-tr from-red-600 to-orange-300 rounded-lg shadow-md"
-        isIconOnly
-        onClick={scrollToTop}
-      >
-        <ArrowUpCircle size={30} />
-      </Button>
-    </div>
+          {/* Botón para subir al inicio */}
+          <Button
+            className="fixed bottom-10 right-10 bg-gradient-to-tr from-red-600 to-orange-300 rounded-lg shadow-md"
+            isIconOnly
+            onClick={scrollToTop}
+          >
+            <ArrowUpCircle size={30} />
+          </Button>
+        </div>
+      ) : (
+        // Mostrar spinner si no tiene acceso
+        <div className="flex justify-center text-center h-screen">
+          <div className="text-center">
+            <Spinner color="warning" size="lg" />
+          </div>
+        </div>
+      )}
+    </>
   );
 }

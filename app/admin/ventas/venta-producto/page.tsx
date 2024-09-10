@@ -20,7 +20,6 @@ import {
   SelectItem,
   Spinner,
   Chip,
-  CircularProgress,
   Pagination
 } from "@nextui-org/react";
 
@@ -61,7 +60,6 @@ interface ProductoSeleccionado {
 export default function VentasPageCrear() {
   // Estado para controlar el acceso al componente
   const [acceso, setAcceso] = useState<boolean>(false);
-
   // Verificar permisos de acceso al cargar el componente
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -82,8 +80,19 @@ export default function VentasPageCrear() {
     total: 0,
     iva: 19,
     idCliente: null,
-    idColaborador: typeof window !== 'undefined' ? sessionStorage.getItem('idUsuario') : null
+    idColaborador: typeof window !== 'undefined' ? sessionStorage.getItem('idUsuario') : null,
+    idPaquete: ""
   });
+
+  const [mostrarProductos, setMostrarProductos] = useState(true);
+  const [citasCliente, setCitasCliente] = useState([]);
+  const [ventaProductos, setVentaProductos] = useState({
+    total: 0,
+  });
+  const [ventaCitas, setVentaCitas] = useState({
+    total: 0,
+  });
+  const [citaSeleccionada, setCitaSeleccionada] = useState<any>(null);
 
   // Estados para listas de clientes, colaboradores y productos
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -114,6 +123,48 @@ export default function VentasPageCrear() {
 
   // Estado para indicar si se está cargando la información
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleDropdownChangeCitaCliente = async (value: any) => {
+    setIdCliente(value.target.value);
+    setVenta({ ...venta, "idCliente": value.target.value });
+    setValidationErrors((prevErrors) => ({
+      ...prevErrors,
+      idCliente: validateField("idCliente", value.target.value)
+    }));
+
+    // Obtener las citas aceptadas del cliente seleccionado
+    try {
+      const response = await getWithAuth(`http://localhost:8080/cita/cliente/${value.target.value}`);
+      if (response.ok) {
+        const data = await response.json();
+        const citasAceptadas = data.filter((cita: any) => cita.estado === "Aceptado");
+        setCitasCliente(citasAceptadas);
+        setCitaSeleccionada(null);
+
+      } else {
+        console.log("El cliente ha sido deseleccionado");
+      }
+    } catch (error) {
+      console.error("Error al obtener citas del cliente:", error);
+      setMensajeError("Hubo un problema al obtener las citas del cliente.");
+      onOpenError();
+    }
+  };
+
+  const handleCitaChange = (cita: any) => {
+    setCitaSeleccionada(cita);
+    setVenta({
+      ...venta,
+      fecha: cita.fecha,
+      estado: "Aceptado",
+      idCliente: cita.idCliente,
+      idColaborador: cita.idColaborador,
+      idPaquete: cita.idPaquete,
+      identificador: "Servicio",
+    });
+    setIdCliente(cita.idCliente.toString());
+    setIdColaborador(cita.idColaborador.toString());
+  };
 
   // Obtener clientes, colaboradores y productos al montar el componente
   useEffect(() => {
@@ -188,14 +239,13 @@ export default function VentasPageCrear() {
   };
 
   // Función para crear una nueva venta
-  const crearVenta = async () => {
+  const crearVenta = async (ventaData: any) => {
     try {
-      const response = await postWithAuth("http://localhost:8080/venta", venta);
+      const response = await postWithAuth("http://localhost:8080/venta", ventaData);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Error al crear la venta');
       }
-
       return await response.json();
     } catch (error) {
       console.error("Error al crear venta:", error);
@@ -206,7 +256,7 @@ export default function VentasPageCrear() {
   };
 
   // Función para crear los detalles de una venta
-  const crearDetallesVenta = async (nuevaVenta: Event) => {
+  const crearDetallesVenta = async (nuevaVenta: any) => {
     try {
       const detalleVenta = {
         ventas: nuevaVenta,
@@ -234,10 +284,37 @@ export default function VentasPageCrear() {
     }
   };
 
-  // Función para manejar el envío del formulario
-  const handleSubmit = async () => {
+  const crearDetallesVentaCita = async (nuevaVenta: any) => {
     try {
-      const nuevaVenta = await crearVenta();
+      const detalleVentaCita = {
+        idVenta: nuevaVenta.idVenta, // Asegúrate de que la respuesta de crearVenta tenga idVenta
+        idCita: citaSeleccionada.idCita,
+        subtotal: calcularTotalCitaConIVA() // O ventaCitas.total, dependiendo de cómo quieras calcularlo
+      };
+
+      console.log("Enviando detalle de venta de cita:", detalleVentaCita);
+
+      const response = await postWithAuth("http://localhost:8080/venta/detalles-servicios", detalleVentaCita); // Ajusta la URL
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al crear los detalles de la venta de la cita');
+      }
+
+      const responseData = await response.json();
+      console.log("Respuesta del servidor (detalles cita):", responseData);
+
+    } catch (error) {
+      console.error("Error al crear detalles de venta de cita:", error);
+      setMensajeError("Error al crear los detalles de la venta de la cita. Inténtalo de nuevo.");
+      onOpenError();
+      throw error;
+    }
+  };
+
+  // Función para manejar el envío del formulario de productos
+  const handleSubmitProductos = async () => {
+    try {
+      const nuevaVenta = await crearVenta(venta);
       await crearDetallesVenta(nuevaVenta);
 
       toast.success("Venta creada con éxito!");
@@ -245,18 +322,43 @@ export default function VentasPageCrear() {
         router.push("/admin/ventas");
       }, 1000);
     } catch (error) {
-      // El error ya ha sido manejado en crearVenta o crearDetallesVenta
+      console.error("Error al crear la venta:", error);
+      setMensajeError("Error al crear la venta. Inténtalo de nuevo.");
+      onOpenError();
     }
   };
 
-  // Función para manejar cambios en los campos del formulario
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setVenta({ ...venta, [name]: value });
-    setValidationErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: validateField(name, value)
-    }));
+  // Función para manejar el envío del formulario de citas
+  const handleSubmitCitas = async () => {
+    try {
+      // Crear un objeto con los datos a enviar
+      const ventaData = {
+        fechaCreacion: venta.fechaCreacion,
+        fechaFinalizacion: venta.fechaFinalizacion,
+        fecha: venta.fecha,
+        estado: venta.estado,
+        identificador: venta.identificador,
+        total: calcularTotalCitaConIVA(),
+        iva: venta.iva,
+        idCliente: venta.idCliente,
+        idColaborador: venta.idColaborador,
+      };
+
+      // Enviar la solicitud POST al backend para crear la venta
+      const nuevaVenta = await crearVenta(ventaData);
+
+      // Luego, crear el detalle de la venta de la cita
+      await crearDetallesVentaCita(nuevaVenta);
+
+      toast.success("Venta de cita creada con éxito!");
+      setTimeout(() => {
+        router.push("/admin/ventas");
+      }, 1000);
+    } catch (error) {
+      console.error("Error al crear la venta de cita:", error);
+      setMensajeError("Error al crear la venta de cita. Inténtalo de nuevo.");
+      onOpenError();
+    }
   };
 
   // Función para manejar cambios en el selector de cliente
@@ -294,36 +396,79 @@ export default function VentasPageCrear() {
     }
   };
 
-  // Agregar un producto a la lista de productos seleccionados
   const handleAgregarProducto = (producto: Producto) => {
-    setProductosSeleccionados((prevProductos) => [
-      ...prevProductos,
-      { id: uuidv4(), producto, cantidad: 1 }
-    ]);
-    setVenta((prevVenta) => {
-      const nuevoTotal = prevVenta.total + producto.precio;
-      return {
+    const productoExistente = productosSeleccionados.find(p => p.producto.idProducto === producto.idProducto);
+
+    if (productoExistente) {
+      const nuevosProductosSeleccionados = productosSeleccionados.map(p =>
+        p.producto.idProducto === producto.idProducto
+          ? { ...p, cantidad: p.cantidad + 1 }
+          : p
+      );
+      setProductosSeleccionados(nuevosProductosSeleccionados);
+
+      // Calcula el nuevo total y total con IVA
+      const nuevoTotal = nuevosProductosSeleccionados.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0);
+      const nuevoTotalConIVA = calcularTotalProductoConIVA(nuevoTotal);
+
+      // Actualiza ventaProductos y venta.total en una sola llamada
+      setVentaProductos(prevVenta => ({
         ...prevVenta,
-        total: nuevoTotal
-      };
-    });
+        total: nuevoTotal,
+        totalConIVA: nuevoTotalConIVA
+      }));
+
+      setVenta(prevVenta => ({
+        ...prevVenta,
+        total: nuevoTotal // Actualiza venta.total
+      }));
+    } else {
+      const nuevosProductosSeleccionados = [
+        ...productosSeleccionados,
+        { id: uuidv4(), producto, cantidad: 1 }
+      ];
+      setProductosSeleccionados(nuevosProductosSeleccionados);
+
+      // Calcula el nuevo total y total con IVA
+      const nuevoTotal = nuevosProductosSeleccionados.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0);
+      const nuevoTotalConIVA = calcularTotalProductoConIVA(nuevoTotal);
+
+      // Actualiza ventaProductos y venta.total en una sola llamada
+      setVentaProductos(prevVenta => ({
+        ...prevVenta,
+        total: nuevoTotal,
+        totalConIVA: nuevoTotalConIVA
+      }));
+
+      setVenta(prevVenta => ({
+        ...prevVenta,
+        total: nuevoTotal // Actualiza venta.total
+      }));
+    }
+
     setTextoInput("");
     setBusquedaProducto("");
   };
 
-  // Eliminar un producto de la lista de productos seleccionados
   const handleEliminarProducto = (id: string) => {
-    const productoAEliminar = productosSeleccionados.find(p => p.id === id);
-    if (productoAEliminar) {
-      setProductosSeleccionados((prevProductos) => prevProductos.filter(p => p.id !== id));
-      setVenta((prevVenta) => {
-        const nuevoTotal = prevVenta.total - (productoAEliminar.producto.precio * productoAEliminar.cantidad);
-        return {
-          ...prevVenta,
-          total: nuevoTotal
-        };
-      });
-    }
+    const nuevosProductosSeleccionados = productosSeleccionados.filter(p => p.id !== id);
+    setProductosSeleccionados(nuevosProductosSeleccionados);
+
+    // Calcula el nuevo total y total con IVA
+    const nuevoTotal = nuevosProductosSeleccionados.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0);
+    const nuevoTotalConIVA = calcularTotalProductoConIVA(nuevoTotal);
+
+    // Actualiza ventaProductos y venta.total en una sola llamada
+    setVentaProductos(prevVenta => ({
+      ...prevVenta,
+      total: nuevoTotal,
+      totalConIVA: nuevoTotalConIVA
+    }));
+
+    setVenta(prevVenta => ({
+      ...prevVenta,
+      total: nuevoTotal // Actualiza venta.total
+    }));
   };
 
   // Manejador del evento "keydown" en el input de búsqueda
@@ -340,14 +485,20 @@ export default function VentasPageCrear() {
   };
 
   // Calcular el total con IVA
-  const calcularTotalConIVA = () => {
-    const totalSinIVA = venta.total;
+  const calcularTotalProductoConIVA = (totalSinIVA: number) => {
     const ivaAmount = (totalSinIVA * venta.iva) / 100;
-    return totalSinIVA + ivaAmount;
+    return Math.round(totalSinIVA + ivaAmount);
   };
 
-  // Manejar la presentación del formulario
-  const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
+  // Calcular el total con IVA
+  const calcularTotalCitaConIVA = () => {
+    const totalSinIVA = ventaCitas.total;
+    const ivaAmount = (totalSinIVA * venta.iva) / 100;
+    return Math.round(totalSinIVA + ivaAmount);
+  };
+
+  // Manejar la presentación del formulario de productos
+  const handleFormSubmitProductos = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (productosSeleccionados.length === 0) {
       setValidationErrors((prevErrors) => ({
@@ -364,9 +515,21 @@ export default function VentasPageCrear() {
     onOpen();
   };
 
-  // Manejar la confirmación del envío del formulario
-  const handleConfirmSubmit = () => {
-    handleSubmit();
+  // Manejar la presentación del formulario de citas
+  const handleFormSubmitCitas = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onOpen();
+  };
+
+  // Manejar la confirmación del envío del formulario de productos
+  const handleConfirmSubmitProductos = () => {
+    handleSubmitProductos();
+    onOpenChange();
+  };
+
+  // Manejar la confirmación del envío del formulario de citas
+  const handleConfirmSubmitCitas = () => {
+    handleSubmitCitas();
     onOpenChange();
   };
 
@@ -404,8 +567,29 @@ export default function VentasPageCrear() {
     <>
       {acceso ? (
         <div className="lg:mx-60">
-          <h1 className={title()}>Crear Venta Producto</h1>
+          <h1 className={title()}>Crear Venta</h1>
           <br /><br />
+          {/* Botones para alternar entre productos y citas */}
+          <div className="flex gap-4 mb-4">
+            <Button
+              color="warning"
+              variant={mostrarProductos ? "solid" : "light"}
+              onClick={() => {
+                setMostrarProductos(true);
+              }}
+            >
+              Pedido Productos
+            </Button>
+            <Button
+              color="warning"
+              variant={!mostrarProductos ? "solid" : "light"}
+              onClick={() => {
+                setMostrarProductos(false);
+              }}
+            >
+              Confirmación Citas
+            </Button>
+          </div>
           {/* Mostrar spinner de carga si la información se está cargando */}
           {isLoading ? (
             <div className="flex justify-center text-center h-screen">
@@ -413,9 +597,9 @@ export default function VentasPageCrear() {
                 <Spinner color="warning" size="lg" />
               </div>
             </div>
-          ) : (
+          ) : mostrarProductos ? (
             // Mostrar formulario si la información se ha cargado
-            <form onSubmit={handleFormSubmit}>
+            <form onSubmit={handleFormSubmitProductos}>
               <div className="grid gap-4">
                 {/* Selector de cliente */}
                 <Select
@@ -557,12 +741,8 @@ export default function VentasPageCrear() {
                   name="total"
                   label="Total"
                   type="number"
-                  value={venta?.total.toString() || ""}
-                  onChange={handleChange}
+                  value={ventaProductos?.total.toFixed(2) || ""}
                   required
-                  onError={errores.total}
-                  isInvalid={!!validationErrors.total}
-                  errorMessage={validationErrors.total}
                 />
 
                 {/* Input para el total con IVA (deshabilitado) */}
@@ -572,7 +752,7 @@ export default function VentasPageCrear() {
                   name="totalConIVA"
                   label="Total con IVA"
                   type="number"
-                  value={calcularTotalConIVA().toFixed(2)}
+                  value={calcularTotalProductoConIVA(ventaProductos.total).toFixed(2)}
                   required
                 />
 
@@ -600,9 +780,125 @@ export default function VentasPageCrear() {
                 </Button>
               </div>
             </form>
+
+          ) : (
+            // Formulario para citas
+            <form onSubmit={handleFormSubmitCitas}>
+              <div className="grid gap-4">
+                {/* Selector de cliente */}
+                <Select
+                  isRequired
+                  name="idCliente"
+                  label="Cliente"
+                  selectedKeys={[idCliente]}
+                  onChange={handleDropdownChangeCitaCliente}
+                  required
+                  onError={errores.idCliente}
+                  isInvalid={!!validationErrors.idCliente}
+                  errorMessage={validationErrors.idCliente}
+                >
+                  {clientes
+                    .filter((cliente) => cliente.estado === "Activo")
+                    .map((cliente) => (
+                      <SelectItem key={cliente.idCliente} value={cliente.idCliente.toString()}>
+                        {cliente.nombre}
+                      </SelectItem>
+                    ))}
+                </Select>
+                {/* Selector de citas del cliente seleccionado */}
+                <Select
+                  label="Seleccionar Cita"
+                  disabled={!idCliente}
+                  onChange={(e) => {
+                    const citaSeleccionada = citasCliente.find((cita: any) => cita.idCita.toString() === e.target.value);
+                    if (citaSeleccionada) {
+                      handleCitaChange(citaSeleccionada);
+                    }
+                  }}
+                >
+                  {citasCliente.map((cita: any) => (
+                    <SelectItem key={cita.idCita} value={cita.idCita.toString()}>
+                      Cita #{cita.idCita}
+                    </SelectItem>
+                  ))}
+                </Select>
+                {/* Input para la fecha de la Cita */}
+                {citaSeleccionada && (
+                  <Input
+                    isDisabled
+                    label="Fecha de la Cita"
+                    type="date"
+                    value={new Date(citaSeleccionada.fecha).toISOString().split('T')[0]}
+                  />
+                )}
+
+                {/* Input para el Colaborador de la Cita */}
+                {citaSeleccionada && (
+                  <Input
+                    isDisabled
+                    label="Colaborador"
+                    value={
+                      colaboradores.find((colaborador) => colaborador.idColaborador === citaSeleccionada.idColaborador)?.nombre || ""
+                    }
+                  />
+                )}
+                {/* Input para el Paquete de la Cita */}
+                <Input
+                  isDisabled
+                  label="Paquete"
+                  value={venta.idPaquete || ""}
+                />
+
+                {/* Input para el Estado de la Cita */}
+                <Input
+                  isDisabled
+                  label="Estado"
+                  value={venta.estado}
+                />
+
+                {/* Input para el Total de la Venta (editable) */}
+                <Input
+                  isRequired
+                  name="total"
+                  label="Total"
+                  type="number"
+                  value={ventaCitas?.total.toFixed(2) || ""}
+                  onChange={(e) => {
+                    setVentaCitas({ ...ventaCitas, total: parseInt(e.target.value) });
+                  }}
+                  required
+                  onError={errores.total}
+                  isInvalid={!!validationErrors.total}
+                  errorMessage={validationErrors.total}
+                />
+
+                {/* Input para el Total con IVA (deshabilitado) */}
+                <Input
+                  isDisabled
+                  isRequired
+                  name="totalConIVA"
+                  label="Total con IVA"
+                  type="number"
+                  value={calcularTotalCitaConIVA().toFixed(2)}
+                  required
+                />
+
+                {/* Botones para cancelar o enviar el formulario */}
+                <div className="flex justify-end mt-4">
+                  <Link href="/admin/ventas">
+                    <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
+                      Cancelar
+                    </Button>
+                  </Link>
+                  <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" type="submit">
+                    Enviar
+                  </Button>
+                </div>
+              </div>
+            </form>
           )}
 
-          {/* Modal de confirmación */}
+          {/* Modal de confirmación (compartido para productos y citas) */}
           <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
             <ModalContent>
               {(onClose) => (
@@ -612,7 +908,11 @@ export default function VentasPageCrear() {
                   </ModalHeader>
                   <ModalBody className="text-center">
                     <h1 className=" text-3xl">¿Desea crear la venta?</h1>
-                    <p>La venta se creará con la información proporcionada.</p>
+                    <p>
+                      {mostrarProductos
+                        ? "La venta se creará con los productos seleccionados."
+                        : "La venta se creará con la información de la cita seleccionada."}
+                    </p>
                   </ModalBody>
                   <ModalFooter>
                     <Button color="danger" variant="light" onPress={onClose}>
@@ -622,7 +922,11 @@ export default function VentasPageCrear() {
                       color="warning"
                       variant="light"
                       onPress={() => {
-                        handleConfirmSubmit();
+                        if (mostrarProductos) {
+                          handleConfirmSubmitProductos();
+                        } else {
+                          handleConfirmSubmitCitas();
+                        }
                         onClose();
                       }}
                     >
@@ -736,8 +1040,12 @@ export default function VentasPageCrear() {
           <Toaster position="bottom-right" />
         </div>
       ) : (
-        // Mostrar CircularProgress si no tiene acceso
-        <CircularProgress color="warning" aria-label="Cargando..." />
+        // Mostrar spinner si no tiene acceso
+        <div className="flex justify-center text-center h-screen">
+          <div className="text-center">
+            <Spinner color="warning" size="lg" />
+          </div>
+        </div>
       )}
     </>
   );

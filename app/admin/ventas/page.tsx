@@ -31,8 +31,7 @@ import {
   CardBody,
   Select,
   SelectItem,
-  Spinner,
-  CircularProgress
+  Spinner
 } from "@nextui-org/react";
 
 // Importar funciones de configuración
@@ -64,7 +63,7 @@ interface Venta {
 // Definición de columnas para la tabla
 const columns = [
   { name: "ID", uid: "idVenta" },
-  { name: "N° Factura", uid: "numeroFactura" },
+  { name: "N° Pedido", uid: "numeroFactura" },
   { name: "Fecha", uid: "fecha" },
   { name: "Total", uid: "total" },
   { name: "Cliente", uid: "idCliente" },
@@ -152,16 +151,18 @@ export default function VentasPage() {
 
   // Estados para la lista de ventas y detalles de una venta seleccionada
   const [ventas, setVentas] = useState<Venta[]>([]);
-  const [ventaDetalles, setVentaDetalles] = useState<any | null>([]);
+  const [ventaDetallesProductos, setVentaDetallesProductos] = useState<any | null>([]);
+  const [ventaDetallesServicios, setVentaDetallesServicios] = useState<any | null>([]);
   const [selectedVentaId, setSelectedVentaId] = useState<string | null>(null);
 
   // Mapas para almacenar información de clientes, colaboradores y productos
   const [clientes, setClientes] = useState<Map<string, string>>(new Map());
   const [colaboradores, setColaboradores] = useState<Map<string, string>>(new Map());
   const [productos, setProductos] = useState<Map<string, any>>(new Map());
+  const [, setCitas] = useState<Map<string, any>>(new Map());
 
   // Estado para almacenar productos agrupados por ID
-  const [agrupados, setAgrupados] = useState<any[]>([]);
+  const [productosAgrupados, setProductosAgrupados] = useState<any[]>([]);
 
   // Estados para la búsqueda, paginación y carga
   const [searchTerm, setSearchTerm] = useState("");
@@ -189,8 +190,8 @@ export default function VentasPage() {
     Cancelado: []
   };
 
-  // Función para obtener los detalles de una venta
-  const fetchVentaDetalles = async (idVenta: string) => {
+  // Función para obtener los detalles de una venta de productos
+  const fetchVentaDetallesProductos = async (idVenta: string) => {
     try {
       const ventaResponse = await getWithAuth("http://localhost:8080/venta/detalles-productos/" + idVenta);
       const ventaData = await ventaResponse.json();
@@ -204,7 +205,7 @@ export default function VentasPage() {
       }, {});
 
       const productosAgrupados: any[] = Object.values(updatedProductos);
-      setAgrupados(productosAgrupados);
+      setProductosAgrupados(productosAgrupados);
 
       const mergedData = {
         ...ventaData,
@@ -214,27 +215,52 @@ export default function VentasPage() {
       return mergedData;
     } catch (error) {
       console.error(error);
-      setMensajeError("Error al obtener los detalles de la venta. Por favor, inténtalo de nuevo.");
+      setMensajeError("Error al obtener los detalles de la venta de productos. Por favor, inténtalo de nuevo.");
       onOpenError();
     }
   };
 
-  // Obtener datos de ventas, clientes, colaboradores y productos al montar el componente
+  // Función para obtener los detalles de una venta de servicios (citas)
+  const fetchVentaDetallesServicios = async (idVenta: string) => {
+    try {
+      const ventaResponse = await getWithAuth("http://localhost:8080/venta/detalles-servicios/" + idVenta);
+      if (!ventaResponse.ok) {
+        throw new Error('No se encontró el detalle de venta de servicios.');
+      }
+      const ventaData = await ventaResponse.json();
+
+      const detalles = {
+        ventas: ventaData.ventas,
+        cita: ventaData.cita
+      };
+
+      return detalles;
+    } catch (error) {
+      console.error(error);
+      setMensajeError("Error al obtener los detalles de la venta de servicios. Por favor, inténtalo de nuevo.");
+      onOpenError();
+    }
+  };
+
+
+  // Obtener datos de ventas, clientes, colaboradores, productos y citas al montar el componente
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [ventasResponse, clientesResponse, colaboradoresResponse, productosResponse] = await Promise.all([
+        const [ventasResponse, clientesResponse, colaboradoresResponse, productosResponse, citasResponse] = await Promise.all([
           getWithAuth("http://localhost:8080/venta"),
           getWithAuth("http://localhost:8080/cliente"),
           getWithAuth("http://localhost:8080/colaborador"),
-          getWithAuth("http://localhost:8080/compras/productos")
+          getWithAuth("http://localhost:8080/compras/productos"),
+          getWithAuth("http://localhost:8080/cita")
         ]);
 
-        const [ventasData, clientesData, colaboradoresData, productosData] = await Promise.all([
+        const [ventasData, clientesData, colaboradoresData, productosData, citasData] = await Promise.all([
           ventasResponse.json(),
           clientesResponse.json(),
           colaboradoresResponse.json(),
-          productosResponse.json()
+          productosResponse.json(),
+          citasResponse.json()
         ]);
 
         // Procesar datos de ventas
@@ -276,6 +302,13 @@ export default function VentasPage() {
           productosMap.set(item.idProducto, item);
         });
         setProductos(productosMap);
+
+        // Crear mapa de citas
+        const citasMap = new Map<string, any>();
+        citasData.forEach((item: any) => {
+          citasMap.set(item.idCita, item);
+        });
+        setCitas(citasMap);
 
       } catch (err: any) {
         // Manejo de errores
@@ -427,26 +460,25 @@ export default function VentasPage() {
     doc.save('reporte_ventas.pdf');
   };
 
-  // Función para generar el PDF de un detalle de venta
-  const generarPDFDetalleVenta = () => {
-    if (!ventaDetalles) return;
+  // Función para generar el PDF de un detalle de venta de productos
+  const generarPDFDetalleVentaProductos = () => {
+    if (!ventaDetallesProductos) return;
 
     const doc = new jsPDF();
 
     // Agregar título
     doc.setFontSize(20);
-    doc.text(`Detalle de Venta: ${ventaDetalles.ventas.numeroFactura}`, 10, 20);
+    doc.text(`Detalle de Venta Productos: ${ventaDetallesProductos.ventas.numeroFactura}`, 10, 20);
 
     // Agregar información de la venta
     doc.setFontSize(12);
-    doc.text(`Cliente: ${clientes.get(ventaDetalles.ventas.idCliente)}`, 10, 40);
-    doc.text(`Colaborador: ${colaboradores.get(ventaDetalles.ventas.idColaborador)}`, 10, 50);
-    doc.text(`Total: ${formatCurrency(ventaDetalles.ventas.total)} COP`, 10, 60);
-    doc.text(`IVA: ${ventaDetalles.ventas.iva}%`, 10, 70);
-    doc.text(`Identificador: ${ventaDetalles.ventas.identificador}`, 10, 80);
+    doc.text(`Cliente: ${clientes.get(ventaDetallesProductos.ventas.idCliente)}`, 10, 40);
+    doc.text(`Colaborador: ${colaboradores.get(ventaDetallesProductos.ventas.idColaborador)}`, 10, 50);
+    doc.text(`Total: ${formatCurrency(ventaDetallesProductos.ventas.total)} COP`, 10, 60);
+    doc.text(`IVA: ${ventaDetallesProductos.ventas.iva}%`, 10, 70);
 
     // Agregar información de los productos
-    const productosData = agrupados.map((producto) => [
+    const productosData = productosAgrupados.map((producto) => [
       producto.nombre,
       productos.get(producto.idProducto)?.idMarca.nombre || "Marca no encontrada",
       producto.cantidad,
@@ -460,7 +492,65 @@ export default function VentasPage() {
     });
 
     // Guardar el PDF
-    doc.save(`detalle_venta_${ventaDetalles.ventas.numeroFactura}.pdf`);
+    doc.save(`detalle_venta_productos_${ventaDetallesProductos.ventas.numeroFactura}.pdf`);
+  };
+
+  // Función para generar el PDF de un detalle de venta de servicios (citas)
+  const generarPDFDetalleVentaServicios = () => {
+    if (!ventaDetallesServicios) return;
+
+    const doc = new jsPDF();
+
+    // Agregar título
+    doc.setFontSize(20);
+    doc.text(`Detalle de Venta Servicios: ${ventaDetallesServicios.ventas.numeroFactura}`, 10, 20);
+
+    // Agregar información de la venta  
+    doc.setFontSize(12);
+    doc.text(`Cliente: ${clientes.get(ventaDetallesServicios.ventas.idCliente)}`, 10, 40);
+    doc.text(`Colaborador: ${colaboradores.get(ventaDetallesServicios.ventas.idColaborador)}`, 10, 50);
+    doc.text(`Total: ${formatCurrency(ventaDetallesServicios.ventas.total)} COP`, 10, 60);
+    doc.text(`IVA: ${ventaDetallesServicios.ventas.iva}%`, 10, 70);
+
+    // Agregar información de la cita en una tabla
+    const citaData = [
+      ['Fecha', formatDate(ventaDetallesServicios.cita.fecha)],
+      ['Hora', ventaDetallesServicios.cita.hora],
+      ['Detalle', ventaDetallesServicios.cita.detalle],
+      ['ID Paquete', ventaDetallesServicios.cita.idPaquete],
+      ['Estado', ventaDetallesServicios.cita.estado],
+    ];
+
+    // Agregar tabla al PDF
+    (doc as any).autoTable({
+      head: [['Detalle', 'Información']],
+      body: citaData,
+      startY: 90, // Ajusta la posición vertical de la tabla
+    });
+
+    // Guardar el PDF
+    doc.save(`detalle_venta_servicios_${ventaDetallesServicios.ventas.numeroFactura}.pdf`);
+  };
+
+  // Función para abrir el modal de detalles, identificando si es venta de productos o servicios
+  const handleOpenDetallesModal = async (idVenta: string) => {
+    const venta = ventas.find(venta => venta.idVenta === idVenta);
+    if (!venta) {
+      setMensajeError("No se encontró la venta.");
+      onOpenError();
+      return;
+    }
+
+    setSelectedVentaId(idVenta); // Guardamos el idVenta seleccionado
+
+    if (venta.identificador === 'Producto') {
+      const detalles = await fetchVentaDetallesProductos(idVenta);
+      setVentaDetallesProductos(detalles);
+    } else if (venta.identificador === 'Servicio') {
+      const detalles = await fetchVentaDetallesServicios(idVenta);
+      setVentaDetallesServicios(detalles);
+    }
+    onOpenDetalles();
   };
 
   // Renderizar el componente
@@ -518,10 +608,10 @@ export default function VentasPage() {
                 <FileBarChart2 />
               </Button>
 
-              {/* Enlace para crear una nueva venta */}
+              {/* Enlace para crear una nueva venta de productos */}
               <Link href="/admin/ventas/venta-producto">
                 <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Venta">
-                  <PlusIcon /> Pedido Productos
+                  <PlusIcon /> Pedidos
                 </Button>
               </Link>
             </div>
@@ -563,11 +653,7 @@ export default function VentasPage() {
                                 <DropdownItem key={"detalles"}>
                                   <Button
                                     className="bg-transparent w-full"
-                                    onPress={async () => {
-                                      const detalles = await fetchVentaDetalles(item.idVenta);
-                                      setVentaDetalles(detalles);
-                                      onOpenDetalles();
-                                    }}
+                                    onPress={() => handleOpenDetallesModal(item.idVenta)}
                                   >
                                     <Eye />
                                     Detalles
@@ -638,11 +724,7 @@ export default function VentasPage() {
                                 <DropdownItem key={"detalles"}>
                                   <Button
                                     className="bg-transparent w-full"
-                                    onPress={async () => {
-                                      const detalles = await fetchVentaDetalles(item.idVenta);
-                                      setVentaDetalles(detalles);
-                                      onOpenDetalles();
-                                    }}
+                                    onPress={() => handleOpenDetallesModal(item.idVenta)}
                                   >
                                     <Eye />
                                     Detalles
@@ -701,12 +783,12 @@ export default function VentasPage() {
                     <h1 className="text-3xl font-semibold mt-2">Detalles de la Venta</h1>
                   </ModalHeader>
                   <ModalBody className="p-6">
-                    {/* Mostrar detalles de la venta si están disponibles */}
-                    {ventaDetalles ? (
+                    {/* Mostrar detalles de la venta según el identificador */}
+                    {selectedVentaId && ventas.find(venta => venta.idVenta === selectedVentaId)?.identificador === 'Producto' && ventaDetallesProductos ? (
                       <div className="flex flex-col lg:flex-row gap-6">
                         {/* Tabla para información de la venta */}
                         <div style={{ width: "50%" }}>
-                          <Table aria-label="Detalles de la Venta">
+                          <Table aria-label="Detalles de la Venta de Productos">
                             <TableHeader>
                               <TableColumn>Venta AlexaSoft</TableColumn>
                               <TableColumn>Información</TableColumn>
@@ -714,32 +796,28 @@ export default function VentasPage() {
                             <TableBody>
                               <TableRow>
                                 <TableCell>N° Factura</TableCell>
-                                <TableCell>{ventaDetalles.ventas.numeroFactura}</TableCell>
+                                <TableCell>{ventaDetallesProductos.ventas.numeroFactura}</TableCell>
                               </TableRow>
                               <TableRow>
                                 <TableCell>Cliente</TableCell>
-                                <TableCell>{clientes.get(ventaDetalles.ventas.idCliente)}</TableCell>
+                                <TableCell>{clientes.get(ventaDetallesProductos.ventas.idCliente)}</TableCell>
                               </TableRow>
                               <TableRow>
                                 <TableCell>Colaborador</TableCell>
-                                <TableCell>{colaboradores.get(ventaDetalles.ventas.idColaborador)}</TableCell>
+                                <TableCell>{colaboradores.get(ventaDetallesProductos.ventas.idColaborador)}</TableCell>
                               </TableRow>
                               <TableRow>
                                 <TableCell>Total</TableCell>
-                                <TableCell>{formatCurrency(ventaDetalles.ventas.total)} COP - (IVA INCLUIDO)</TableCell>
+                                <TableCell>{formatCurrency(ventaDetallesProductos.ventas.total)} COP - (IVA INCLUIDO)</TableCell>
                               </TableRow>
                               <TableRow>
                                 <TableCell>IVA</TableCell>
-                                <TableCell>{ventaDetalles.ventas.iva}% - (19 por ciento)</TableCell>
-                              </TableRow>
-                              <TableRow>
-                                <TableCell>Identificador</TableCell>
-                                <TableCell>{ventaDetalles.ventas.identificador}</TableCell>
+                                <TableCell>{ventaDetallesProductos.ventas.iva}% - (19 por ciento)</TableCell>
                               </TableRow>
                             </TableBody>
                           </Table>
                           <br />
-                          <Button color="warning" onPress={generarPDFDetalleVenta}>
+                          <Button color="warning" onPress={generarPDFDetalleVentaProductos}>
                             Generar PDF
                           </Button>
                         </div>
@@ -752,7 +830,7 @@ export default function VentasPage() {
                               <TableColumn>Cantidad</TableColumn>
                               <TableColumn>Precio</TableColumn>
                             </TableHeader>
-                            <TableBody items={agrupados.slice((productPage - 1) * rowsPerPage, productPage * rowsPerPage)}>
+                            <TableBody items={productosAgrupados.slice((productPage - 1) * rowsPerPage, productPage * rowsPerPage)}>
                               {(producto: any) => (
                                 <TableRow key={producto.idProducto}>
                                   <TableCell>{producto.nombre}</TableCell>
@@ -764,17 +842,97 @@ export default function VentasPage() {
                             </TableBody>
                           </Table>
                           {/* Paginación para productos */}
-                          {agrupados.length > rowsPerPage && ( // Mostrar paginación solo si hay más de rowsPerPage productos
+                          {productosAgrupados.length > rowsPerPage && (
                             <div className="flex w-full justify-center mt-4">
                               <Pagination
                                 showControls
                                 color="warning"
                                 page={productPage}
-                                total={Math.ceil(agrupados.length / rowsPerPage)}
+                                total={Math.ceil(productosAgrupados.length / rowsPerPage)}
                                 onChange={(page) => setProductPage(page)}
                               />
                             </div>
                           )}
+                        </div>
+                      </div>
+                    ) : selectedVentaId && ventas.find(venta => venta.idVenta === selectedVentaId)?.identificador === 'Servicio' && ventaDetallesServicios ? (
+                      <div className="flex flex-col lg:flex-row gap-6">
+                        {/* Tabla para información de la venta */}
+                        <div style={{ width: "50%" }}>
+                          <Table aria-label="Detalles de la Venta de Servicios">
+                            <TableHeader>
+                              <TableColumn>Venta AlexaSoft</TableColumn>
+                              <TableColumn>Información</TableColumn>
+                            </TableHeader>
+                            <TableBody>
+                              <TableRow>
+                                <TableCell>N° Factura</TableCell>
+                                {/* Accede a numeroFactura a través de ventaDetallesServicios.ventas con operador de encadenamiento opcional */}
+                                <TableCell>{ventaDetallesServicios?.ventas?.numeroFactura ?? "N/A"}</TableCell>
+                              </TableRow>
+                              <TableRow>
+                                <TableCell>Cliente</TableCell>
+                                {/* Accede a idCliente a través de ventaDetallesServicios.ventas con operador de encadenamiento opcional */}
+                                <TableCell>{clientes.get(ventaDetallesServicios?.ventas?.idCliente) ?? "N/A"}</TableCell>
+                              </TableRow>
+                              <TableRow>
+                                <TableCell>Colaborador</TableCell>
+                                {/* Accede a idColaborador a través de ventaDetallesServicios.ventas con operador de encadenamiento opcional */}
+                                <TableCell>{colaboradores.get(ventaDetallesServicios?.ventas?.idColaborador) ?? "N/A"}</TableCell>
+                              </TableRow>
+                              <TableRow>
+                                <TableCell>Total</TableCell>
+                                {/* Accede a total a través de ventaDetallesServicios.ventas con operador de encadenamiento opcional */}
+                                <TableCell>
+                                  {ventaDetallesServicios?.ventas?.total !== undefined ? (
+                                    formatCurrency(ventaDetallesServicios.ventas.total)
+                                  ) : (
+                                    "N/A"
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                              <TableRow>
+                                <TableCell>IVA</TableCell>
+                                {/* Accede a iva a través de ventaDetallesServicios.ventas con operador de encadenamiento opcional */}
+                                <TableCell>{ventaDetallesServicios?.ventas?.iva ?? "N/A"}% - (19 por ciento)</TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
+                          <br />
+                          <Button color="warning" onPress={generarPDFDetalleVentaServicios}>
+                            Generar PDF
+                          </Button>
+                        </div>
+                        {/* Tabla para información de la cita */}
+                        <div style={{ width: "50%" }}>
+                          <Table aria-label="Cita">
+                            <TableHeader>
+                              <TableColumn>Detalle</TableColumn>
+                              <TableColumn>Información</TableColumn>
+                            </TableHeader>
+                            <TableBody>
+                              <TableRow key={"fecha"}>
+                                <TableCell>Fecha</TableCell>
+                                <TableCell>{formatDate(ventaDetallesServicios.cita.fecha)}</TableCell>
+                              </TableRow>
+                              <TableRow key={"hora"}>
+                                <TableCell>Hora</TableCell>
+                                <TableCell>{ventaDetallesServicios.cita.hora}</TableCell>
+                              </TableRow>
+                              <TableRow key={"detalle"}>
+                                <TableCell>Detalle</TableCell>
+                                <TableCell>{ventaDetallesServicios.cita.detalle}</TableCell>
+                              </TableRow>
+                              <TableRow key={"idPaquete"}>
+                                <TableCell>ID Paquete</TableCell>
+                                <TableCell>{ventaDetallesServicios.cita.idPaquete}</TableCell>
+                              </TableRow>
+                              <TableRow key={"estado"}>
+                                <TableCell>Estado</TableCell>
+                                <TableCell>{ventaDetallesServicios.cita.estado}</TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
                         </div>
                       </div>
                     ) : isLoading ? (
@@ -875,8 +1033,12 @@ export default function VentasPage() {
           </Modal>
         </div>
       ) : (
-        // Mostrar CircularProgress si no tiene acceso
-        <CircularProgress color="warning" aria-label="Cargando..." />
+        // Mostrar spinner si no tiene acceso
+        <div className="flex justify-center text-center h-screen">
+          <div className="text-center">
+            <Spinner color="warning" size="lg" />
+          </div>
+        </div>
       )}
     </>
   );
