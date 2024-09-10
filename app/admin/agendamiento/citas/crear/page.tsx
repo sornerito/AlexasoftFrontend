@@ -81,31 +81,39 @@ export default function CrearCitaPage() {
       .then((response) => response.json())
       .then((data) => {
         const fetchedClientes: { [key: number]: string } = {};
-        data.forEach((cliente: { idCliente: number; nombre: string }) => {
-          fetchedClientes[cliente.idCliente] = cliente.nombre;
-        });
+        data
+          .filter((cliente: { estado: string }) => cliente.estado === "Activo") // Filtra clientes activos
+          .forEach((cliente: { idCliente: number; nombre: string }) => {
+            fetchedClientes[cliente.idCliente] = cliente.nombre;
+          });
         setClientes(fetchedClientes);
       })
       .catch((err) => console.log(err.message));
 
     getWithAuth("http://localhost:8080/colaborador")
       .then((response) => response.json())
-      .then((data) => setColaboradores(data))
+      .then((data) => {
+        // Filtra solo colaboradores activos
+        const colaboradoresActivos = data.filter((colaborador: Colaborador) => colaborador.estado === "Activo");
+        setColaboradores(colaboradoresActivos);
+      })
       .catch((err) => console.log(err.message));
 
     getWithAuth("http://localhost:8080/servicio/paquetes")
       .then((response) => response.json())
       .then((data) => {
         const fetchedPaquetes: { [key: number]: string } = {};
-        data.forEach((item: { paquete: { idPaquete: number; nombre: string } }) => {
-          const { idPaquete, nombre } = item.paquete;
-          fetchedPaquetes[idPaquete] = nombre;
-        });
+        data
+          .filter((item: { paquete: { estado: string } }) => item.paquete.estado === "Activo") // Filtra paquetes activos
+          .forEach((item: { paquete: { idPaquete: number; nombre: string } }) => {
+            const { idPaquete, nombre } = item.paquete;
+            fetchedPaquetes[idPaquete] = nombre;
+          });
         setPaquetes(fetchedPaquetes);
       })
       .catch((err) => console.log(err.message));
 
-      getWithAuth("http://localhost:8080/horario")
+    getWithAuth("http://localhost:8080/horario")
       .then((response) => response.json())
       .then((data: Horario[]) => setHorarios(data))
       .catch((err) => console.log(err.message));
@@ -164,15 +172,15 @@ export default function CrearCitaPage() {
     }
   };
 
-    // Validaciones
+  // Validaciones
 
-    const validarCliente = (idCliente: number) => idCliente > 0;
-    const validarFecha = (fecha: string) => !!fecha && new Date(fecha) >= new Date(minDate) && new Date(fecha) <= new Date(maxDate);
-    const validarHora = (hora: string) => opcionesHoras.includes(hora);
-    const validarPaquete = (idPaquete: number) => idPaquete > 0;
-    const validarColaborador = (idColaborador: number) => idColaborador > 0;
-  
-    const formIsValid =
+  const validarCliente = (idCliente: number) => idCliente > 0;
+  const validarFecha = (fecha: string) => !!fecha && new Date(fecha) >= new Date(minDate) && new Date(fecha) <= new Date(maxDate);
+  const validarHora = (hora: string) => opcionesHoras.includes(hora);
+  const validarPaquete = (idPaquete: number) => idPaquete > 0;
+  const validarColaborador = (idColaborador: number) => idColaborador > 0;
+
+  const formIsValid =
     validarCliente(formData.idCliente) &&
     validarFecha(formData.fecha) &&
     validarHora(formData.hora) &&

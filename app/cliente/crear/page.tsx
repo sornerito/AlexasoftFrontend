@@ -29,6 +29,12 @@ interface Horario {
   estado: string;
 }
 
+interface Paquete {
+  idPaquete: number;
+  nombre: string;
+  estado: string;
+}
+
 export default function CrearCitaPage() {
   const idUsuario = typeof window !== "undefined" ? sessionStorage.getItem("idUsuario") : null;
   const idCliente = idUsuario !== null ? Number(idUsuario) : 0;
@@ -43,8 +49,8 @@ export default function CrearCitaPage() {
     estado: "En_espera",
   });
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
-  const [paquetes, setPaquetes] = useState<{ [key: number]: string }>({});
   const [horarios, setHorarios] = useState<Horario[]>([]);
+  const [paquetes, setPaquetes] = useState<{ [key: number]: Paquete }>({});
   const [mensajeError, setMensajeError] = useState("");
   const [minDate, setMinDate] = useState("");
   const [maxDate, setMaxDate] = useState("");
@@ -73,12 +79,12 @@ export default function CrearCitaPage() {
     getWithAuth("http://localhost:8080/servicio/paquetes")
       .then((response) => response.json())
       .then((data) => {
-        const fetchedPaquetes: { [key: number]: string } = {};
-        data.forEach((item: { paquete: { idPaquete: number; nombre: string } }) => {
-          const { idPaquete, nombre } = item.paquete;
-          fetchedPaquetes[idPaquete] = nombre;
+        const fetchedPaquetes: { [key: number]: Paquete } = {};  // Cambia el tipo a Paquete
+        data.forEach((item: { paquete: { idPaquete: number; nombre: string; estado: string } }) => {
+          const { idPaquete, nombre, estado } = item.paquete;
+          fetchedPaquetes[idPaquete] = { idPaquete, nombre, estado };  // Almacena un objeto Paquete completo
         });
-        setPaquetes(fetchedPaquetes);
+        setPaquetes(fetchedPaquetes);  // Esto ahora debe coincidir con el tipo esperado
       })
       .catch((err) => console.log(err.message));
 
@@ -210,12 +216,15 @@ export default function CrearCitaPage() {
                 isInvalid={!validarColaborador(formData.idColaborador)}
                 errorMessage={!validarColaborador(formData.idColaborador) ? "Debe seleccionar un colaborador" : ""}
               >
-                {colaboradores.map((colaborador) => (
-                  <SelectItem key={colaborador.idColaborador} value={colaborador.idColaborador}>
-                    {colaborador.nombre}
-                  </SelectItem>
-                ))}
+                {colaboradores
+                  .filter((colaborador) => colaborador.estado === "Activo") // Filtrar por estado "Activo"
+                  .map((colaborador) => (
+                    <SelectItem key={colaborador.idColaborador} value={colaborador.idColaborador}>
+                      {colaborador.nombre}
+                    </SelectItem>
+                  ))}
               </Select>
+
               <Input
                 type="date"
                 name="fecha"
@@ -257,12 +266,16 @@ export default function CrearCitaPage() {
                 isInvalid={!validarPaquete(formData.idPaquete)}
                 errorMessage={!validarPaquete(formData.idPaquete) ? "Debe seleccionar un paquete" : ""}
               >
-                {Object.entries(paquetes).map(([idPaquete, nombre]) => (
-                  <SelectItem key={idPaquete} value={idPaquete}>
-                    {nombre}
-                  </SelectItem>
-                ))}
+                {Object.entries(paquetes)
+                  .filter(([idPaquete, paquete]) => paquete.estado === "Activo") // Acceder a `estado` correctamente
+                  .map(([idPaquete, paquete]) => (
+                    <SelectItem key={idPaquete} value={idPaquete}>
+                      {paquete.nombre}  {/* Acceder a `nombre` correctamente */}
+                    </SelectItem>
+                  ))}
               </Select>
+
+
               <Input
                 name="detalle"
                 type="text"
