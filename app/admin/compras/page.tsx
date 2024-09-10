@@ -80,8 +80,9 @@ export default function ComprasPage() {
   const [proveedores, setProveedores] = useState<Map<string, string>>(new Map());
   const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
   const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
-
+  const [productPage, setProductPage] = useState(1);
   const rowsPerPage = 6;
+  const rowsProductoPage = 3;
   const tamanoMovil = useMediaQuery({ maxWidth: 768 });
 
   // Función para obtener los detalles de la venta
@@ -506,6 +507,9 @@ export default function ComprasPage() {
                             </TableRow>
                           </TableBody>
                         </Table>
+                        
+                        <div style={{ width: "50%" }}>
+
                         <Table aria-label="Productos" className="flex-1">
                           <TableHeader>
                             <TableColumn>Nombre</TableColumn>
@@ -513,17 +517,31 @@ export default function ComprasPage() {
                             <TableColumn>Cantidad</TableColumn>
                             <TableColumn>Precio Venta</TableColumn>
                           </TableHeader>
-                          <TableBody>
-                            {agrupados.map((producto: any) => (
+                          <TableBody items={agrupados.slice((productPage - 1) * rowsProductoPage, productPage * rowsProductoPage)}>
+                          {(producto: any) => (
                               <TableRow key={producto.idProducto}>
                                 <TableCell>{producto.nombre}</TableCell>
                                 <TableCell>{producto.idMarca.nombre || "Marca no encontrada"}</TableCell>
                                 <TableCell>{producto.cantidad}</TableCell>
                                 <TableCell>{formatCurrency(producto.precio)}</TableCell>
                               </TableRow>
-                            ))}
+                            )}
                           </TableBody>
                         </Table>
+                          {/* Paginación para productos */}
+                          {agrupados.length > rowsProductoPage && ( 
+                            <div className="flex w-full justify-center mt-4">
+                              <Pagination
+                                showControls
+                                color="warning"
+                                page={productPage}
+                                total={Math.ceil(agrupados.length / rowsProductoPage)}
+                                onChange={(page) => setProductPage(page)}
+                              />
+                            </div>
+                             )}
+                        </div>
+                          
                       </div>
                     ) : isLoading ? (
                       <div className="flex justify-center items-center">
