@@ -33,6 +33,14 @@ interface Cita {
   estado: string;
 }
 
+interface Horario {
+  idHorario: string;
+  numeroDia: string;
+  inicioJornada: string;
+  finJornada: string;
+  estado: string;
+}
+
 export default function CrearCitaPage() {
   // Valida permiso
   const [acceso, setAcceso] = useState<boolean>(false);
@@ -57,25 +65,15 @@ export default function CrearCitaPage() {
     detalle: "",
     estado: "En_espera",
   });
-  const { isOpen: isOpenConfirm, onOpen: onOpenConfirm, onClose: onCloseConfirm } = useDisclosure();
-  const { isOpen: isOpenError, onOpen: onOpenError, onClose: onCloseError } = useDisclosure();
+  const [horarios, setHorarios] = useState<Horario[]>([]);
   const [mensajeError, setMensajeError] = useState("");
   const [minDate, setMinDate] = useState("");
   const [maxDate, setMaxDate] = useState("");
-
-  // Validaciones
-  const validarCliente = () => formData.idCliente !== 0;
-  const validarColaborador = () => formData.idColaborador !== 0;
-  const validarPaquete = () => formData.idPaquete !== 0;
-  const validarFecha = () => formData.fecha !== "";
-  const validarHora = () => formData.hora !== "";
-
-  const formIsValid =
-    validarCliente() &&
-    validarColaborador() &&
-    validarPaquete() &&
-    validarFecha() &&
-    validarHora();
+  const [minHora, setMinHora] = useState("08:00");
+  const [maxHora, setMaxHora] = useState("17:00");
+  const [opcionesHoras, setOpcionesHoras] = useState<string[]>([]);
+  const { isOpen: isOpenConfirm, onOpen: onOpenConfirm, onClose: onCloseConfirm } = useDisclosure();
+  const { isOpen: isOpenError, onOpen: onOpenError, onClose: onCloseError } = useDisclosure();
 
   useEffect(() => {
     // Fetch clientes, colaboradores, paquetes
@@ -107,15 +105,79 @@ export default function CrearCitaPage() {
       })
       .catch((err) => console.log(err.message));
 
+      getWithAuth("http://localhost:8080/horario")
+      .then((response) => response.json())
+      .then((data: Horario[]) => setHorarios(data))
+      .catch((err) => console.log(err.message));
+
     // Configurar fechas mínimas y máximas
     const today = new Date();
     const minDate = new Date(today);
-    minDate.setDate(today.getDate() + 3);
+    minDate.setDate(today.getDate() + 7);
     const maxDate = new Date(today);
     maxDate.setFullYear(today.getFullYear() + 1);
     setMinDate(minDate.toISOString().split("T")[0]);
     setMaxDate(maxDate.toISOString().split("T")[0]);
   }, []);
+
+  useEffect(() => {
+    if (formData.fecha) {
+      getHorarioPorDia(formData.fecha);
+    }
+  }, [formData.fecha]);
+
+  useEffect(() => {
+    const generarHoras = (inicio: string, fin: string) => {
+      const opciones: string[] = [];
+      const [inicioHoras, inicioMinutos] = inicio.split(":").map(Number);
+      const [finHoras, finMinutos] = fin.split(":").map(Number);
+
+      let horaActual = new Date();
+      horaActual.setHours(inicioHoras, inicioMinutos, 0, 0);
+
+      const horaFin = new Date();
+      horaFin.setHours(finHoras, finMinutos, 0, 0);
+
+      while (horaActual <= horaFin) {
+        const horas = horaActual.getHours().toString().padStart(2, "0");
+        const minutos = horaActual.getMinutes().toString().padStart(2, "0");
+        opciones.push(`${horas}:${minutos}`);
+        horaActual.setMinutes(horaActual.getMinutes() + 30);
+      }
+
+      return opciones;
+    };
+
+    setOpcionesHoras(generarHoras(minHora, maxHora));
+  }, [minHora, maxHora]);
+
+  const getHorarioPorDia = (fecha: string) => {
+    const diaSemana = new Date(fecha).getDay() + 1;
+    const diaSemanaAjustado = diaSemana === 0 ? 7 : diaSemana;
+
+    const horario = horarios.find((h) => parseInt(h.numeroDia) === diaSemanaAjustado);
+    if (horario) {
+      setMinHora(horario.inicioJornada);
+      setMaxHora(horario.finJornada);
+    } else {
+      console.log(`No se encontró horario para el día ${diaSemanaAjustado}`);
+    }
+  };
+
+    // Validaciones
+
+    const validarCliente = (idCliente: number) => idCliente > 0;
+    const validarFecha = (fecha: string) => !!fecha && new Date(fecha) >= new Date(minDate) && new Date(fecha) <= new Date(maxDate);
+    const validarHora = (hora: string) => opcionesHoras.includes(hora);
+    const validarPaquete = (idPaquete: number) => idPaquete > 0;
+    const validarColaborador = (idColaborador: number) => idColaborador > 0;
+  
+    const formIsValid =
+    validarCliente(formData.idCliente) &&
+    validarFecha(formData.fecha) &&
+    validarHora(formData.hora) &&
+    validarPaquete(formData.idPaquete) &&
+    validarColaborador(formData.idColaborador);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -127,12 +189,14 @@ export default function CrearCitaPage() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (formIsValid) {
-      onOpenConfirm();
-    } else {
+
+    if (!formIsValid) {
       setMensajeError("Por favor, complete todos los campos correctamente.");
       onOpenError();
+      return;
     }
+
+    onOpenConfirm(); // Abre el modal de confirmación
   };
 
   const handleConfirmSubmit = async () => {
@@ -179,9 +243,8 @@ export default function CrearCitaPage() {
                 onChange={handleInputChange}
                 size="lg"
                 className="block w-full"
-                isInvalid={!validarCliente()}
-                color={!validarCliente() ? "danger" : "default"}
-                errorMessage={!validarCliente() ? "Seleccione un cliente válido." : ""}
+                isInvalid={!validarCliente(formData.idCliente)}
+                errorMessage={!validarCliente(formData.idCliente) ? "Debe seleccionar un cliente" : ""}
               >
                 {Object.entries(clientes).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
@@ -198,9 +261,8 @@ export default function CrearCitaPage() {
                 onChange={handleInputChange}
                 size="lg"
                 className="block w-full"
-                isInvalid={!validarColaborador()}
-                color={!validarColaborador() ? "danger" : "default"}
-                errorMessage={!validarColaborador() ? "Seleccione un colaborador válido." : ""}
+                isInvalid={!validarColaborador(formData.idColaborador)}
+                errorMessage={!validarColaborador(formData.idColaborador) ? "Debe seleccionar un colaborador" : ""}
               >
                 {colaboradores.map((colaborador) => (
                   <SelectItem key={colaborador.idColaborador} value={colaborador.idColaborador}>
@@ -208,7 +270,6 @@ export default function CrearCitaPage() {
                   </SelectItem>
                 ))}
               </Select>
-
               <Input
                 type="date"
                 name="fecha"
@@ -219,25 +280,26 @@ export default function CrearCitaPage() {
                 className="block w-full"
                 min={minDate}
                 max={maxDate}
-                isInvalid={!validarFecha()}
-                color={!validarFecha() ? "danger" : "default"}
-                errorMessage={!validarFecha() ? "Seleccione una fecha válida." : ""}
+                isInvalid={!validarFecha(formData.fecha)}
+                errorMessage={!validarFecha(formData.fecha) ? "Fecha fuera del rango permitido" : ""}
               />
-
-              <Input
-                type="time"
-                name="hora"
+              <Select
                 label="Hora"
+                name="hora"
                 variant="bordered"
                 placeholder="Seleccione una hora"
                 onChange={handleInputChange}
+                size="lg"
                 className="block w-full"
-                disabled={!formData.fecha}
-                isInvalid={!validarHora()}
-                color={!validarHora() ? "danger" : "default"}
-                errorMessage={!validarHora() ? "Seleccione una hora válida." : ""}
-              />
-
+                isInvalid={!validarHora(formData.hora)}
+                errorMessage={!validarHora(formData.hora) ? "La hora no está disponible" : ""}
+              >
+                {opcionesHoras.map((hora) => (
+                  <SelectItem key={hora} value={hora}>
+                    {hora}
+                  </SelectItem>
+                ))}
+              </Select>
               <Select
                 label="Paquete"
                 name="idPaquete"
@@ -246,16 +308,24 @@ export default function CrearCitaPage() {
                 onChange={handleInputChange}
                 size="lg"
                 className="block w-full"
-                isInvalid={!validarPaquete()}
-                color={!validarPaquete() ? "danger" : "default"}
-                errorMessage={!validarPaquete() ? "Seleccione un paquete válido." : ""}
+                isInvalid={!validarPaquete(formData.idPaquete)}
+                errorMessage={!validarPaquete(formData.idPaquete) ? "Debe seleccionar un paquete" : ""}
               >
-                {Object.entries(paquetes).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
+                {Object.entries(paquetes).map(([idPaquete, nombre]) => (
+                  <SelectItem key={idPaquete} value={idPaquete}>
+                    {nombre}
                   </SelectItem>
                 ))}
               </Select>
+              <Input
+                name="detalle"
+                type="text"
+                label="Detalle (opcional)"
+                variant="bordered"
+                className="block w-full"
+                value={formData.detalle || ""}
+                onChange={handleInputChange}
+              />
             </div>
 
             <div className="mt-6 flex justify-end">
@@ -311,4 +381,5 @@ export default function CrearCitaPage() {
       )}
     </>
   );
+
 }

@@ -73,7 +73,7 @@ export default function CrearColaboradorPage() {
   const validarCedula = (valor: string) => /^[0-9]{8,13}$/.test(valor);
   const validarTelefono = (valor: string) => /^[0-9]{10}$/.test(valor);
   const validarCorreo = (valor: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor);
-  const validarContrasena = () => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{11,14}$/.test(contrasena);
+  const validarContrasena = () => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/.test(contrasena);
 
   // Verifica si el formulario es válido
   const formIsValid = validarNombre() && validarCedula(cedula) && validarTelefono(telefono) && validarCorreo(correo) && validarContrasena();

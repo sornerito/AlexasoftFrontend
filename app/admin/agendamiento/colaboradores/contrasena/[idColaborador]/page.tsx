@@ -70,7 +70,7 @@ export default function EditarContrasenaColaboradorPage({
     const tieneMayuscula = /[A-Z]/.test(valor);
     const tieneNumero = /[0-9]/.test(valor);
     const tieneCaracterEspecial = /[!@#$%^&*(),.?":{}|<>]/.test(valor);
-    const longitudValida = valor.length > 10 && valor.length < 15;
+    const longitudValida = valor.length >= 10;
     return tieneMinuscula && tieneMayuscula && tieneNumero && tieneCaracterEspecial && longitudValida;
   };
 

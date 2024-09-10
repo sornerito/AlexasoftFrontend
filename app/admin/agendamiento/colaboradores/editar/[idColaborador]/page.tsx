@@ -96,30 +96,6 @@ export default function EditarColaboradorPage({
   const handleFormSubmit = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
 
-    if (!validarNombre()) {
-      setMensajeError("El nombre no puede contener números.");
-      onOpenError();
-      return;
-    }
-
-    if (!validarCedula(cedula)) {
-      setMensajeError("La cédula solo puede contener números y debe ser entre 8 y 13 dígitos.");
-      onOpenError();
-      return;
-    }
-
-    if (!validarTelefono(telefono)) {
-      setMensajeError("El teléfono solo puede contener números y debe ser de 10 dígitos.");
-      onOpenError();
-      return;
-    }
-
-    if (!validarCorreo(correo)) {
-      setMensajeError("El correo electrónico debe tener un formato válido.");
-      onOpenError();
-      return;
-    }
-
     onOpen();
   };
 
@@ -186,7 +162,15 @@ export default function EditarColaboradorPage({
           />
         </div>
 
-
+        <div className="mt-6 flex justify-end">
+          <Button
+            type="submit"
+            className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+            disabled={isInvalid}
+          >
+            Editar Colaborador
+          </Button>
+        </div>
       </form>
 
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>

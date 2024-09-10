@@ -292,7 +292,6 @@ export default function CitasPage() {
                     <p><strong>Hora:</strong> {selectedCita.hora}</p>
                     <p><strong>Paquete:</strong> {paquetes[selectedCita.idPaquete]}</p>
                     <p><strong>Detalle:</strong> {selectedCita.detalle || "N/A"}</p>
-                    <p><strong>Motivo:</strong> {selectedCita.idMotivo !== null ? motivos[selectedCita.idMotivo] : "N/A"}</p>
                     <p><strong>Estado:</strong> {selectedCita.estado}</p>
                   </div>
                 )}
