@@ -667,7 +667,7 @@ export default function VentasPageCrear() {
                 />
               </div>
               <div className="flex justify-end mt-4">
-                <Link href="/admin/Compras/compra">
+                <Link href="/admin/compras">
                   <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
                     Cancelar
                   </Button>

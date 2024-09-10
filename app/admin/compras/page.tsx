@@ -305,7 +305,7 @@ export default function ComprasPage() {
       {acceso ? (
         <div>
           <h1 className={title()}>Compras</h1>
-          <Toaster position="top-left" />
+          <Toaster position="bottom-right" />
 
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
             <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">

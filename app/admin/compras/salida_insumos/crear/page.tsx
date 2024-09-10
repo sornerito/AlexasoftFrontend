@@ -131,7 +131,7 @@ export default function CrearProductoPage() {
                 throw new Error("Error al intentar guardar la salida insumos");
             }
 
-            router.push("/admin/compras/SalidaInusmos");
+            router.push("/admin/compras/salida_insumos");
         } catch (error) {
             console.error("Error al enviar los datos:", error);
         }
@@ -195,7 +195,7 @@ export default function CrearProductoPage() {
                    
                 </div>
                 <div className="my-4 text-end">
-                    <Link href="/admin/compras/salida_inusmos">
+                    <Link href="/admin/compras/salida_insumos">
                         <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
                             Cancelar
                         </Button>

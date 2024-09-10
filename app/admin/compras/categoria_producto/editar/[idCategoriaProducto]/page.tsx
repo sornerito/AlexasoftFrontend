@@ -33,7 +33,8 @@ export default function EditarCategoriaProductoPage({
     setAcceso(verificarAccesoPorPermiso("Gestionar Categoria de Productos"));
   }
   }, []);
-    const [nombre, setNombre] = useState("");
+    const [nombreOriginal, setNombreOriginal] = useState<String>(""); 
+    const [nombre, setNombre] = useState<String>("");
     const [estado, setEstado] = useState("");
     const [errores, setErrores] = useState<any>({});
 
@@ -48,6 +49,7 @@ export default function EditarCategoriaProductoPage({
             .then((response) => response.json())
             .then((data) => {
                 setNombre(data.nombre);
+                setNombreOriginal(data.nombre);
                 setEstado(data.estado);
             })
             .catch((error) => {
@@ -78,7 +80,7 @@ export default function EditarCategoriaProductoPage({
     const handleFormSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
 
-        const errorNombre = validarNombre(nombre);
+        const errorNombre = validarNombre(nombre.toString());
 
         if (errorNombre) {
             setErrores({ nombre: errorNombre });
@@ -91,6 +93,14 @@ export default function EditarCategoriaProductoPage({
     };
 
     const handleConfirmSubmit = async () => {
+
+        if (nombre === nombreOriginal) { 
+            console.error("Error al editar la categoría producto:");
+            setMensajeError("No hubo cambios");
+            onOpenError();  
+            return;
+        }
+
         const categoriaProductoActualizado = {
             idCategoriaProducto: params.idCategoriaProducto,
             nombre,
@@ -108,7 +118,7 @@ export default function EditarCategoriaProductoPage({
                 }, 1000);}
             else {
                 console.error("Error al editar la categoría producto:", response.statusText);
-                setMensajeError("No hubo cambios en el nombre");
+                setMensajeError("El nombre ingresado ya esta en uso");
                 onOpenError();
             }
         } catch (error) {
@@ -134,7 +144,7 @@ export default function EditarCategoriaProductoPage({
                         type="text"
                         label="Nombre"
                         variant="bordered"
-                        value={nombre}
+                        value={nombre.toString()}
                         onChange={handleChange}
                         name="nombre"
                         isInvalid={!!errores.nombre}

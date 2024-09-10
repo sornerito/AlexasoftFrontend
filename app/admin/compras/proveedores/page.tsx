@@ -183,7 +183,7 @@ export default function ProveedoresPage() {
         if (!response.ok) {
           throw new Error('Error al eliminar el proveedor, Tiene un relación con una compra');
         }
-
+        toast.success("Proveedor eliminado con éxito!");
         setProveedores((prevProveedores) =>
           prevProveedores.filter((proveedor) => proveedor.idProveedor !== selectedProveedorId)
         );

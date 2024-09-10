@@ -239,7 +239,7 @@ const validarMotivoAnular = () => {
         </div>
         <div className="basis-1/2"></div>
         <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
-          <Link href="/admin/compras/salida_inusmos/crear">
+          <Link href="/admin/compras/salida_insumos/crear">
             <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Insumo">
               <PlusIcon /> Crear Insumo
             </Button>
