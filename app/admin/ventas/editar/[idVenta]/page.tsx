@@ -19,8 +19,7 @@ import {
   Select,
   SelectItem,
   Spinner,
-  Chip,
-  CircularProgress
+  Chip
 } from "@nextui-org/react";
 
 // Importar funciones de configuración
@@ -679,8 +678,12 @@ export default function VentasPageEditar() {
           <Toaster position="bottom-right" />
         </div>
       ) : (
-        // Mostrar CircularProgress si no tiene acceso
-        <CircularProgress color="warning" aria-label="Cargando..." />
+        // Mostrar spinner si no tiene acceso
+        <div className="flex justify-center text-center h-screen">
+          <div className="text-center">
+            <Spinner color="warning" size="lg" />
+          </div>
+        </div>
       )}
     </>
   );

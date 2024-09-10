@@ -17,8 +17,7 @@ import {
   ModalFooter,
   useDisclosure,
   Link,
-  Spinner,
-  CircularProgress,
+  Spinner
 } from "@nextui-org/react";
 
 // Definición de la interfaz Cliente
@@ -319,8 +318,12 @@ export default function ClientesPageCrear() {
           <Toaster position="bottom-right" />
         </div>
       ) : (
-        // Muestra un CircularProgress si no tiene acceso
-        <CircularProgress color="warning" aria-label="Cargando..." />
+        // Mostrar spinner si no tiene acceso
+        <div className="flex justify-center text-center h-screen">
+          <div className="text-center">
+            <Spinner color="warning" size="lg" />
+          </div>
+        </div>
       )}
     </>
   );

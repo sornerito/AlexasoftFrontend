@@ -105,7 +105,7 @@ export default function EditarPaquetePage({
 
   // Hacer Fetch para obtener los servicios y acomodarlos a conveniencia
   React.useEffect(() => {
-    getWithAuth("http://localhost:8080/servicio/servicios")
+    getWithAuth("http://localhost:8080/servicio")
       .then((response) => response.json())
       .then((data) => {
         // Procesar los datos para que coincidan con la estructura de columnas

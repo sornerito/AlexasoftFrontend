@@ -56,12 +56,12 @@ export default function ServiciosPage() {
   //Valida permiso
   const [acceso, setAcceso] = React.useState<boolean>(false);
   React.useEffect(() => {
-    if(typeof window !== "undefined"){
-    if(verificarAccesoPorPermiso("Gestionar Servicios") == false){
-      window.location.href = "../../../acceso/noAcceso"
+    if (typeof window !== "undefined") {
+      if (verificarAccesoPorPermiso("Gestionar Servicios") == false) {
+        window.location.href = "../../../acceso/noAcceso"
+      }
+      setAcceso(verificarAccesoPorPermiso("Gestionar Servicios"));
     }
-    setAcceso(verificarAccesoPorPermiso("Gestionar Servicios"));
-  }
   }, []);
   const tamanoMovil = useMediaQuery({ maxWidth: 768 }); //Tamaño md de tailwind
   const [servicios, setServicios] = React.useState<Servicio[]>([]); // Hook para guardar ventas
@@ -76,6 +76,13 @@ export default function ServiciosPage() {
   } = useDisclosure(); //Hook de modal error
   const [mensajeError, setMensajeError] = React.useState(""); //Mensaje de error
   const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
+  const [servicioSeleccionado, setServicioSeleccionado] = React.useState<any | null>(null);
+  const {
+    isOpen: isOpenDetalles,
+    onOpen: onOpenDetalles,
+    onOpenChange: onOpenChangeDetalles,
+  } = useDisclosure(); //Hook de modal error
+
   const router = useRouter(); // Hook para manejar la navegación
 
   // Hacer Fetch para obtener ventas y procesar datos
@@ -102,10 +109,10 @@ export default function ServiciosPage() {
         if (err.message === "Unexpected end of JSON input") {
           setMensajeError("No hay Servicios registradas aún.");
           onOpenWarning();
-        }else{
+        } else {
           console.error("Error al obtener los servicios:", err);
-        setMensajeError("Error al obtener los servicios. Por favor, inténtalo de nuevo.");
-        onOpenError();
+          setMensajeError("Error al obtener los servicios. Por favor, inténtalo de nuevo.");
+          onOpenError();
         }
       });
   }, []);
@@ -135,6 +142,13 @@ export default function ServiciosPage() {
 
     return serviciosFiltradas.slice(start, end);
   }, [page, serviciosFiltradas]);
+
+
+  const mostrarDetalleServicio = (idServicio: string) => {
+    const servicio = servicios.find(servicio => servicio.idServicio === idServicio);
+    setServicioSeleccionado(servicio || null);
+    onOpenDetalles(); // Abre el modal
+  };
 
 
   const [servicioId, setServicioId] = React.useState("");
@@ -186,210 +200,252 @@ export default function ServiciosPage() {
 
   return (
     <>
-    {acceso ? (
-      <div>
-      <h1 className={title()}>Servicios</h1>
-      <div className="flex flex-col items-start sm:flex-row sm:items-center">
-        <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
-          <Input
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "shadow-xl",
-                "rounded-lg",
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focus=true]:bg-default-200/50",
-                "dark:group-data-[focus=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
-            placeholder="Buscar..."
-            onChange={(e: any) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="basis-1/2"></div>
-        <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
-          <Link href="/admin/servicios/crear">
-            <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Servicio">
-              <PlusIcon /> Crear Servicio
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {tamanoMovil ? (
+      {acceso ? (
         <div>
-          {items.map((item) => (
-            <div key={item.idServicio}>
-              <style></style>
-              <Card className="mb-4 group">
-                <CardBody>
-                  {columns.map((column) => (
-                    <div
-                      key={column.uid}
-                      className="truncate group-hover:whitespace-normal group-hover:overflow-visible "
-                    >
-                      <strong>
-                        {column.uid === "acciones" ? "" : column.name + ":"}{" "}
-                      </strong>
-                      {column.uid === "acciones" &&
-                        item.estado == "Activo" ? (
-                        <Dropdown>
-                          <DropdownTrigger className="bg-transparent w-auto my-2">
-                            <Button
-                              isIconOnly
-                              className="border"
-                              aria-label="Actions"
-                            >
-                              <Ellipsis />
-                            </Button>
-                          </DropdownTrigger>
-                          <DropdownMenu
-                            onAction={(action) => console.log(action)}
-                          >
-                            <DropdownItem href={`/admin/servicios/editar/${item.idServicio}`}>
-                              <Button className="bg-transparent w-full">
-                                <Edit />
-                                Editar Servicio
-                              </Button>
-                            </DropdownItem>
-                          </DropdownMenu>
-                        </Dropdown>
-                      ) : column.uid === "estado" ? (
-                        <Chip
-                          color={
-                            item.estado === "Activo" ? "success" : "danger"
-                          }
-                          variant="bordered"
-                          className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
-                          onClick={() =>
-                            handleEstadoChange(item.idServicio, item.estado)
-                          }
-                        >
-                          {item.estado}
-                        </Chip>
-                      ) : (
-                        <span>{item[column.uid as keyof Servicio]}</span>
-                      )}
-                    </div>
-                  ))}
-                </CardBody>
-              </Card>
+          <h1 className={title()}>Servicios</h1>
+          <div className="flex flex-col items-start sm:flex-row sm:items-center">
+            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+              <Input
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  input: [
+                    "bg-transparent",
+                    "text-black/90 dark:text-white/90",
+                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                  ],
+                  innerWrapper: "bg-transparent",
+                  inputWrapper: [
+                    "shadow-xl",
+                    "rounded-lg",
+                    "bg-default-200/50",
+                    "dark:bg-default/60",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-default-200/70",
+                    "dark:hover:bg-default/70",
+                    "group-data-[focus=true]:bg-default-200/50",
+                    "dark:group-data-[focus=true]:bg-default/60",
+                    "!cursor-text",
+                  ],
+                }}
+                placeholder="Buscar..."
+                onChange={(e: any) => setSearchTerm(e.target.value)}
+              />
             </div>
-          ))}
-        </div>
-      ) : (
-        <Table className="mb-8" isStriped>
-          <TableHeader columns={columns}>
-            {(column) => (
-              <TableColumn className="text-base" key={column.uid}>
-                {column.name}
-              </TableColumn>
-            )}
-          </TableHeader>
-          <TableBody items={items}>
-            {(item) => (
-              <TableRow key={item.idServicio}>
-                {columns.map((column) => (
-                  <TableCell key={column.uid}>
-                    {column.uid === "acciones" &&
-                      item.estado == "Activo" ? (
-                      <Dropdown>
-                        <DropdownTrigger>
-                          <Button
-                            aria-label="Acciones"
-                            className="bg-transparent"
-                          >
-                            <Ellipsis />
-                          </Button>
-                        </DropdownTrigger>
-                        <DropdownMenu
-                          onAction={(action) => console.log(action)}
+            <div className="basis-1/2"></div>
+            <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
+              <Link href="/admin/servicios/crear">
+                <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Servicio">
+                  <PlusIcon /> Crear Servicio
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {tamanoMovil ? (
+            <div>
+              {items.map((item) => (
+                <div key={item.idServicio}>
+                  <style></style>
+                  <Card className="mb-4 group">
+                    <CardBody>
+                      {columns.map((column) => (
+                        <div
+                          key={column.uid}
+                          className="truncate group-hover:whitespace-normal group-hover:overflow-visible "
                         >
-                          <DropdownItem href={`/admin/servicios/editar/${item.idServicio}`}>
-                            <Button className="bg-transparent w-full">
-                              <Edit />
-                              Editar Servicio
-                            </Button>
-                          </DropdownItem>
-                        </DropdownMenu>
-                      </Dropdown>
-                    ) : column.uid === "estado" ? (
-                      <Chip
-                        color={item.estado === "Activo" ? "success" : "danger"}
-                        variant="bordered"
-                        className="hover:scale-110 cursor-pointer transition-transform duration-100 ease-in-out"
-                        onClick={() =>
-                          handleEstadoChange(item.idServicio, item.estado)
-                        }
-                      >
-                        {item.estado}
-                      </Chip>
-                    ) : (
-                      item[column.uid as keyof Servicio]
-                    )}
-                  </TableCell>
-                ))}
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      )}
-
-      <div className="flex w-full justify-center mb-4">
-        <Pagination
-          showControls
-          color="warning"
-          page={page}
-          total={Math.ceil(serviciosFiltradas.length / rowsPerPage)}
-          onChange={(page) => setPage(page)}
-        />
-      </div>
-
-
-      {/*Modal Cambiar Estado*/}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleHelp color="#fef08a" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className=" text-3xl">¿Desea cambiar el estado del servicio?</h1>
-              </ModalBody>
-              <ModalFooter>
-                <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button
-                  className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-                  onPress={() => {
-                    cambiarEstado(servicioId, estadoActual);
-                    onClose();
-                  }}
-                >
-                  Cambiar Estado
-                </Button>
-              </ModalFooter>
-            </>
+                          <strong>
+                            {column.uid === "acciones" ? "" : column.name + ":"}{" "}
+                          </strong>
+                          {column.uid === "acciones" &&
+                            item.estado == "Activo" ? (
+                            <Dropdown>
+                              <DropdownTrigger className="bg-transparent w-auto my-2">
+                                <Button
+                                  isIconOnly
+                                  className="border"
+                                  aria-label="Actions"
+                                >
+                                  <Ellipsis />
+                                </Button>
+                              </DropdownTrigger>
+                              <DropdownMenu
+                                onAction={(action) => console.log(action)}
+                              >
+                                <DropdownItem href={`/admin/servicios/editar/${item.idServicio}`}>
+                                  <Button className="bg-transparent w-full">
+                                    <Edit />
+                                    Editar Servicio
+                                  </Button>
+                                </DropdownItem>
+                                <DropdownItem>
+                                    <Button onClick={() => mostrarDetalleServicio(item.idServicio)}>
+                                      Ver Detalles
+                                    </Button>
+                                </DropdownItem>
+                              </DropdownMenu>
+                            </Dropdown>
+                          ) : column.uid === "estado" ? (
+                            <Chip
+                              color={
+                                item.estado === "Activo" ? "success" : "danger"
+                              }
+                              variant="bordered"
+                              className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
+                              onClick={() =>
+                                handleEstadoChange(item.idServicio, item.estado)
+                              }
+                            >
+                              {item.estado}
+                            </Chip>
+                          ) : (
+                            <span>{item[column.uid as keyof Servicio]}</span>
+                          )}
+                        </div>
+                      ))}
+                    </CardBody>
+                  </Card>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Table className="mb-8" isStriped>
+              <TableHeader columns={columns}>
+                {(column) => (
+                  <TableColumn className="text-base" key={column.uid}>
+                    {column.name}
+                  </TableColumn>
+                )}
+              </TableHeader>
+              <TableBody items={items}>
+                {(item) => (
+                  <TableRow key={item.idServicio}>
+                    {columns.map((column) => (
+                      <TableCell key={column.uid}>
+                        {column.uid === "acciones" &&
+                          item.estado == "Activo" ? (
+                          <Dropdown>
+                            <DropdownTrigger>
+                              <Button
+                                aria-label="Acciones"
+                                className="bg-transparent"
+                              >
+                                <Ellipsis />
+                              </Button>
+                            </DropdownTrigger>
+                            <DropdownMenu
+                              onAction={(action) => console.log(action)}
+                            >
+                              <DropdownItem href={`/admin/servicios/editar/${item.idServicio}`}>
+                                <Button className="bg-transparent w-full">
+                                  <Edit />
+                                  Editar Servicio
+                                </Button>
+                              </DropdownItem>
+                              <DropdownItem>
+                                    <Button onClick={() => mostrarDetalleServicio(item.idServicio)}>
+                                      Ver Detalles
+                                    </Button>
+                                </DropdownItem>
+                            </DropdownMenu>
+                          </Dropdown>
+                        ) : column.uid === "estado" ? (
+                          <Chip
+                            color={item.estado === "Activo" ? "success" : "danger"}
+                            variant="bordered"
+                            className="hover:scale-110 cursor-pointer transition-transform duration-100 ease-in-out"
+                            onClick={() =>
+                              handleEstadoChange(item.idServicio, item.estado)
+                            }
+                          >
+                            {item.estado}
+                          </Chip>
+                        ) : (
+                          item[column.uid as keyof Servicio]
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           )}
-        </ModalContent>
-      </Modal>
 
-       {/* Modal para mostrar advertencias */}
-       <Modal isOpen={isOpenWarning} onOpenChange={onOpenChangeWarning}>
+          <div className="flex w-full justify-center mb-4">
+            <Pagination
+              showControls
+              color="warning"
+              page={page}
+              total={Math.ceil(serviciosFiltradas.length / rowsPerPage)}
+              onChange={(page) => setPage(page)}
+            />
+          </div>
+
+
+          <Modal isOpen={isOpenDetalles} onOpenChange={onOpenChangeDetalles}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleHelp color="#fef08a" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    {servicioSeleccionado ? (
+                      <div>
+                        <h1 className="text-2xl mb-4">Detalles del Servicio</h1>
+                        <p><strong>ID:</strong> {servicioSeleccionado.idServicio}</p>
+                        <p><strong>Nombre:</strong> {servicioSeleccionado.nombre}</p>
+                        <p><strong>Descripción:</strong> {servicioSeleccionado.descripcion}</p>
+                        <p><strong>Tiempo (minutos):</strong> {servicioSeleccionado.tiempoMinutos}</p>
+                        <p><strong>Estado:</strong> {servicioSeleccionado.estado}</p>
+                      </div>
+                    ) : (
+                      <p>No se encontró el servicio.</p>
+                    )}
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+
+
+          {/*Modal Cambiar Estado*/}
+          <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleHelp color="#fef08a" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className=" text-3xl">¿Desea cambiar el estado del servicio?</h1>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onPress={onClose}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                      onPress={() => {
+                        cambiarEstado(servicioId, estadoActual);
+                        onClose();
+                      }}
+                    >
+                      Cambiar Estado
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+
+          {/* Modal para mostrar advertencias */}
+          <Modal isOpen={isOpenWarning} onOpenChange={onOpenChangeWarning}>
             <ModalContent>
               {(onClose) => (
                 <>
@@ -411,31 +467,31 @@ export default function ServiciosPage() {
           </Modal>
 
 
-      {/*Modal de error*/}
-      <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleX color="#894242" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className=" text-3xl">Error</h1>
-                <p>{mensajeError}</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-    </div>
-    ) :(
-      <CircularProgress color="warning" aria-label="Cargando..." />
-    )}
+          {/*Modal de error*/}
+          <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleX color="#894242" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className=" text-3xl">Error</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+        </div>
+      ) : (
+        <CircularProgress color="warning" aria-label="Cargando..." />
+      )}
     </>
   );
 }
