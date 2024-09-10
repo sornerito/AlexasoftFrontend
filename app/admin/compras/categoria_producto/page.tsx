@@ -224,7 +224,7 @@ export default function CategoriasProductoPage() {
             </div>
             <div className="basis-1/2"></div>
             <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
-              <Link href="/admin/compras/categoria-producto/crear">
+              <Link href="/admin/compras/categoria_producto/crear">
                 <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Categoría">
                   <PlusIcon /> Crear Categoría
                 </Button>

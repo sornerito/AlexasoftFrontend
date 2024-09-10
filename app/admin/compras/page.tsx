@@ -80,61 +80,76 @@ export default function ComprasPage() {
   const [proveedores, setProveedores] = useState<Map<string, string>>(new Map());
   const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
   const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
-
+  const [productPage, setProductPage] = useState(1);
   const rowsPerPage = 6;
+  const rowsProductoPage = 3;
   const tamanoMovil = useMediaQuery({ maxWidth: 768 });
 
   // Función para obtener los detalles de la venta
-const fetchCompraDetalles = async (idCompra: string) => {
-  try {
-    // Petición para obtener los detalles del producto (primera petición)
-    const productosResponse = await getWithAuth(`http://localhost:8080/compras/detalle-producto-compra-producto`);
-    const productosData = await productosResponse.json();
-    
-    // Petición para obtener los detalles de la compra (segunda petición)
-    const compraResponse = await getWithAuth(`http://localhost:8080/compras/detalle-producto-compra/${idCompra}`);
-    const compraData = await compraResponse.json();
-    console.log(compraData);
+  const fetchCompraDetalles = async (idCompra: string) => {
+    try {
+      // Petición para obtener los detalles del producto (primera petición)
+      const productosResponse = await getWithAuth(`http://localhost:8080/compras/detalle-producto-compra-producto`);
+      const productosData = await productosResponse.json();
 
-    // Mapeamos las unidades de la primera petición por idProducto
-    const unidadesPorProducto: any = productosData.reduce((acc: any, detalle: any) => {
-      acc[detalle.idProducto] = detalle.unidades;
-      return acc;
-    }, {});
-
-    // Actualizamos los productos con la cantidad obtenida en la primera petición
-    const updatedProductos = compraData.productos.map((producto: any) => {
-      return {
-        ...producto,
-        unidadesVendidas: unidadesPorProducto[producto.idProducto] || 0, // Aquí añadimos las unidades
-      };
-    });
-
-    // Agrupamos los productos por idProducto
-    const productosAgrupados: any[] = updatedProductos.reduce((acc: any, producto: any) => {
-      if (!acc[producto.idProducto]) {
-        acc[producto.idProducto] = { ...producto, cantidad: 0 };
+      // Verificamos si productosData es un array y tiene datos
+      if (!Array.isArray(productosData) || productosData.length === 0) {
+        throw new Error("No se encontraron detalles de productos.");
       }
-      acc[producto.idProducto].cantidad++;
-      return acc;
-    }, {});
 
-    const productosAgrupadosArray: any[] = Object.values(productosAgrupados);
-    setAgrupados(productosAgrupadosArray);
+      // Petición para obtener los detalles de la compra (segunda petición)
+      const compraResponse = await getWithAuth(`http://localhost:8080/compras/detalle-producto-compra/${idCompra}`);
+      const compraData = await compraResponse.json();
+      console.log(compraData);
 
-    // Combinamos la respuesta con los productos actualizados
-    const mergedData = {
-      ...compraData,
-      productos: productosAgrupadosArray, 
-    };
+      // Filtramos los detalles de productos según la compra seleccionada (idCompra)
+      const productosFiltrados = productosData.filter((detalle: any) => detalle.idCompra === idCompra);
 
-    return mergedData;
-  } catch (err: any) {
-    console.error("Error al obtener Detalle de compras por producto:", err);
-    setMensajeError("Error al obtener Detalle de compras por producto. Por favor, inténtalo de nuevo.");
-    onOpenError();
-  }
-};
+      // Mapeamos las unidades por idProducto para la compra seleccionada
+      const unidadesPorProducto: any = productosFiltrados.reduce((acc: any, detalle: any) => {
+        acc[detalle.idProducto] = detalle.unidades;  
+        return acc;
+      }, {});
+
+      console.log("Unidades por producto filtradas:", unidadesPorProducto); // Añadimos log para verificar las unidades
+
+      // Actualizamos los productos con la cantidad obtenida en la primera petición
+      const updatedProductos = compraData.productos.map((producto: any) => {
+        return {
+          ...producto,
+          unidadesVendidas: unidadesPorProducto[producto.idProducto] || 0, 
+        };
+      });
+
+      console.log("Productos actualizados:", updatedProductos);  
+
+      // Agrupamos los productos por idProducto sin sumar, solo asignando la cantidad existente
+      const productosAgrupados: any[] = updatedProductos.reduce((acc: any, producto: any) => {
+        if (!acc[producto.idProducto]) {
+          
+          acc[producto.idProducto] = { ...producto, cantidad: producto.unidadesVendidas };
+        }
+        return acc;
+      }, {});
+
+      const productosAgrupadosArray: any[] = Object.values(productosAgrupados);
+      setAgrupados(productosAgrupadosArray);
+
+      // Combinamos la respuesta con los productos actualizados
+      const mergedData = {
+        ...compraData,
+        productos: productosAgrupadosArray,
+      };
+
+      return mergedData;
+    } catch (err: any) {
+      console.error("Error al obtener Detalle de compras por producto:", err);
+      setMensajeError("Error al obtener Detalle de compras por producto. Por favor, inténtalo de nuevo.");
+      onOpenError();
+    }
+  };
+
+
 
 
 
@@ -198,13 +213,14 @@ const fetchCompraDetalles = async (idCompra: string) => {
   const comprasFiltradas = React.useMemo(() =>
     compras.filter((compra) =>
       Object.entries(compra).some(([key, value]) =>
-        key === "precio" && typeof value === "number"
+        (key === "precio" || key ==="subtotal") && typeof value === "number"
           ? value.toString().toLowerCase().includes(searchTerm.replace(/[$,.]/g, "").toLowerCase())
           : String(value).toLowerCase().includes(searchTerm.toLowerCase())
       )
     ),
     [compras, searchTerm]
   );
+
 
   const items = React.useMemo(() => {
     const start = (page - 1) * rowsPerPage;
@@ -291,7 +307,7 @@ const fetchCompraDetalles = async (idCompra: string) => {
       {acceso ? (
         <div>
           <h1 className={title()}>Compras</h1>
-          <Toaster position="top-left" />
+         <Toaster position="bottom-right" />
 
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
             <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
@@ -346,7 +362,7 @@ const fetchCompraDetalles = async (idCompra: string) => {
                                 isIconOnly
                                 className="border"
                                 aria-label="Actions"
-                                
+
                               >
                                 <Ellipsis />
                               </Button>
@@ -491,6 +507,9 @@ const fetchCompraDetalles = async (idCompra: string) => {
                             </TableRow>
                           </TableBody>
                         </Table>
+                        
+                        <div style={{ width: "50%" }}>
+
                         <Table aria-label="Productos" className="flex-1">
                           <TableHeader>
                             <TableColumn>Nombre</TableColumn>
@@ -498,17 +517,31 @@ const fetchCompraDetalles = async (idCompra: string) => {
                             <TableColumn>Cantidad</TableColumn>
                             <TableColumn>Precio Venta</TableColumn>
                           </TableHeader>
-                          <TableBody>
-                            {agrupados.map((producto: any) => (
+                          <TableBody items={agrupados.slice((productPage - 1) * rowsProductoPage, productPage * rowsProductoPage)}>
+                          {(producto: any) => (
                               <TableRow key={producto.idProducto}>
                                 <TableCell>{producto.nombre}</TableCell>
                                 <TableCell>{producto.idMarca.nombre || "Marca no encontrada"}</TableCell>
-                                <TableCell>{producto.unidades}</TableCell>
+                                <TableCell>{producto.cantidad}</TableCell>
                                 <TableCell>{formatCurrency(producto.precio)}</TableCell>
                               </TableRow>
-                            ))}
+                            )}
                           </TableBody>
                         </Table>
+                          {/* Paginación para productos */}
+                          {agrupados.length > rowsProductoPage && ( 
+                            <div className="flex w-full justify-center mt-4">
+                              <Pagination
+                                showControls
+                                color="warning"
+                                page={productPage}
+                                total={Math.ceil(agrupados.length / rowsProductoPage)}
+                                onChange={(page) => setProductPage(page)}
+                              />
+                            </div>
+                             )}
+                        </div>
+                          
                       </div>
                     ) : isLoading ? (
                       <div className="flex justify-center items-center">
