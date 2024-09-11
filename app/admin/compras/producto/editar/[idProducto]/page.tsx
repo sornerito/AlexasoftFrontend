@@ -30,6 +30,7 @@ interface Producto {
   estado: string;
   idCategoriaProducto: string;
   imagenes: string;
+  unidadMedida: string;
 }
 
 interface CategoriaProducto {
@@ -44,21 +45,22 @@ interface Marca {
 }
 
 export default function ProductosEditarPage() {
-   //Valida permiso
-   const [acceso, setAcceso] = React.useState<boolean>(false);
-   React.useEffect(() => {
-     if(typeof window !== "undefined"){
-     if(verificarAccesoPorPermiso("Gestionar Productos") == false){
-       window.location.href = "../../../../acceso/noAcceso"
-     }
-     setAcceso(verificarAccesoPorPermiso("Gestionar Productos"));
-   }
-   }, []);
+  //Valida permiso
+  const [acceso, setAcceso] = React.useState<boolean>(false);
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (verificarAccesoPorPermiso("Gestionar Productos") == false) {
+        window.location.href = "../../../../acceso/noAcceso"
+      }
+      setAcceso(verificarAccesoPorPermiso("Gestionar Productos"));
+    }
+  }, []);
   const [producto, setProducto] = useState<Producto | null>(null);
   const [originalProducto, setOriginalProducto] = useState<Producto | null>(null);
   const [idCategoriaProducto, setIdCategoriaProducto] = useState<string>("");
   const [categoriasProducto, setCategoriasProducto] = useState<CategoriaProducto[]>([]);
   const [idMarca, setIdMarca] = useState<string>("");
+  const [unidadMedida, SetUnidadMedida] = useState<string>("");
   const [marca, setMarca] = useState<Marca[]>([]);
   const [errores, setErrores] = useState<any>({});
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -135,6 +137,7 @@ export default function ProductosEditarPage() {
         setOriginalProducto(data);
         setIdMarca(data.idMarca.idMarca.toString());
         setIdCategoriaProducto(data.idCategoriaProducto.idCategoriaProducto.toString());
+        SetUnidadMedida(data.unidadMedida);
       })
       .catch(err => {
         console.error("Error al obtener producto:", err);
@@ -162,9 +165,9 @@ export default function ProductosEditarPage() {
     if (isNaN(Number(precio)) || Number(precio) <= 0) {
       return "El precio debe ser un número mayor que 0.";
     }
-    if (Number(precio) >= 1000000){
-      return"El precio debe ser menor a (1.000.000) ";
-  }
+    if (Number(precio) >= 1000000) {
+      return "El precio debe ser menor a (1.000.000) ";
+    }
     return "";
   };
 
@@ -205,7 +208,7 @@ export default function ProductosEditarPage() {
     const errorNombre = validarNombre(producto?.nombre || "");
     const errorImagenes = validarImagenes(producto?.imagenes || "");
 
-    if (errorNombre  || errorImagenes) {
+    if (errorNombre || errorImagenes) {
       setErrores({
         nombre: errorNombre,
         imagenes: errorImagenes,
@@ -274,148 +277,174 @@ export default function ProductosEditarPage() {
 
   const [isLoading, setIsLoading] = useState(true);
 
+  const handleChangeUnidadMedida = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    SetUnidadMedida(value);
+    setProducto({ ...producto, unidadMedida: value } as Producto);
+
+  };
+
+  const UnidadMedida = [
+    { key: "ml", label: "ml" },
+    { key: "g", label: "g" },
+  ];
+
   // Retorno del componente
   return (
     <>
-{acceso ? (
-    <div className="lg:mx-60">
-      <h1 className={title()}>Editar Producto</h1>
-      <br /><br />
+      {acceso ? (
+        <div className="lg:mx-60">
+          <h1 className={title()}>Editar Producto</h1>
+          <br /><br />
 
-      {isLoading ? (
-        <div className="flex justify-center text-center h-screen">
-          <div className="text-center">
-            <Spinner color="warning" size="lg" />
-          </div>
-        </div>
-      ) : (
-        <form onSubmit={handleFormSubmit}>
-          <div className="grid gap-4">
-            <Input
-              isRequired
-              type="text"
-              label="Nombre"
-              variant="bordered"
-              value={producto?.nombre}
-              isInvalid={!!errores.nombre}
-              color={errores.nombre ? "danger" : "default"}
-              errorMessage={errores.nombre}
-              onChange={handleChange}
-              name="nombre"
-            />
-            <Select
-              isRequired
-              name="idMarca"
-              label="Marca"
-              value={idMarca}
-              onChange={handleChangeMarca}
-              selectedKeys={[idMarca]}
-              required
-            >
-              {marca.map((marca) => (
-                <SelectItem key={marca.idMarca} value={marca.idMarca.toString()}>
-                  {marca.nombre}
-                </SelectItem>
-              ))}
-            </Select>
-            <Input
-              isRequired
-              type="text"
-              label="Imagenes"
-              variant="bordered"
-              value={producto?.imagenes}
-              isInvalid={!!errores.imagenes}
-              color={errores.imagenes ? "danger" : "default"}
-              errorMessage={errores.imagenes}
-              onChange={handleChange}
-              name="imagenes"
-            />
-            <Select
-              isRequired
-              name="idCategoriaProducto"
-              label="Categoría de Producto"
-              value={idCategoriaProducto}
-              onChange={handleChangeCategoria}
-              selectedKeys={[idCategoriaProducto]}
-              required
-            >
-              {categoriasProducto.map((categoria) => (
-                <SelectItem key={categoria.idCategoriaProducto} value={categoria.idCategoriaProducto.toString()}>
-                  {categoria.nombre}
-                </SelectItem>
-              ))}
-            </Select>
-
-          </div>
-          <div className="flex justify-end mt-4">
-            <Link href="/admin/compras/producto">
-              <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
-                Cancelar
-              </Button>
-            </Link>
-            <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" type="submit">
-              Enviar
-            </Button>
-          </div>
-        </form>
-      )}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleHelp color="#fef08a" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className="text-3xl">¿Desea editar el producto?</h1>
-                <p>El producto se actualizará con la información proporcionada.</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button
-                  color="warning" variant="light"
-                  onPress={() => {
-                    handleConfirmSubmit();
-                    onClose();
-                  }}
+          {isLoading ? (
+            <div className="flex justify-center text-center h-screen">
+              <div className="text-center">
+                <Spinner color="warning" size="lg" />
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleFormSubmit}>
+              <div className="grid gap-4">
+                <Input
+                  isRequired
+                  type="text"
+                  label="Nombre"
+                  variant="bordered"
+                  value={producto?.nombre}
+                  isInvalid={!!errores.nombre}
+                  color={errores.nombre ? "danger" : "default"}
+                  errorMessage={errores.nombre}
+                  onChange={handleChange}
+                  name="nombre"
+                />
+                <Select
+                  isRequired
+                  name="idMarca"
+                  label="Marca"
+                  value={idMarca}
+                  onChange={handleChangeMarca}
+                  selectedKeys={[idMarca]}
+                  required
                 >
-                  Editar
+                  {marca.map((marca) => (
+                    <SelectItem key={marca.idMarca} value={marca.idMarca.toString()}>
+                      {marca.nombre}
+                    </SelectItem>
+                  ))}
+                </Select>
+                <Input
+                  isRequired
+                  type="text"
+                  label="Imagenes"
+                  variant="bordered"
+                  value={producto?.imagenes}
+                  isInvalid={!!errores.imagenes}
+                  color={errores.imagenes ? "danger" : "default"}
+                  errorMessage={errores.imagenes}
+                  onChange={handleChange}
+                  name="imagenes"
+                />
+                <Select
+                  isRequired
+                  name="idCategoriaProducto"
+                  label="Categoría de Producto"
+                  value={idCategoriaProducto}
+                  onChange={handleChangeCategoria}
+                  selectedKeys={[idCategoriaProducto]}
+                  required
+                >
+                  {categoriasProducto.map((categoria) => (
+                    <SelectItem key={categoria.idCategoriaProducto} value={categoria.idCategoriaProducto.toString()}>
+                      {categoria.nombre}
+                    </SelectItem>
+                  ))}
+                </Select>
+                <Select
+                  isRequired
+                  name="unidad Medida"
+                  label="unidad Medida"
+                  variant="bordered"
+                  value={unidadMedida}
+                  onChange={handleChangeUnidadMedida}
+                  selectedKeys={[unidadMedida]}
+                >
+                  {UnidadMedida.map((unidadMedida) => (
+                    <SelectItem key={unidadMedida.key} value={unidadMedida.key}>
+                      {unidadMedida.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+              </div>
+              <div className="flex justify-end mt-4">
+                <Link href="/admin/compras/producto">
+                  <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
+                    Cancelar
+                  </Button>
+                </Link>
+                <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" type="submit">
+                  Enviar
                 </Button>
-              </ModalFooter>
-            </>
+              </div>
+            </form>
           )}
-        </ModalContent>
-      </Modal>
+          <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleHelp color="#fef08a" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">¿Desea editar el producto?</h1>
+                    <p>El producto se actualizará con la información proporcionada.</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      color="warning" variant="light"
+                      onPress={() => {
+                        handleConfirmSubmit();
+                        onClose();
+                      }}
+                    >
+                      Editar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
-      <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleX color="#894242" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className="text-3xl">Error</h1>
-                <p>{mensajeError}</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+          <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1 items-center">
+                    <CircleX color="#894242" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl">Error</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
-      <Toaster position="bottom-right" />
-    </div>
-          
-        ) :(
-          <CircularProgress color="warning" aria-label="Cargando..." />
-        )}
+          <Toaster position="bottom-right" />
+        </div>
+
+      ) : (
+        <CircularProgress color="warning" aria-label="Cargando..." />
+      )}
     </>
   );
 }

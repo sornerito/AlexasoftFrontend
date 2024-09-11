@@ -41,6 +41,7 @@ const columns = [
   { name: "Unidades", uid: "unidades" },
   { name: "Estado", uid: "estado" },
   { name: "Categoria", uid: "categoria" },
+  { name: "Unidad Medidas", uid: "unidadMedida"},
   { name: "Acciones", uid: "acciones" }
 ];
 
@@ -53,6 +54,7 @@ interface Producto {
   estado: string;
   categoria: string;
   imangenes: string;
+  unidadMedida: string;
 }
 
 interface Compras {
@@ -103,6 +105,7 @@ export default function ProductosPage() {
           estado: item.estado,
           categoria: item.idCategoriaProducto.nombre,
           imagenes: item.imagenes,
+          unidadMedida: item.unidadMedida,
         })));
       } catch (err: any) {
         if (err.message === "Unexpected end of JSON input") {

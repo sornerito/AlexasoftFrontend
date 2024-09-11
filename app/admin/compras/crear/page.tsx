@@ -204,7 +204,7 @@ export default function VentasPageCrear() {
   const handleSubmit = async () => {
     try {
       const nuevaCompra = await crearCompra();
-      await crearDetallesCompra(nuevaCompra.idCompra); 
+      await crearDetallesCompra(nuevaCompra.idCompra);
 
       toast.success("Compra creada con éxito!");
       setTimeout(() => {
@@ -358,41 +358,41 @@ export default function VentasPageCrear() {
   // Función para manejar la presentación del formulario
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  let isValid = true;
-  const newValidationErrors = { ...validationErrors }; 
-  productosSeleccionados.forEach((producto) => {
-    const precioError = validatePrecioPorUnidad(producto.precioporunidad);
-    const cantidadError = validateCantidad(producto.cantidad);
+    let isValid = true;
+    const newValidationErrors = { ...validationErrors };
+    productosSeleccionados.forEach((producto) => {
+      const precioError = validatePrecioPorUnidad(producto.precioporunidad);
+      const cantidadError = validateCantidad(producto.cantidad);
 
-    setValidationErrors((prevErrors) => ({
-      ...prevErrors, 
-      [`precioporunidad-${producto.id}`]: precioError,
-      [`cantidad-${producto.id}`]: cantidadError,
-    }));
-    
-    if (precioError || cantidadError) {
-      isValid = false;
+      setValidationErrors((prevErrors) => ({
+        ...prevErrors,
+        [`precioporunidad-${producto.id}`]: precioError,
+        [`cantidad-${producto.id}`]: cantidadError,
+      }));
+
+      if (precioError || cantidadError) {
+        isValid = false;
+      }
+    });
+
+    setValidationErrors(newValidationErrors);
+
+    if (
+      isValid &&
+      productosSeleccionados.length > 0 &&
+      compra.subTotal > 0 &&
+      compra.precioTotal > 0
+    ) {
+      onOpen();
+    } else {
+
+      if (!isValid) {
+
+        toast.error('Por favor, completa los campos de precio y cantidad para todos los productos.');
+      }
     }
-  });
 
-  setValidationErrors(newValidationErrors); 
 
-  if (
-    isValid &&
-    productosSeleccionados.length > 0 &&
-    compra.subTotal > 0 &&
-    compra.precioTotal > 0
-  ) {
-    onOpen(); 
-  }else {
-    
-    if (!isValid) {
-     
-      toast.error('Por favor, completa los campos de precio y cantidad para todos los productos.'); 
-    }
-  }
-
-  
     if (productosSeleccionados.length === 0) {
       setValidationErrors((prevErrors) => ({
         ...prevErrors,
@@ -430,7 +430,7 @@ export default function VentasPageCrear() {
         precioTotal: "",
       }));
     }
-   
+
   };
 
   // Función para manejar la confirmación del envío del formulario
@@ -487,7 +487,7 @@ export default function VentasPageCrear() {
     }
     return null;
   };
-  
+
   const validateCantidad = (cantidad: number): string | null => {
     if (cantidad < 1) {
       return "La cantidad debe ser al menos 1.";
@@ -503,7 +503,7 @@ export default function VentasPageCrear() {
     }));
     // Aquí actualiza el estado o haz lo que necesites con el valor
   };
-  
+
   const handleCantidadChange1 = (id: number, value: number) => {
     const error = validateCantidad(value);
     setValidationErrors((prevErrors) => ({
@@ -520,6 +520,25 @@ export default function VentasPageCrear() {
     setSearchTerm(e.target.value);
   };
 
+
+  // Función formatear el total de string a número con formato de moneda
+  const formatCurrency = (valor: string | number, currencyCode: string = 'COP') => {
+    let valorString = valor.toString();
+    const valorNumerico = parseFloat(valorString.replace(/[^\d.,]/g, '').replace(',', '.'));
+
+    if (isNaN(valorNumerico)) {
+      console.error("Error al convertir el valor a número:", valorString);
+      return 'N/A';
+    }
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: currencyCode,
+      minimumFractionDigits: 2,
+      notation: "standard",
+    }).format(valorNumerico);
+  };
+  const formattedSubTotal = formatCurrency(compra?.subTotal || 0);
+  const formattedTotal = formatCurrency(compra?.precioTotal || 0);
 
   // Retorno del componente
   return (
@@ -616,11 +635,11 @@ export default function VentasPageCrear() {
                   />
                   {/* Mostrar sugerencias de productos */}
                   {productosFiltrados.length > 0 && busquedaProducto !== "" && (
-                   <ul
-                   className="absolute top-full left-0 w-full bg-white dark:bg-gray-800 rounded-md shadow-md z-10 max-h-40 overflow-y-auto"
-                   style={{ backgroundColor: "#303030", zIndex: 1000, }}
-                  
-                 >
+                    <ul
+                      className="absolute top-full left-0 w-full bg-white dark:bg-gray-800 rounded-md shadow-md z-10 max-h-40 overflow-y-auto"
+                      style={{ backgroundColor: "#303030", zIndex: 1000, }}
+
+                    >
                       {productosFiltrados.map((producto) => (
                         <li
                           key={producto.idProducto}
@@ -647,8 +666,8 @@ export default function VentasPageCrear() {
                   isRequired
                   name="subTotal"
                   label="Subtotal"
-                  type="number"
-                  value={compra?.subTotal.toString() || ""}
+                  type="text" 
+                  value={formattedSubTotal}
                   readOnly
                   onError={errores.subtotal}
                   isInvalid={!!validationErrors.subtotal}
@@ -658,8 +677,8 @@ export default function VentasPageCrear() {
                   isRequired
                   name="precioTotal"
                   label="Precio Total"
-                  type="number"
-                  value={compra?.precioTotal.toString() || ""}
+                  type="text"
+                  value={formattedTotal}
                   readOnly
                   onError={errores.precioTotal}
                   isInvalid={!!validationErrors.precioTotal}

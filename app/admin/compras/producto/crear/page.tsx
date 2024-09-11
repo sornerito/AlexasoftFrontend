@@ -18,6 +18,7 @@ interface Producto {
     estado: string;
     idCategoriaProducto: number;
     imagenes: string;
+    unidadMedida: string;
 }
 
 interface Categoria {
@@ -114,7 +115,8 @@ export default function CrearProductoPage() {
         unidades: "",
         estado: "Activo",
         idCategoriaProducto: 0,
-        imagenes: ""
+        imagenes: "",
+        unidadMedida: "",
     });
     const [categorias, setCategorias] = useState<Categoria[]>([]);
     const [marcas, setMarcas] = useState<Marca[]>([]);
@@ -231,7 +233,7 @@ export default function CrearProductoPage() {
                 const error = errorResponse.error;
                 const error1 = "Ya existe un producto con la misma marca, Por favor cambiar el nombre o cancele la creacion del producto"
                 setMensajeError(error);
-                setMensajeError(error1);
+                setMensajeError(error);
                 onOpenError();
                 throw new Error("Error al intentar guardar el producto");
             }
@@ -280,6 +282,15 @@ export default function CrearProductoPage() {
         console.log(producto.marca)
         setProducto({ ...producto, marca: Number(e.target.value) });
     };
+    const handleChangeUnidadMedida = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        console.log(producto.unidadMedida)
+        setProducto({ ...producto, unidadMedida: String(e.target.value) });
+    };
+
+    const UnidadMedida = [
+        { key: "ml", label: "ml" },
+        { key: "g", label: "g" },
+    ];
 
     return (
         <>
@@ -339,6 +350,20 @@ export default function CrearProductoPage() {
                         {categorias.map((categoria) => (
                             <SelectItem key={categoria.idCategoriaProducto} value={categoria.idCategoriaProducto}>
                                 {categoria.nombre}
+                            </SelectItem>
+                        ))}
+                    </Select>
+                    <Select
+                        isRequired
+                        name="unidad Medida"
+                        label="unidad Medida"
+                        variant="bordered"
+                        value={producto.unidadMedida}
+                        onChange={handleChangeUnidadMedida}
+                    >
+                        {UnidadMedida.map((unidadMedida) => (
+                            <SelectItem key={unidadMedida.key} value={unidadMedida.key}>
+                                {unidadMedida.label}
                             </SelectItem>
                         ))}
                     </Select>
