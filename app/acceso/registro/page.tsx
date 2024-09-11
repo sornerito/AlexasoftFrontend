@@ -365,8 +365,8 @@ export default function RegistroPage() {
 
                   <div className="flex justify-between">
                     <p>
-                      ¿No tienes cuenta?{" "}
-                      <Link href="/acceso/iniciarsesion">Iniciar sesión</Link>
+                      ¿Ya tienes cuenta?{" "}
+                      <Link href="/acceso/iniciarsesion">Inicia sesión</Link>
                     </p>
                   </div>
                 </div>
