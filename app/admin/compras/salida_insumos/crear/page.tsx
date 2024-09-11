@@ -157,7 +157,7 @@ export default function CrearProductoPage() {
 {acceso ? (
       
         <div className="lg:mx-60">
-            <h1 className={title()}>Crear salida insumo</h1>
+            <h1 className={title()}>Crear salida de  Producto</h1>
             <br />
             <br />
             <form onSubmit={handleFormSubmit}>

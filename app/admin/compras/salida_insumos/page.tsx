@@ -204,7 +204,7 @@ const validarMotivoAnular = () => {
       
     
     <div>
-      <h1 className={title()}>Salida de Insumos</h1>
+      <h1 className={title()}>Salida de Producto</h1>
        {/* Toaster para notificaciones */}
        <Toaster position="bottom-right" />
 

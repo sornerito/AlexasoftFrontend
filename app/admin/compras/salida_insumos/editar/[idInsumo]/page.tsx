@@ -194,7 +194,7 @@ export default function ProductosEditarPage() {
 {acceso ? (
 
     <div className="container">
-      <h1 className={title()}>Editar Salida Insumos</h1>
+      <h1 className={title()}>Editar Salida de producto</h1>
       <br /><br />
 
       {isLoading ? (
