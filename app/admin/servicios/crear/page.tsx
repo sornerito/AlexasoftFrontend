@@ -189,7 +189,7 @@ export default function CrearServicioPage() {
                 descripcion,
                 tiempoMinutos,
                 estado: "Activo",
-                imagen: ""
+                imagen
             };
 
 
@@ -325,10 +325,10 @@ export default function CrearServicioPage() {
     return (
         <>
             {acceso ? (
-                <div className="mx-auto w-full lg:w-3/5 space-y-8">
+                <div className="w-full mx-auto space-y-8 lg:w-3/5">
                     {/* Sección de Campos de Servicio */}
-                    <div className="p-6 shadow-md rounded-lg">
-                        <h1 className="text-2xl font-bold mb-6">Crear Servicio</h1>
+                    <div className="p-6 rounded-lg shadow-md">
+                        <h1 className="mb-6 text-2xl font-bold">Crear Servicio</h1>
                         <div className="grid gap-6">
                             <Input
                                 isRequired
@@ -381,7 +381,6 @@ export default function CrearServicioPage() {
                                     color={errors.imagenes ? "danger" : "default"}
                                     errorMessage={errors.imagenes}
                                     onValueChange={setImagen}
-                                    name="imagenes"
                                 />
                             </div>
                         </div>
@@ -389,8 +388,8 @@ export default function CrearServicioPage() {
 
                     <Divider className="h-1 my-4" />
                     {/* Sección de Productos Seleccionados */}
-                    <div className="p-6 shadow-md rounded-lg">
-                        <div className="flex justify-between items-center mb-4">
+                    <div className="p-6 rounded-lg shadow-md">
+                        <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-bold">Productos Seleccionados</h2>
                             <Button
                                 size="sm"
@@ -447,7 +446,7 @@ export default function CrearServicioPage() {
 
                     {/* Botones Guardar y Cancelar */}
                     <div className="flex justify-end space-x-4">
-                        <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onClick={cancelarEdicion}>
+                        <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" onClick={cancelarEdicion}>
                             Cancelar
                         </Button>
                         <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" onClick={confirmarGuardarServicio}>
@@ -525,7 +524,7 @@ export default function CrearServicioPage() {
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <ModalHeader className="flex flex-col gap-1 items-center">
+                            <ModalHeader className="flex flex-col items-center gap-1">
                                 <CircleHelp color="#fef08a" size={100} />
                             </ModalHeader>
                             <ModalBody className="text-center">
@@ -533,7 +532,7 @@ export default function CrearServicioPage() {
                                 <p>El servicio no podrá eliminarse, pero podrá desactivarse.</p>
                             </ModalBody>
                             <ModalFooter>
-                                <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onPress={onClose}>
+                                <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" onPress={onClose}>
                                     Cancelar
                                 </Button>
                                 <Button

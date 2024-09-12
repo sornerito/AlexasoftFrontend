@@ -50,6 +50,7 @@ interface Servicio {
   descripcion: string;
   tiempoMinutos: string;
   estado: string;
+  
 }
 
 export default function ServiciosPage() {
@@ -204,7 +205,7 @@ export default function ServiciosPage() {
         <div>
           <h1 className={title()}>Servicios</h1>
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
-            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -233,7 +234,7 @@ export default function ServiciosPage() {
               />
             </div>
             <div className="basis-1/2"></div>
-            <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
+            <div className="flex items-center justify-end mb-4 space-x-2 basis-1/4 sm:my-4 text-end">
               <Link href="/admin/servicios/crear">
                 <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Servicio">
                   <PlusIcon /> Crear Servicio
@@ -260,7 +261,7 @@ export default function ServiciosPage() {
                           {column.uid === "acciones" &&
                             item.estado == "Activo" ? (
                             <Dropdown>
-                              <DropdownTrigger className="bg-transparent w-auto my-2">
+                              <DropdownTrigger className="w-auto my-2 bg-transparent">
                                 <Button
                                   isIconOnly
                                   className="border"
@@ -273,7 +274,7 @@ export default function ServiciosPage() {
                                 onAction={(action) => console.log(action)}
                               >
                                 <DropdownItem href={`/admin/servicios/editar/${item.idServicio}`}>
-                                  <Button className="bg-transparent w-full">
+                                  <Button className="w-full bg-transparent">
                                     <Edit />
                                     Editar Servicio
                                   </Button>
@@ -291,7 +292,7 @@ export default function ServiciosPage() {
                                 item.estado === "Activo" ? "success" : "danger"
                               }
                               variant="bordered"
-                              className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
+                              className="align-middle transition-transform duration-100 ease-in-out cursor-pointer hover:scale-90"
                               onClick={() =>
                                 handleEstadoChange(item.idServicio, item.estado)
                               }
@@ -337,7 +338,7 @@ export default function ServiciosPage() {
                               onAction={(action) => console.log(action)}
                             >
                               <DropdownItem href={`/admin/servicios/editar/${item.idServicio}`}>
-                                <Button className="bg-transparent w-full">
+                                <Button className="w-full bg-transparent">
                                   <Edit />
                                   Editar Servicio
                                 </Button>
@@ -353,7 +354,7 @@ export default function ServiciosPage() {
                           <Chip
                             color={item.estado === "Activo" ? "success" : "danger"}
                             variant="bordered"
-                            className="hover:scale-110 cursor-pointer transition-transform duration-100 ease-in-out"
+                            className="transition-transform duration-100 ease-in-out cursor-pointer hover:scale-110"
                             onClick={() =>
                               handleEstadoChange(item.idServicio, item.estado)
                             }
@@ -371,7 +372,7 @@ export default function ServiciosPage() {
             </Table>
           )}
 
-          <div className="flex w-full justify-center mb-4">
+          <div className="flex justify-center w-full mb-4">
             <Pagination
               showControls
               color="warning"
@@ -386,13 +387,13 @@ export default function ServiciosPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
                     {servicioSeleccionado ? (
                       <div>
-                        <h1 className="text-2xl mb-4">Detalles del Servicio</h1>
+                        <h1 className="mb-4 text-2xl">Detalles del Servicio</h1>
                         <p><strong>ID:</strong> {servicioSeleccionado.idServicio}</p>
                         <p><strong>Nombre:</strong> {servicioSeleccionado.nombre}</p>
                         <p><strong>Descripción:</strong> {servicioSeleccionado.descripcion}</p>
@@ -404,7 +405,7 @@ export default function ServiciosPage() {
                     )}
                   </ModalBody>
                   <ModalFooter>
-                    <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onPress={onClose}>
+                    <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" onPress={onClose}>
                       Cerrar
                     </Button>
                   </ModalFooter>
@@ -419,14 +420,14 @@ export default function ServiciosPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">¿Desea cambiar el estado del servicio?</h1>
+                    <h1 className="text-3xl ">¿Desea cambiar el estado del servicio?</h1>
                   </ModalBody>
                   <ModalFooter>
-                    <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onPress={onClose}>
+                    <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" onPress={onClose}>
                       Cancelar
                     </Button>
                     <Button
@@ -449,7 +450,7 @@ export default function ServiciosPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="gold" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -472,11 +473,11 @@ export default function ServiciosPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">Error</h1>
+                    <h1 className="text-3xl ">Error</h1>
                     <p>{mensajeError}</p>
                   </ModalBody>
                   <ModalFooter>

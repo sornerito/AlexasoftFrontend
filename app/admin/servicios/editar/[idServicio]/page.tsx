@@ -19,6 +19,7 @@ interface Servicio {
     descripcion: string;
     tiempoMinutos: string;
     estado: string;
+    imagen : string;
 }
 
 interface Producto {
@@ -51,6 +52,7 @@ export default function EditarServicioPage() {
     const [descripcion, setDescripcion] = useState("");
     const [tiempoMinutos, setTiempoMinutos] = useState("");
     const [estado, setEstado] = useState("Activo");
+    const [imagen, setImagen] = useState("");
     const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
     const [cantidad, setCantidad] = useState<number>(0);
     const [unidadMedida, setUnidadMedida] = useState("");
@@ -117,7 +119,8 @@ export default function EditarServicioPage() {
                 setNombre(data.servicios.nombre);
                 setDescripcion(data.servicios.descripcion);
                 setTiempoMinutos(data.servicios.tiempoMinutos);
-                setEstado(data.estado)
+                setImagen(data.servicios.imagen);
+                setEstado(data.estado);
                 console.log(data)
                 // Precargar los productos seleccionados
                 setProductosSeleccionados(data.productos.map((producto: any) => ({
@@ -160,6 +163,7 @@ export default function EditarServicioPage() {
         validarDescripcion(descripcion);
         validarTiempo(tiempoMinutos);
         validarCantidad(cantidad, unidadMedida);
+        validarImagenes(imagen);
 
         // Si no hay errores, habilitar el botón de Guardar
         setIsFormValid(!nombreError && !descripcionError && !tiempoMinutosError && !cantidadError);
@@ -218,16 +222,13 @@ export default function EditarServicioPage() {
                     descripcion,
                     tiempoMinutos,
                     estado: "Activo",
+                    imagen
                 };
 
                 const productosId = productosSeleccionados.map((producto) => producto.idProducto);
                 const cantidad = productosSeleccionados.map((producto) => producto.cantidad);
                 const unidadMedida = productosSeleccionados.map((producto) => producto.unidadMedida);
 
-                console.log("Servicio Actualizado:", servicioActualizado);
-                console.log("Productos Id:", productosId);
-                console.log("Cantidad:", cantidad);
-                console.log("Unidad de Medida:", unidadMedida);
 
                 const response = await postWithAuth(`http://localhost:8080/servicio/${idServicio}`, {
                     servicio: servicioActualizado,
@@ -322,6 +323,18 @@ export default function EditarServicioPage() {
         return ""; // Si no hay errores, retornar cadena vacía.
     };
 
+    const validarImagenes = (imagen: string) => {
+        const url = /(jpg|jpeg|png|gif)/i;
+        if (!url.test(imagen)) {
+            return "La URL de la imagen debe terminar en .jpg, .jpeg, .png o .gif.";
+        }
+        if (imagen.length >= 500) {
+            return "La URL de la imagen permite 500 careacteres";
+        }
+        return "";
+    };
+
+
     const cancelarEdicion = () => {
         window.location.href = '/admin/servicios';
     };
@@ -329,10 +342,10 @@ export default function EditarServicioPage() {
     return (
         <>
             {acceso ? (
-                <div className="mx-auto w-full lg:w-3/5 space-y-8">
+                <div className="w-full mx-auto space-y-8 lg:w-3/5">
                     {/* Sección de Campos de Servicio */}
-                    <div className="p-6 shadow-md rounded-lg">
-                        <h1 className="text-2xl font-bold mb-6">Editar Servicio</h1>
+                    <div className="p-6 rounded-lg shadow-md">
+                        <h1 className="mb-6 text-2xl font-bold">Editar Servicio</h1>
                         <div className="grid gap-6">
                             <div>
                                 <Input
@@ -382,13 +395,23 @@ export default function EditarServicioPage() {
                                 />
                                 {descripcionError && <span className="text-red-500">{descripcionError}</span>}
                             </div>
+                            <div className="col-span-2">
+                                <Input
+                                    isRequired
+                                    type="text"
+                                    label="Imagenes"
+                                    variant="bordered"
+                                    value={imagen}
+                                    onValueChange={setImagen}
+                                />
+                            </div>
                         </div>
                     </div>
 
                     <Divider className="h-1 my-4" />
                     {/* Sección de Productos Seleccionados */}
-                    <div className="p-6 shadow-md rounded-lg">
-                        <div className="flex justify-between items-center mb-4">
+                    <div className="p-6 rounded-lg shadow-md">
+                        <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-bold">Productos Seleccionados</h2>
                             <Button
                                 size="sm"
@@ -445,7 +468,7 @@ export default function EditarServicioPage() {
 
                     {/* Botones Guardar y Cancelar */}
                     <div className="flex justify-end space-x-4">
-                        <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onClick={cancelarEdicion}>
+                        <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" onClick={cancelarEdicion}>
                             Cancelar
                         </Button>
                         <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" onClick={confirmarActualizacion}>
@@ -524,15 +547,15 @@ export default function EditarServicioPage() {
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <ModalHeader className="flex flex-col gap-1 items-center">
+                            <ModalHeader className="flex flex-col items-center gap-1">
                                 <CircleHelp color="#fef08a" size={100} />
                             </ModalHeader>
                             <ModalBody className="text-center">
-                                <h1 className=" text-3xl">¿Desea actualizar el servicio?</h1>
+                                <h1 className="text-3xl ">¿Desea actualizar el servicio?</h1>
                                 <p>Esta acción actualizará la información del servicio.</p>
                             </ModalBody>
                             <ModalFooter>
-                                <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onClick={cerrarConfirmacion}>
+                                <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" onClick={cerrarConfirmacion}>
                                     Cancelar
                                 </Button>
                                 <Button
