@@ -142,15 +142,16 @@ export default function VentasPageCrear() {
         setCitaSeleccionada(null);
 
       } else {
-        console.log("El cliente ha sido deseleccionado");
+        setMensajeError("Hubo un problema al obtener las citas del cliente.");
+        onOpenError();
       }
     } catch (error) {
-      console.error("Error al obtener citas del cliente:", error);
       setMensajeError("Hubo un problema al obtener las citas del cliente.");
       onOpenError();
     }
   };
 
+  // Función para manejar el cambio de cita seleccionada
   const handleCitaChange = (cita: any) => {
     setCitaSeleccionada(cita);
     setVenta({
@@ -172,7 +173,8 @@ export default function VentasPageCrear() {
       try {
         await Promise.all([fetchClientes(), fetchColaboradores(), fetchProductos()]);
       } catch (error) {
-        console.error("Error al obtener datos:", error);
+        setMensajeError("Hubo un problema al obtener los datos. Intenta recargar la página.");
+        onOpenError();
       } finally {
         setIsLoading(false);
       }
@@ -189,12 +191,10 @@ export default function VentasPageCrear() {
         const data = await response.json();
         setClientes(data);
       } else {
-        console.error("Error al obtener clientes:", response.status);
         setMensajeError("Hubo un problema al obtener los clientes. Intenta recargar la página.");
         onOpenError();
       }
     } catch (error) {
-      console.error("Error al obtener clientes:", error);
       setMensajeError("Hubo un problema al obtener los clientes. Intenta recargar la página.");
       onOpenError();
     }
@@ -208,12 +208,10 @@ export default function VentasPageCrear() {
         const data = await response.json();
         setColaboradores(data);
       } else {
-        console.error("Error al obtener colaboradores:", response.status);
         setMensajeError("Hubo un problema al obtener los colaboradores. Intenta recargar la página.");
         onOpenError();
       }
     } catch (error) {
-      console.error("Error al obtener colaboradores:", error);
       setMensajeError("Hubo un problema al obtener los colaboradores. Intenta recargar la página.");
       onOpenError();
     }
@@ -227,12 +225,10 @@ export default function VentasPageCrear() {
         const data = await response.json();
         setProductos(data);
       } else {
-        console.error("Error al obtener productos:", response.status);
         setMensajeError("Hubo un problema al obtener los productos. Intenta recargar la página.");
         onOpenError();
       }
     } catch (error) {
-      console.error("Error al obtener productos:", error);
       setMensajeError("Hubo un problema al obtener los productos. Intenta recargar la página.");
       onOpenError();
     }
@@ -248,14 +244,13 @@ export default function VentasPageCrear() {
       }
       return await response.json();
     } catch (error) {
-      console.error("Error al crear venta:", error);
       setMensajeError("Error al crear la venta. Inténtalo de nuevo.");
       onOpenError();
       throw error;
     }
   };
 
-  // Función para crear los detalles de una venta
+  // Función para crear los detalles de una venta de productos
   const crearDetallesVenta = async (nuevaVenta: any) => {
     try {
       const detalleVenta = {
@@ -264,9 +259,6 @@ export default function VentasPageCrear() {
         precioUnitario: productosSeleccionados.map(item => item.producto.precio),
         cantidad: productosSeleccionados.map(item => item.cantidad)
       };
-
-      console.log("Enviando detalle de venta:", detalleVenta);
-
       const response = await postWithAuth("http://localhost:8080/venta/detalles-productos", detalleVenta);
       if (!response.ok) {
         const errorData = await response.json();
@@ -274,37 +266,29 @@ export default function VentasPageCrear() {
       }
 
       const responseData = await response.json();
-      console.log("Respuesta del servidor:", responseData);
 
     } catch (error) {
-      console.error("Error al crear detalles de venta:", error);
       setMensajeError("Error al crear los detalles de la venta. Inténtalo de nuevo.");
       onOpenError();
       throw error;
     }
   };
 
+  // Función para crear los detalles de una venta de servicios (citas)
   const crearDetallesVentaCita = async (nuevaVenta: any) => {
     try {
       const detalleVentaCita = {
-        idVenta: nuevaVenta.idVenta, // Asegúrate de que la respuesta de crearVenta tenga idVenta
+        idVenta: nuevaVenta.idVenta,
         idCita: citaSeleccionada.idCita,
-        subtotal: calcularTotalCitaConIVA() // O ventaCitas.total, dependiendo de cómo quieras calcularlo
+        subtotal: calcularTotalCitaConIVA() 
       };
-
-      console.log("Enviando detalle de venta de cita:", detalleVentaCita);
-
-      const response = await postWithAuth("http://localhost:8080/venta/detalles-servicios", detalleVentaCita); // Ajusta la URL
+      const response = await postWithAuth("http://localhost:8080/venta/detalles-servicios", detalleVentaCita);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Error al crear los detalles de la venta de la cita');
       }
-
       const responseData = await response.json();
-      console.log("Respuesta del servidor (detalles cita):", responseData);
-
     } catch (error) {
-      console.error("Error al crear detalles de venta de cita:", error);
       setMensajeError("Error al crear los detalles de la venta de la cita. Inténtalo de nuevo.");
       onOpenError();
       throw error;
@@ -316,13 +300,11 @@ export default function VentasPageCrear() {
     try {
       const nuevaVenta = await crearVenta(venta);
       await crearDetallesVenta(nuevaVenta);
-
       toast.success("Venta creada con éxito!");
       setTimeout(() => {
         router.push("/admin/ventas");
       }, 1000);
     } catch (error) {
-      console.error("Error al crear la venta:", error);
       setMensajeError("Error al crear la venta. Inténtalo de nuevo.");
       onOpenError();
     }
@@ -343,19 +325,15 @@ export default function VentasPageCrear() {
         idCliente: venta.idCliente,
         idColaborador: venta.idColaborador,
       };
-
       // Enviar la solicitud POST al backend para crear la venta
       const nuevaVenta = await crearVenta(ventaData);
-
       // Luego, crear el detalle de la venta de la cita
       await crearDetallesVentaCita(nuevaVenta);
-
       toast.success("Venta de cita creada con éxito!");
       setTimeout(() => {
         router.push("/admin/ventas");
       }, 1000);
     } catch (error) {
-      console.error("Error al crear la venta de cita:", error);
       setMensajeError("Error al crear la venta de cita. Inténtalo de nuevo.");
       onOpenError();
     }
@@ -420,7 +398,7 @@ export default function VentasPageCrear() {
 
       setVenta(prevVenta => ({
         ...prevVenta,
-        total: nuevoTotal // Actualiza venta.total
+        total: nuevoTotal
       }));
     } else {
       const nuevosProductosSeleccionados = [
@@ -442,7 +420,7 @@ export default function VentasPageCrear() {
 
       setVenta(prevVenta => ({
         ...prevVenta,
-        total: nuevoTotal // Actualiza venta.total
+        total: nuevoTotal
       }));
     }
 
@@ -467,7 +445,7 @@ export default function VentasPageCrear() {
 
     setVenta(prevVenta => ({
       ...prevVenta,
-      total: nuevoTotal // Actualiza venta.total
+      total: nuevoTotal
     }));
   };
 
@@ -592,7 +570,7 @@ export default function VentasPageCrear() {
           </div>
           {/* Mostrar spinner de carga si la información se está cargando */}
           {isLoading ? (
-            <div className="flex justify-center text-center h-screen">
+            <div className="flex justify-center h-screen text-center">
               <div className="text-center">
                 <Spinner color="warning" size="lg" />
               </div>
@@ -709,13 +687,13 @@ export default function VentasPageCrear() {
                   {/* Mostrar sugerencias de productos */}
                   {productosFiltrados.length > 0 && busquedaProducto !== "" && (
                     <ul
-                      className="absolute top-full left-0 w-full bg-white dark:bg-gray-800 rounded-md shadow-md z-10 max-h-40 overflow-y-auto"
+                      className="absolute left-0 z-10 w-full overflow-y-auto bg-white rounded-md shadow-md top-full dark:bg-gray-800 max-h-40"
                       style={{ backgroundColor: "#303030" }}
                     >
                       {productosFiltrados.map((producto) => (
                         <li
                           key={producto.idProducto}
-                          className="px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 flex justify-between"
+                          className="flex justify-between px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                           onClick={() => handleAgregarProducto(producto)}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -725,7 +703,7 @@ export default function VentasPageCrear() {
                           tabIndex={0}
                         >
                           <span>{producto.nombre}</span>
-                          <span className="text-gray-500 text-sm">
+                          <span className="text-sm text-gray-500">
                             {producto.idMarca.nombre.toString()}
                           </span>
                         </li>
@@ -771,7 +749,7 @@ export default function VentasPageCrear() {
               {/* Botones para cancelar o enviar el formulario */}
               <div className="flex justify-end mt-4">
                 <Link href="/admin/ventas">
-                  <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
+                  <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" type="button">
                     Cancelar
                   </Button>
                 </Link>
@@ -886,7 +864,7 @@ export default function VentasPageCrear() {
                 {/* Botones para cancelar o enviar el formulario */}
                 <div className="flex justify-end mt-4">
                   <Link href="/admin/ventas">
-                    <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
+                    <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" type="button">
                       Cancelar
                     </Button>
                   </Link>
@@ -903,11 +881,11 @@ export default function VentasPageCrear() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">¿Desea crear la venta?</h1>
+                    <h1 className="text-3xl ">¿Desea crear la venta?</h1>
                     <p>
                       {mostrarProductos
                         ? "La venta se creará con los productos seleccionados."
@@ -943,11 +921,11 @@ export default function VentasPageCrear() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">Error</h1>
+                    <h1 className="text-3xl ">Error</h1>
                     <p>{mensajeError}</p>
                   </ModalBody>
                   <ModalFooter>
@@ -1041,7 +1019,7 @@ export default function VentasPageCrear() {
         </div>
       ) : (
         // Mostrar spinner si no tiene acceso
-        <div className="flex justify-center text-center h-screen">
+        <div className="flex justify-center h-screen text-center">
           <div className="text-center">
             <Spinner color="warning" size="lg" />
           </div>

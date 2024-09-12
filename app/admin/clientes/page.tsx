@@ -115,10 +115,7 @@ export default function ClientesPage() {
           }))
         );
       } catch (err) {
-        console.error("Error al obtener clientes:", err);
-        setMensajeError(
-          "Error al obtener clientes. Por favor, inténtalo de nuevo."
-        );
+        setMensajeError("Error al obtener clientes. Por favor, inténtalo de nuevo.");
         onOpenError();
       } finally {
         setIsLoading(false);
@@ -162,16 +159,12 @@ export default function ClientesPage() {
                 )
               );
               resolve();
-              console.log("El estado ha sido cambiado con éxito");
             } else {
               reject(new Error("Error al cambiar el estado"));
             }
           })
           .catch((error) => {
-            console.error("Error al cambiar el estado:", error);
-            setMensajeError(
-              "Error al cambiar el estado del cliente. Por favor, inténtalo de nuevo."
-            );
+            setMensajeError("Error al cambiar el estado del cliente. Por favor, inténtalo de nuevo.");
             onOpenError();
             reject();
           });
@@ -210,7 +203,7 @@ export default function ClientesPage() {
 
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
             {/* Input de búsqueda */}
-            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -240,7 +233,7 @@ export default function ClientesPage() {
             </div>
             <div className="basis-1/2"></div>
             {/* Botón para crear nuevo cliente */}
-            <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
+            <div className="flex items-center justify-end mb-4 space-x-2 basis-1/4 sm:my-4 text-end">
               <Link href="/admin/clientes/crear">
                 <Button
                   className="bg-gradient-to-tr from-red-600 to-orange-300"
@@ -254,7 +247,7 @@ export default function ClientesPage() {
 
           {/* Muestra un Spinner mientras carga los datos */}
           {isLoading ? (
-            <div className="flex justify-center text-center h-screen">
+            <div className="flex justify-center h-screen text-center">
               <div className="text-center">
                 <Spinner color="warning" size="lg" />
               </div>
@@ -272,7 +265,7 @@ export default function ClientesPage() {
                           {column.uid === "acciones" ? (
                             // Dropdown de acciones para cada cliente
                             <Dropdown>
-                              <DropdownTrigger className="bg-transparent w-auto my-2">
+                              <DropdownTrigger className="w-auto my-2 bg-transparent">
                                 <Button
                                   isIconOnly
                                   className="border"
@@ -283,7 +276,7 @@ export default function ClientesPage() {
                                 </Button>
                               </DropdownTrigger>
                               <DropdownMenu
-                                onAction={(action) => console.log(action)}
+                                onAction={(action) => (action)}
                               >
                                 <DropdownItem
                                   key="editar"
@@ -291,7 +284,7 @@ export default function ClientesPage() {
                                   isDisabled={item.estado === "Desactivado"}
                                 >
                                   <Button
-                                    className="bg-transparent w-full"
+                                    className="w-full bg-transparent"
                                     disabled={item.estado === "Desactivado"}
                                   >
                                     <Edit />
@@ -304,7 +297,7 @@ export default function ClientesPage() {
                                   isDisabled={item.estado === "Desactivado"}
                                 >
                                   <Button
-                                    className="bg-transparent w-full"
+                                    className="w-full bg-transparent"
                                     disabled={item.estado === "Desactivado"}
                                   >
                                     <Edit />
@@ -322,7 +315,7 @@ export default function ClientesPage() {
                                 item.estado === "Activo" ? "success" : "danger"
                               }
                               variant="bordered"
-                              className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
+                              className="align-middle transition-transform duration-100 ease-in-out cursor-pointer hover:scale-90"
                               onClick={() => handleOpenModal(item.idCliente)}
                             >
                               {item.estado}
@@ -366,13 +359,13 @@ export default function ClientesPage() {
                                 </Button>
                               </DropdownTrigger>
                               <DropdownMenu
-                                onAction={(action) => console.log(action)}
+                                onAction={(action) => (action)}
                               >
                                 <DropdownItem
                                   href={`clientes/editar/${item.idCliente}`}
                                   isDisabled={item.estado === "Desactivado"}
                                 >
-                                  <Button className="bg-transparent w-full">
+                                  <Button className="w-full bg-transparent">
                                     <Edit />
                                     Editar
                                   </Button>
@@ -381,7 +374,7 @@ export default function ClientesPage() {
                                   href={`clientes/password/${item.idCliente}`}
                                   isDisabled={item.estado === "Desactivado"}
                                 >
-                                  <Button className="bg-transparent w-full">
+                                  <Button className="w-full bg-transparent">
                                     <Edit />
                                     Contraseña
                                   </Button>
@@ -400,7 +393,7 @@ export default function ClientesPage() {
                                 item.estado === "Activo" ? "success" : "danger"
                               }
                               variant="bordered"
-                              className="hover:scale-110 cursor-pointer transition-transform duration-100 ease-in-out"
+                              className="transition-transform duration-100 ease-in-out cursor-pointer hover:scale-110"
                               onClick={() => handleOpenModal(item.idCliente)}
                             >
                               {item.estado}
@@ -418,7 +411,7 @@ export default function ClientesPage() {
           )}
 
           {/* Paginación */}
-          <div className="flex w-full justify-center mb-4">
+          <div className="flex justify-center w-full mb-4">
             <Pagination
               showControls
               color="warning"
@@ -433,7 +426,7 @@ export default function ClientesPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -467,7 +460,7 @@ export default function ClientesPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -486,7 +479,7 @@ export default function ClientesPage() {
         </div>
       ) : (
         // Mostrar spinner si no tiene acceso
-        <div className="flex justify-center text-center h-screen">
+        <div className="flex justify-center h-screen text-center">
           <div className="text-center">
             <Spinner color="warning" size="lg" />
           </div>

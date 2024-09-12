@@ -127,7 +127,6 @@ export default function Carrito() {
           setProductos(productos);
         } else {
           // Si alguna petición falló
-          console.error("Error al obtener datos:", responseProductos.status);
           setMensajeError("Error al obtener información. Intenta recargar la página.");
           onOpenError();
         }
@@ -230,7 +229,6 @@ export default function Carrito() {
     const valorNumerico = parseFloat(valorString.replace(/[^\d.,]/g, "").replace(",", "."));
 
     if (isNaN(valorNumerico)) {
-      console.error("Error al convertir el valor a número:", valorString);
       return "N/A";
     }
     return new Intl.NumberFormat("es-CO", {
@@ -263,7 +261,6 @@ export default function Carrito() {
 
       toast.success("¡Venta creada correctamente!");
     } catch (error) {
-      console.error("Error al enviar la venta:", error);
       toast.error("Error al crear la venta: " + (error as Error).message);
     } finally {
       setIsLoadingVenta(false);
@@ -282,7 +279,6 @@ export default function Carrito() {
 
       return await response.json();
     } catch (error) {
-      console.error("Error al crear venta:", error);
       setMensajeError("Error al crear la venta. Inténtalo de nuevo.");
       onOpenError();
       throw error;
@@ -311,10 +307,7 @@ export default function Carrito() {
         const errorData = await response.json();
         throw new Error(errorData.error || "Error al crear los detalles de la venta");
       }
-
-      console.log("Detalles de la venta creados con éxito:", ventasConProductos);
     } catch (error) {
-      console.error("Error al crear detalles de venta:", error);
       setMensajeError("Error al crear los detalles de la venta. Inténtalo de nuevo.");
       onOpenError();
       throw error;
@@ -331,8 +324,8 @@ export default function Carrito() {
     };
 
     return (
-      <div className="p-4 rounded-lg shadow-md flex flex-col gap-2">
-        <h2 className="text-lg font-bold mb-4">Resumen del Pedido</h2>
+      <div className="flex flex-col gap-2 p-4 rounded-lg shadow-md">
+        <h2 className="mb-4 text-lg font-bold">Resumen del Pedido</h2>
         <div className="flex justify-between mb-2">
           <div className="font-bold">Total:</div>
           <div className="font-bold">{formatCurrency(total)}</div>
@@ -346,20 +339,20 @@ export default function Carrito() {
           <div className="font-bold">{formatCurrency(totalConIVA)}</div>
         </div>
         <Button
-          className="bg-gradient-to-tr from-yellow-600 to-yellow-300 rounded-lg"
+          className="rounded-lg bg-gradient-to-tr from-yellow-600 to-yellow-300"
           onClick={() => setShowCartPreview(true)}
         >
           Ver Carrito
         </Button>
         <Button
-          className="bg-gradient-to-tr from-gray-600 to-gray-300 rounded-lg"
+          className="rounded-lg bg-gradient-to-tr from-gray-600 to-gray-300"
           disabled={carrito.length === 0}
           onClick={handleSubmit}
         >
           Enviar Pedido
         </Button>
-        <p className="mt-4 text-red-600 text-center">⚠ LEER ESTO ⚠</p>
-        <p className="text-gray-600 text-justify">
+        <p className="mt-4 text-center text-red-600">⚠ LEER ESTO ⚠</p>
+        <p className="text-justify text-gray-600">
           Este será un pedido que será confirmado por el área encargada. No es una compra directa para pago.
         </p>
       </div>
@@ -370,10 +363,10 @@ export default function Carrito() {
   const CarritoPreview = () => {
     return (
       <div
-        className="fixed top-30 right-10 z-50 bg-gradient-to-tr from-yellow-600 to-yellow-300 rounded-lg p-4 rounded-lg shadow-md"
+        className="fixed z-50 p-4 rounded-lg shadow-md top-30 right-10 bg-gradient-to-tr from-yellow-600 to-yellow-300"
         style={{ width: "300px" }}
       >
-        <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center justify-between mb-2">
           <ShoppingCart className="text-gray-600" size={20} />
           <button onClick={() => setShowCartPreview(false)} className="text-gray-600 hover:text-gray-800">
             <XCircle size={16} />
@@ -384,8 +377,8 @@ export default function Carrito() {
             <div className="text-center text-gray-500">Tu carrito está vacío.</div>
           ) : (
             carrito.map((item) => (
-              <div key={item.idProducto} className="flex justify-between items-center mb-2">
-                <div className="text-gray-700 font-medium">{item.nombre}</div>
+              <div key={item.idProducto} className="flex items-center justify-between mb-2">
+                <div className="font-medium text-gray-700">{item.nombre}</div>
                 <div className="text-gray-500">Cantidad: {item.cantidad}</div>
               </div>
             ))
@@ -394,7 +387,7 @@ export default function Carrito() {
         <div className="mt-2">
           {carrito.length > 0 && (
             <Button
-              className="bg-gradient-to-tr from-gray-600 to-gray-300 rounded-lg"
+              className="rounded-lg bg-gradient-to-tr from-gray-600 to-gray-300"
               onPress={() => openCarritoModal()}
             >
               Ver Carrito Completo
@@ -424,7 +417,7 @@ export default function Carrito() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <XCircle color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -444,8 +437,8 @@ export default function Carrito() {
           {/* Barra de búsqueda */}
           <h1 className={title()}>Carrito de Compras</h1>
           <Toaster position="bottom-right" />
-          <div className="flex flex-col items-start sm:flex-row sm:items-center px-4 py-2">
-            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+          <div className="flex flex-col items-start px-4 py-2 sm:flex-row sm:items-center">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -477,11 +470,11 @@ export default function Carrito() {
           </div>
 
           {/* Lista de productos y Resumen del Pedido */}
-          <div className="flex flex-col md:flex-row gap-4 px-4 py-2">
+          <div className="flex flex-col gap-4 px-4 py-2 md:flex-row">
             {/* Cards de productos */}
             <div className="flex flex-wrap gap-4 flex-grow- min-h-[calc(100vh - 100px)]" style={{ width: "100%", height: "100%" }}>
               {isLoading ? (
-                <div className="flex justify-center text-center h-screen">
+                <div className="flex justify-center h-screen text-center">
                   <div className="text-center">
                     <Spinner color="warning" size="lg" />
                   </div>
@@ -489,7 +482,7 @@ export default function Carrito() {
               ) : (
                 productosActuales.map((producto) => (
                   <div key={producto.idProducto} className="w-full md:w-1/4 lg:w-1/4">
-                    <Card className="h-full shadow-md hover:scale-105 transition-transform duration-100 ease-in-out">
+                    <Card className="h-full transition-transform duration-100 ease-in-out shadow-md hover:scale-105">
                       <Image
                         src={producto.imagenes}
                         alt={producto.nombre}
@@ -497,7 +490,7 @@ export default function Carrito() {
                         width="100%"
                         height={200}
                       />
-                      <CardBody className="flex flex-col space-y-2 p-4">
+                      <CardBody className="flex flex-col p-4 space-y-2">
                         <div className="font-bold">{producto.nombre}</div>
                         <div className="text-gray-500">{formatCurrency(producto.precio)}</div>
                         {carrito.find((item) => item.idProducto === producto.idProducto)?.cantidad ?? 0 > 0 ? (
@@ -547,7 +540,7 @@ export default function Carrito() {
                           </div>
                         ) : (
                           <Button
-                            className="bg-gradient-to-tr from-gray-600 to-gray-300 rounded-lg"
+                            className="rounded-lg bg-gradient-to-tr from-gray-600 to-gray-300"
                             onPress={() => addToCarrito(producto)}
                             disabled={carrito.length >= 100}
                           >
@@ -582,8 +575,8 @@ export default function Carrito() {
             <ModalContent className="max-w-screen-lg">
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col items-center border-b border-gray-200 pb-4">
-                    <h1 className="text-3xl font-semibold mt-2">Carrito de Compras</h1>
+                  <ModalHeader className="flex flex-col items-center pb-4 border-b border-gray-200">
+                    <h1 className="mt-2 text-3xl font-semibold">Carrito de Compras</h1>
                     <div className="text-gray-500">
                       Productos: {carrito.filter((item) => item.cantidad > 0).length}
                     </div>
@@ -603,7 +596,7 @@ export default function Carrito() {
                           {carrito.map((item) =>
                             item.cantidad > 0 ? (
                               <Card key={item.idProducto} className="mb-4">
-                                <CardBody className="flex flex-row justify-between items-center">
+                                <CardBody className="flex flex-row items-center justify-between">
                                   <div className="flex items-center">
                                     <Image
                                       src={item.imagenes}
@@ -649,14 +642,14 @@ export default function Carrito() {
                           )}
                         </div>
                         <Divider className="my-4" />
-                        <div className="flex justify-between items-center">
+                        <div className="flex items-center justify-between">
                           <div className="font-bold">Total:</div>
                           <div className="font-bold">{formatCurrency(total)}</div>
                         </div>
                       </>
                     )}
                   </ModalBody>
-                  <ModalFooter className="border-t border-gray-200 pt-4">
+                  <ModalFooter className="pt-4 border-t border-gray-200">
                     <Button color="danger" variant="light" onPress={onClose}>
                       Cerrar
                     </Button>
@@ -671,7 +664,7 @@ export default function Carrito() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <h1 className="text-2xl font-bold">Confirmar Pedido</h1>
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -699,7 +692,7 @@ export default function Carrito() {
 
           {/* Botón para subir al inicio */}
           <Button
-            className="fixed bottom-10 right-10 bg-gradient-to-tr from-red-600 to-orange-300 rounded-lg shadow-md"
+            className="fixed rounded-lg shadow-md bottom-10 right-10 bg-gradient-to-tr from-red-600 to-orange-300"
             isIconOnly
             onClick={scrollToTop}
           >
@@ -708,7 +701,7 @@ export default function Carrito() {
         </div>
       ) : (
         // Mostrar spinner si no tiene acceso
-        <div className="flex justify-center text-center h-screen">
+        <div className="flex justify-center h-screen text-center">
           <div className="text-center">
             <Spinner color="warning" size="lg" />
           </div>

@@ -27,6 +27,7 @@ import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/p
 
 // Importar estilos
 import { title } from "@/components/primitives";
+import { on } from "events";
 
 // Definición de interfaces para tipos de datos
 interface Cliente {
@@ -105,7 +106,8 @@ export default function VentasPageEditar() {
         setIsLoading(true);
         await Promise.all([fetchClientes(), fetchColaboradores(), fetchProductos(), fetchVenta(parseInt(idVenta as string))]);
       } catch (error) {
-        console.error("Error al obtener datos:", error);
+        setMensajeError("Hubo un problema al obtener la información. Intenta recargar la página.");
+        onOpenError();
       } finally {
         setIsLoading(false);
       }
@@ -122,12 +124,10 @@ export default function VentasPageEditar() {
         const data = await response.json();
         setClientes(data);
       } else {
-        console.error("Error al obtener clientes:", response.status);
         setMensajeError("Hubo un problema al obtener los clientes. Intenta recargar la página.");
         onOpenError();
       }
     } catch (error) {
-      console.error("Error al obtener clientes:", error);
       setMensajeError("Hubo un problema al obtener los clientes. Intenta recargar la página.");
       onOpenError();
     }
@@ -141,12 +141,10 @@ export default function VentasPageEditar() {
         const data = await response.json();
         setColaboradores(data);
       } else {
-        console.error("Error al obtener colaboradores:", response.status);
         setMensajeError("Hubo un problema al obtener los colaboradores. Intenta recargar la página.");
         onOpenError();
       }
     } catch (error) {
-      console.error("Error al obtener colaboradores:", error);
       setMensajeError("Hubo un problema al obtener los colaboradores. Intenta recargar la página.");
       onOpenError();
     }
@@ -160,12 +158,10 @@ export default function VentasPageEditar() {
         const data = await response.json();
         setProductos(data);
       } else {
-        console.error("Error al obtener productos:", response.status);
         setMensajeError("Hubo un problema al obtener los productos. Intenta recargar la página.");
         onOpenError();
       }
     } catch (error) {
-      console.error("Error al obtener productos:", error);
       setMensajeError("Hubo un problema al obtener los productos. Intenta recargar la página.");
       onOpenError();
     }
@@ -196,12 +192,10 @@ export default function VentasPageEditar() {
           )
         );
       } else {
-        console.error("Error al obtener la venta:", response.status);
         setMensajeError("Hubo un problema al obtener la venta. Intenta recargar la página.");
         onOpenError();
       }
     } catch (error) {
-      console.error("Error al obtener la venta:", error);
       setMensajeError("Hubo un problema al obtener la venta. Intenta recargar la página.");
       onOpenError();
     }
@@ -217,7 +211,6 @@ export default function VentasPageEditar() {
       }
       return await response.json();
     } catch (error) {
-      console.error("Error al actualizar la venta:", error);
       setMensajeError("Error al actualizar la venta. Inténtalo de nuevo.");
       onOpenError();
       throw error;
@@ -312,7 +305,6 @@ export default function VentasPageEditar() {
   // Función para manejar la confirmación del envío del formulario
   const handleConfirmSubmit = () => {
     const total = productosSeleccionados.reduce((acc, item) => acc + (item.producto.precio * item.cantidad), 0);
-    console.log(total);
 
     // Crear el objeto VentasConProductos con los datos necesarios
     const ventaActualizada: any = {
@@ -328,19 +320,14 @@ export default function VentasPageEditar() {
       cantidad: productosSeleccionados.map(item => item.cantidad)
     };
 
-    // Depurar el objeto `ventaActualizada` en la consola del navegador
-    console.log("VentasPageEditar.handleConfirmSubmit: ", ventaActualizada);
-
     // Llamar a actualizarVenta
     actualizarVenta(ventaActualizada)
       .then(() => {
-        // Manejar el éxito
         onOpenChange();
         router.push("/admin/ventas");
       })
       .catch(error => {
-        // Manejar los errores
-        console.error("Error al actualizar la venta: ", error);
+        setMensajeError(error.message);
         onOpenError();
       });
   };
@@ -384,7 +371,7 @@ export default function VentasPageEditar() {
 
           {/* Mostrar un spinner de carga si la información se está cargando */}
           {isLoading ? (
-            <div className="flex justify-center text-center h-screen">
+            <div className="flex justify-center h-screen text-center">
               <div className="text-center">
                 <Spinner color="warning" size="lg" />
               </div>
@@ -505,13 +492,13 @@ export default function VentasPageEditar() {
                   {/* Mostrar sugerencias de productos */}
                   {productosFiltrados.length > 0 && busquedaProducto !== "" && (
                     <ul
-                      className="absolute top-full left-0 w-full bg-white dark:bg-gray-800 rounded-md shadow-md z-10 max-h-40 overflow-y-auto"
+                      className="absolute left-0 z-10 w-full overflow-y-auto bg-white rounded-md shadow-md top-full dark:bg-gray-800 max-h-40"
                       style={{ backgroundColor: "#303030" }}
                     >
                       {productosFiltrados.map((producto) => (
                         <li
                           key={producto.idProducto}
-                          className="px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 flex justify-between"
+                          className="flex justify-between px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                           onClick={() => handleAgregarProducto(producto)}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -521,7 +508,7 @@ export default function VentasPageEditar() {
                           tabIndex={0}
                         >
                           <span>{producto.nombre}</span>
-                          <span className="text-gray-500 text-sm">
+                          <span className="text-sm text-gray-500">
                             {producto.idMarca.nombre.toString()}
                           </span>
                         </li>
@@ -559,7 +546,7 @@ export default function VentasPageEditar() {
               {/* Botones para cancelar o enviar el formulario */}
               <div className="flex justify-end mt-4">
                 <Link href="/admin/ventas">
-                  <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
+                  <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" type="button">
                     Cancelar
                   </Button>
                 </Link>
@@ -575,11 +562,11 @@ export default function VentasPageEditar() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">¿Desea editar la venta?</h1>
+                    <h1 className="text-3xl ">¿Desea editar la venta?</h1>
                     <p>La venta se editará con la información proporcionada.</p>
                   </ModalBody>
                   <ModalFooter>
@@ -607,11 +594,11 @@ export default function VentasPageEditar() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">Error</h1>
+                    <h1 className="text-3xl ">Error</h1>
                     <p>{mensajeError}</p>
                   </ModalBody>
                   <ModalFooter>
@@ -679,7 +666,7 @@ export default function VentasPageEditar() {
         </div>
       ) : (
         // Mostrar spinner si no tiene acceso
-        <div className="flex justify-center text-center h-screen">
+        <div className="flex justify-center h-screen text-center">
           <div className="text-center">
             <Spinner color="warning" size="lg" />
           </div>

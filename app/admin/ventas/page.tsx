@@ -111,7 +111,7 @@ const EstadoVentaCell: FC<{
         </Select>
       ) : (
         <Chip
-          className="hover:scale-110 cursor-pointer transition-transform duration-100 ease-in-out"
+          className="transition-transform duration-100 ease-in-out cursor-pointer hover:scale-110"
           isDisabled={venta.estado !== "Pendiente"}
           key={venta.estado}
           color={
@@ -214,7 +214,6 @@ export default function VentasPage() {
 
       return mergedData;
     } catch (error) {
-      console.error(error);
       setMensajeError("Error al obtener los detalles de la venta de productos. Por favor, inténtalo de nuevo.");
       onOpenError();
     }
@@ -236,7 +235,6 @@ export default function VentasPage() {
 
       return detalles;
     } catch (error) {
-      console.error(error);
       setMensajeError("Error al obtener los detalles de la venta de servicios. Por favor, inténtalo de nuevo.");
       onOpenError();
     }
@@ -319,7 +317,6 @@ export default function VentasPage() {
           setMensajeError("Error al obtener ventas. Problemas con la conexión del servidor.");
           onOpenError();
         } else {
-          console.error("Error al obtener ventas:", err);
           setMensajeError("El servicio se está reiniciando o cargando. Inténtalo de nuevo más tarde.");
           onOpenError();
         }
@@ -345,13 +342,11 @@ export default function VentasPage() {
               if (response.ok) {
                 setVentas((prevVentas) => prevVentas.map(v => v.idVenta === idVenta ? updatedVenta : v));
                 resolve();
-                console.log('El estado ha sido cambiado con éxito');
               } else {
                 reject(new Error('Error al cambiar el estado'));
               }
             })
             .catch(error => {
-              console.error("Error al cambiar el estado:", error);
               setMensajeError("Error al cambiar el estado de la venta. Por favor, inténtalo de nuevo.");
               onOpenError();
               reject();
@@ -412,7 +407,6 @@ export default function VentasPage() {
     const valorNumerico = parseFloat(valorString.replace(/[^\d.,]/g, '').replace(',', '.'));
 
     if (isNaN(valorNumerico)) {
-      console.error("Error al convertir el valor a número:", valorString);
       return 'N/A';
     }
     return new Intl.NumberFormat('es-CO', {
@@ -541,7 +535,7 @@ export default function VentasPage() {
       return;
     }
 
-    setSelectedVentaId(idVenta); // Guardamos el idVenta seleccionado
+    setSelectedVentaId(idVenta);
 
     if (venta.identificador === 'Producto') {
       const detalles = await fetchVentaDetallesProductos(idVenta);
@@ -549,6 +543,10 @@ export default function VentasPage() {
     } else if (venta.identificador === 'Servicio') {
       const detalles = await fetchVentaDetallesServicios(idVenta);
       setVentaDetallesServicios(detalles);
+    } else {
+      setMensajeError("Identificador de venta desconocido.");
+      onOpenError();
+      return;
     }
     onOpenDetalles();
   };
@@ -568,7 +566,7 @@ export default function VentasPage() {
           {/* Contenedor para la barra de búsqueda y botones */}
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
             {/* Barra de búsqueda */}
-            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -602,7 +600,7 @@ export default function VentasPage() {
             <div className="basis-1/2"></div>
 
             {/* Botones de acciones */}
-            <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
+            <div className="flex items-center justify-end mb-4 space-x-2 basis-1/4 sm:my-4 text-end">
               {/* Botón para crear reporte */}
               <Button isIconOnly className="bg-gradient-to-tr from-red-600 to-red-100" aria-label="Crear Reporte" onClick={generarPDFVentas}>
                 <FileBarChart2 />
@@ -619,7 +617,7 @@ export default function VentasPage() {
 
           {/* Mostrar un spinner de carga si la información se está cargando */}
           {isLoading ? (
-            <div className="flex justify-center text-center h-screen">
+            <div className="flex justify-center h-screen text-center">
               <div className="text-center">
                 <Spinner color="warning" size="lg" />
               </div>
@@ -639,7 +637,7 @@ export default function VentasPage() {
                           {/* Renderizar la celda de acciones */}
                           {column.uid === "acciones" ? (
                             <Dropdown>
-                              <DropdownTrigger className="bg-transparent w-auto my-2">
+                              <DropdownTrigger className="w-auto my-2 bg-transparent">
                                 <Button
                                   isIconOnly
                                   className="border"
@@ -649,10 +647,10 @@ export default function VentasPage() {
                                   <Ellipsis />
                                 </Button>
                               </DropdownTrigger>
-                              <DropdownMenu onAction={(action) => console.log(action)}>
+                              <DropdownMenu onAction={(action) => (action)}>
                                 <DropdownItem key={"detalles"}>
                                   <Button
-                                    className="bg-transparent w-full"
+                                    className="w-full bg-transparent"
                                     onPress={() => handleOpenDetallesModal(item.idVenta)}
                                   >
                                     <Eye />
@@ -711,7 +709,7 @@ export default function VentasPage() {
                         <TableCell key={column.uid}>
                           {column.uid === "acciones" ? (
                             <Dropdown>
-                              <DropdownTrigger className="bg-transparent w-auto my-2">
+                              <DropdownTrigger className="w-auto my-2 bg-transparent">
                                 <Button
                                   isIconOnly
                                   className="border"
@@ -720,10 +718,10 @@ export default function VentasPage() {
                                   <Ellipsis />
                                 </Button>
                               </DropdownTrigger>
-                              <DropdownMenu onAction={(action) => console.log(action)}>
+                              <DropdownMenu onAction={(action) => (action)}>
                                 <DropdownItem key={"detalles"}>
                                   <Button
-                                    className="bg-transparent w-full"
+                                    className="w-full bg-transparent"
                                     onPress={() => handleOpenDetallesModal(item.idVenta)}
                                   >
                                     <Eye />
@@ -763,7 +761,7 @@ export default function VentasPage() {
           )}
 
           {/* Paginación */}
-          <div className="flex w-full justify-center mb-4">
+          <div className="flex justify-center w-full mb-4">
             <Pagination
               showControls
               color="warning"
@@ -778,14 +776,14 @@ export default function VentasPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col items-center border-b border-gray-200 pb-4">
+                  <ModalHeader className="flex flex-col items-center pb-4 border-b border-gray-200">
                     <Eye color="#FFD700" size={100} />
-                    <h1 className="text-3xl font-semibold mt-2">Detalles de la Venta</h1>
+                    <h1 className="mt-2 text-3xl font-semibold">Detalles de la Venta</h1>
                   </ModalHeader>
                   <ModalBody className="p-6">
                     {/* Mostrar detalles de la venta según el identificador */}
                     {selectedVentaId && ventas.find(venta => venta.idVenta === selectedVentaId)?.identificador === 'Producto' && ventaDetallesProductos ? (
-                      <div className="flex flex-col lg:flex-row gap-6">
+                      <div className="flex flex-col gap-6 lg:flex-row">
                         {/* Tabla para información de la venta */}
                         <div style={{ width: "50%" }}>
                           <Table aria-label="Detalles de la Venta de Productos">
@@ -843,7 +841,7 @@ export default function VentasPage() {
                           </Table>
                           {/* Paginación para productos */}
                           {productosAgrupados.length > rowsPerPage && (
-                            <div className="flex w-full justify-center mt-4">
+                            <div className="flex justify-center w-full mt-4">
                               <Pagination
                                 showControls
                                 color="warning"
@@ -856,7 +854,7 @@ export default function VentasPage() {
                         </div>
                       </div>
                     ) : selectedVentaId && ventas.find(venta => venta.idVenta === selectedVentaId)?.identificador === 'Servicio' && ventaDetallesServicios ? (
-                      <div className="flex flex-col lg:flex-row gap-6">
+                      <div className="flex flex-col gap-6 lg:flex-row">
                         {/* Tabla para información de la venta */}
                         <div style={{ width: "50%" }}>
                           <Table aria-label="Detalles de la Venta de Servicios">
@@ -937,7 +935,7 @@ export default function VentasPage() {
                       </div>
                     ) : isLoading ? (
                       // Mostrar un spinner de carga si se están cargando los detalles
-                      <div className="flex justify-center items-center">
+                      <div className="flex items-center justify-center">
                         <Spinner color="warning" size="lg" />
                       </div>
                     ) : (
@@ -945,7 +943,7 @@ export default function VentasPage() {
                       <p>No hay detalles para mostrar</p>
                     )}
                   </ModalBody>
-                  <ModalFooter className="border-t border-gray-200 pt-4">
+                  <ModalFooter className="pt-4 border-t border-gray-200">
                     <Button color="danger" variant="light" onPress={onClose}>
                       Cerrar
                     </Button>
@@ -960,7 +958,7 @@ export default function VentasPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -993,7 +991,7 @@ export default function VentasPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -1015,7 +1013,7 @@ export default function VentasPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="gold" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -1034,7 +1032,7 @@ export default function VentasPage() {
         </div>
       ) : (
         // Mostrar spinner si no tiene acceso
-        <div className="flex justify-center text-center h-screen">
+        <div className="flex justify-center h-screen text-center">
           <div className="text-center">
             <Spinner color="warning" size="lg" />
           </div>

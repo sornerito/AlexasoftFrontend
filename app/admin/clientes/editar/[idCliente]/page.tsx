@@ -96,7 +96,8 @@ export default function EditarClientePage() {
         setOriginalCliente(data);
       })
       .catch((error) => {
-        console.error("Error al obtener los datos del cliente:", error);
+        setMensajeError("Error al obtener los datos del cliente. Intenta recargar la página.");
+        onOpenError();
       })
       .finally(() => {
         setIsLoading(false);
@@ -129,7 +130,6 @@ export default function EditarClientePage() {
         }
       }
     } catch (error) {
-      console.error("Error al enviar el formulario:", error);
       setMensajeError("Error al enviar el formulario.");
       onOpenError();
     }
@@ -199,7 +199,7 @@ export default function EditarClientePage() {
 
           {/* Muestra un Spinner mientras carga los datos */}
           {isLoading ? (
-            <div className="flex justify-center text-center h-screen">
+            <div className="flex justify-center h-screen text-center">
               <div className="text-center">
                 <Spinner color="warning" size="lg" />
               </div>
@@ -254,7 +254,7 @@ export default function EditarClientePage() {
               <div className="flex justify-end mt-4">
                 <Link href="/admin/clientes">
                   <Button
-                    className="bg-gradient-to-tr from-red-600 to-red-300 mr-2"
+                    className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
                     type="button"
                   >
                     Cancelar
@@ -275,11 +275,11 @@ export default function EditarClientePage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">¿Desea editar el cliente?</h1>
+                    <h1 className="text-3xl ">¿Desea editar el cliente?</h1>
                     <p>
                       El cliente se actualizará con la información
                       proporcionada.
@@ -310,11 +310,11 @@ export default function EditarClientePage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">Error</h1>
+                    <h1 className="text-3xl ">Error</h1>
                     <p>{mensajeError}</p>
                   </ModalBody>
                   <ModalFooter>
@@ -331,7 +331,7 @@ export default function EditarClientePage() {
         </div>
       ) : (
         // Mostrar spinner si no tiene acceso
-        <div className="flex justify-center text-center h-screen">
+        <div className="flex justify-center h-screen text-center">
           <div className="text-center">
             <Spinner color="warning" size="lg" />
           </div>
