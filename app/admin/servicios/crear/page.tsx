@@ -14,6 +14,7 @@ interface Servicio {
     descripcion: string;
     tiempoMinutos: string;
     estado: string;
+    imagen: string;
 }
 
 interface Producto {
@@ -61,7 +62,9 @@ export default function CrearServicioPage() {
     const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
     const [cantidad, setCantidad] = useState<number>(0);
     const [unidadMedida, setUnidadMedida] = useState("");
+    const [imagen, setImagen] = useState("");
     const [cantidadError, setCantidadError] = useState("");
+    const [cantidadInicial, setCantidadInicial] = useState<number>(0);
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5; // Número de productos por página
@@ -121,15 +124,14 @@ export default function CrearServicioPage() {
 
     // Función para agregar un producto
     const agregarProducto = () => {
-        const error = validarCantidad(cantidad, unidadMedida);
-        if (productoSeleccionado && cantidad > 0 && unidadMedida && error === "") {
+        const error = validarCantidad(cantidad);
+        if (productoSeleccionado && cantidad > 0 && error === "") {
             setProductosSeleccionados((prevProductosSeleccionados) => [
                 ...prevProductosSeleccionados,
-                { ...productoSeleccionado, cantidad, unidadMedida },
+                { ...productoSeleccionado, cantidad, unidadMedida: productoSeleccionado.unidadMedida },
             ]);
             setProductoSeleccionado(null);
             setCantidad(0);
-            setUnidadMedida("");
             setCantidadError("");
         } else {
             setCantidadError(error || "Seleccione un producto y complete todos los campos necesarios.");
@@ -147,6 +149,7 @@ export default function CrearServicioPage() {
         const errorNombre = validarCampoString(nombre, "Nombre del servicio");
         const errorDescripcion = validarDescripcionModal(descripcion);
         const errorTiempoMinutos = validarTiempoModal(tiempoMinutos);
+
         if (errorNombre != "") {
             setMensajeError(errorNombre);
             onOpenError();
@@ -186,6 +189,7 @@ export default function CrearServicioPage() {
                 descripcion,
                 tiempoMinutos,
                 estado: "Activo",
+                imagen: ""
             };
 
 
@@ -256,29 +260,38 @@ export default function CrearServicioPage() {
         return !isNaN(tiempoNumerico) && tiempoNumerico > 0 && tiempoNumerico <= 300; // Max 5 hours (300 minutes)
     };
 
-    const validarCantidad = (cantidad: number, unidadMedida: string) => {
+    const validarCantidad = (cantidad: number) => {
         if (!cantidad) {
             return "La cantidad no puede estar vacía.";
         }
 
-        if (unidadMedida === "g") {
-            if (cantidad < 100) {
-                return "La cantidad mínima en gramos es 100g.";
-            } else if (cantidad > 10000) {
+        if (productoSeleccionado?.unidadMedida === "g") {
+            if (cantidad < 10) {
+                return "La cantidad mínima en gramos es 10g.";
+            } else if (cantidad > 1000) {
                 return "La cantidad máxima en gramos es 10000g.";
             }
-        } else if (unidadMedida === "ml") {
-            if (cantidad < 1000) {
-                return "La cantidad mínima en mililitros es 1000ml.";
-            } else if (cantidad > 10000) {
+        } else if (productoSeleccionado?.unidadMedida === "ml") {
+            if (cantidad < 10) {
+                return "La cantidad mínima en mililitros es 10ml.";
+            } else if (cantidad > 1000) {
                 return "La cantidad máxima en mililitros es 10000ml.";
             }
-        } else {
-            return "Seleccione una unidad de medida válida.";
         }
-
-        return ""; // Si no hay errores, retornar cadena vacía.
+        return "";
     };
+
+    const validarImagenes = (imagen: string) => {
+        const url = /(jpg|jpeg|png|gif)/i;
+        if (!url.test(imagen)) {
+            return "La URL de la imagen debe terminar en .jpg, .jpeg, .png o .gif.";
+        }
+        if (imagen.length >= 500) {
+            return "La URL de la imagen permite 500 careacteres";
+        }
+        return "";
+    };
+
 
 
 
@@ -287,12 +300,22 @@ export default function CrearServicioPage() {
             nombre: nombre !== "" && !validarNombre(nombre),
             descripcion: descripcion !== "" && !validarDescripcion(descripcion),
             tiempoMinutos: tiempoMinutos !== "" && !validarTiempo(tiempoMinutos),
+            imagenes: imagen !== "" && !validarImagenes(imagen),
 
         };
-    }, [nombre, descripcion, tiempoMinutos,]);
+    }, [nombre, descripcion, tiempoMinutos, imagen]);
 
 
 
+    const handleSelectProduct = (value: string) => {
+        const producto = productos.find((producto) => producto.idProducto.toString() === value);
+        if (producto) {
+            setProductoSeleccionado(producto);
+            setCantidadInicial(0);  // Reiniciar la cantidad inicial
+            setCantidad(0);  // Reiniciar la cantidad editable
+            setUnidadMedida(producto.unidadMedida);  // Unidad de medida fija del producto
+        }
+    };
 
     // Componente principal
     const cancelarEdicion = () => {
@@ -345,6 +368,20 @@ export default function CrearServicioPage() {
                                     errorMessage="La descripcion debe tener al menos 10 caracteres, no puede contener números ni caracteres especiales"
                                     onValueChange={setDescripcion}
                                     className="w-full h-32" // Aumenta la altura del campo
+                                />
+                            </div>
+                            <div className="col-span-2">
+                                <Input
+                                    isRequired
+                                    type="text"
+                                    label="Imagenes"
+                                    variant="bordered"
+                                    value={imagen}
+                                    isInvalid={!!errors.imagenes}
+                                    color={errors.imagenes ? "danger" : "default"}
+                                    errorMessage={errors.imagenes}
+                                    onValueChange={setImagen}
+                                    name="imagenes"
                                 />
                             </div>
                         </div>
@@ -432,13 +469,7 @@ export default function CrearServicioPage() {
                     <ModalBody>
                         <Select
                             placeholder="Selecciona un producto"
-                            onChange={(event) => {
-                                const value = event.target.value;
-                                const producto = productos.find((producto) => producto.idProducto.toString() === value);
-                                if (producto) {
-                                    setProductoSeleccionado(producto);
-                                }
-                            }}
+                            onChange={(event) => handleSelectProduct(event.target.value)}
                         >
                             {productos.map((producto) => (
                                 <SelectItem key={producto.idProducto} value={producto.idProducto.toString()}>
@@ -452,25 +483,18 @@ export default function CrearServicioPage() {
                             value={cantidad.toString()}
                             errorMessage={cantidadError}
                             onValueChange={(value) => {
-                                setCantidad(Number(value));
-                                setCantidadError(validarCantidad(Number(value), unidadMedida));
+                                setCantidad(Number(value));  // Dejar que la cantidad sea modificable
+                                setCantidadError(validarCantidad(Number(value)));
                             }}
                             className="mt-4"
                         />
                         {cantidadError && <span className="text-red-500">{cantidadError}</span>}
-                        <Select
+                        <Input
                             label="Unidad de Medida"
-                            placeholder="Selecciona la unidad de medida"
-                            value={unidadMedida}
-                            onChange={(e) => setUnidadMedida(e.target.value)}
+                            value={unidadMedida}  // Mostrar la unidad de medida fija
+                            isReadOnly  // Hacer que sea solo lectura
                             className="mt-4"
-                        >
-                            {unidadesMedida.map((unidad) => (
-                                <SelectItem key={unidad.key} value={unidad.key}>
-                                    {unidad.label}
-                                </SelectItem>
-                            ))}
-                        </Select>
+                        />
                     </ModalBody>
                     <ModalFooter>
                         <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" onClick={() => onOpenChange()}>Cancelar</Button>
@@ -482,7 +506,7 @@ export default function CrearServicioPage() {
                         </Button>
                     </ModalFooter>
                 </ModalContent>
-            </Modal>
+            </Modal >
 
             <Modal isOpen={isOpenError} onClose={onCloseError}>
                 <ModalContent>
