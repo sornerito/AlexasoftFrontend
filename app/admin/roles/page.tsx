@@ -70,7 +70,11 @@ export default function RolesPage() {
   const [searchTerm, setSearchTerm] = React.useState(""); // Hook para buscar
   const [page, setPage] = React.useState(1); // Hook, dice la pagina que carga por defecto
   const { isOpen, onOpen, onOpenChange } = useDisclosure(); //Hook del modal para cambiar estado
-  const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
+  const {
+    isOpen: isOpenWarning,
+    onOpen: onOpenWarning,
+    onOpenChange: onOpenChangeWarning,
+  } = useDisclosure();
   const {
     isOpen: isOpenError,
     onOpen: onOpenError,
@@ -82,11 +86,11 @@ export default function RolesPage() {
   React.useEffect(() => {
     getWithAuth("http://localhost:8080/configuracion/roles")
       .then((response: any) => {
-        if(response.status === 204){
+        if (response.status === 204) {
           setMensajeError("No hay roles, ¡Crea uno nuevo!");
-          onOpenWarning()
+          onOpenWarning();
           return [];
-        }else{
+        } else {
           return response.json();
         }
       })

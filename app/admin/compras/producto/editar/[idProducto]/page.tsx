@@ -3,7 +3,7 @@ import { title } from "@/components/primitives";
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { CircleHelp, CircleX } from "lucide-react";
-import { Toaster, toast } from 'sonner';
+import { Toaster, toast } from "sonner";
 import {
   Input,
   Button,
@@ -19,7 +19,11 @@ import {
   Spinner,
   CircularProgress,
 } from "@nextui-org/react";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 interface Producto {
   idProducto: string;
@@ -50,21 +54,29 @@ export default function ProductosEditarPage() {
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       if (verificarAccesoPorPermiso("Gestionar Productos") == false) {
-        window.location.href = "../../../../acceso/noAcceso"
+        window.location.href = "../../../../acceso/noAcceso";
       }
       setAcceso(verificarAccesoPorPermiso("Gestionar Productos"));
     }
   }, []);
   const [producto, setProducto] = useState<Producto | null>(null);
-  const [originalProducto, setOriginalProducto] = useState<Producto | null>(null);
+  const [originalProducto, setOriginalProducto] = useState<Producto | null>(
+    null
+  );
   const [idCategoriaProducto, setIdCategoriaProducto] = useState<string>("");
-  const [categoriasProducto, setCategoriasProducto] = useState<CategoriaProducto[]>([]);
+  const [categoriasProducto, setCategoriasProducto] = useState<
+    CategoriaProducto[]
+  >([]);
   const [idMarca, setIdMarca] = useState<string>("");
   const [unidadMedida, SetUnidadMedida] = useState<string>("");
   const [marca, setMarca] = useState<Marca[]>([]);
   const [errores, setErrores] = useState<any>({});
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
+  const {
+    isOpen: isOpenError,
+    onOpen: onOpenError,
+    onOpenChange: onOpenChangeError,
+  } = useDisclosure();
   const [mensajeError, setMensajeError] = useState("");
   const router = useRouter();
   const { idProducto } = useParams();
@@ -76,7 +88,9 @@ export default function ProductosEditarPage() {
           getWithAuth("http://localhost:8080/compras/categorias-producto"),
         ]);
         const categoriasProductoData = await categoriasProductoResponse.json();
-        const categoriasActivos = categoriasProductoData.filter((categoria: CategoriaProducto) => categoria.estado == "Activo");
+        const categoriasActivos = categoriasProductoData.filter(
+          (categoria: CategoriaProducto) => categoria.estado == "Activo"
+        );
         setCategoriasProducto(categoriasActivos);
       } catch (error) {
         console.error("Error al obtener categorías de producto:", error);
@@ -94,7 +108,9 @@ export default function ProductosEditarPage() {
           getWithAuth("http://localhost:8080/compras/categorias-producto"),
         ]);
         const categoriasProductoData = await categoriasProductoResponse.json();
-        const categoriasActivos = categoriasProductoData.filter((categoria: CategoriaProducto) => categoria.estado == "Activo");
+        const categoriasActivos = categoriasProductoData.filter(
+          (categoria: CategoriaProducto) => categoria.estado == "Activo"
+        );
         setCategoriasProducto(categoriasActivos);
       } catch (error) {
         console.error("Error al obtener categorías de producto:", error);
@@ -112,7 +128,9 @@ export default function ProductosEditarPage() {
           getWithAuth("http://localhost:8080/compras/marcas"),
         ]);
         const marcaData = await marcaResponse.json();
-        const marcasActivos = marcaData.filter((marca: Marca) => marca.estado == "Activo");
+        const marcasActivos = marcaData.filter(
+          (marca: Marca) => marca.estado == "Activo"
+        );
         setMarca(marcasActivos);
       } catch (error) {
         console.error("Error al obtener las marcas:", error);
@@ -123,30 +141,33 @@ export default function ProductosEditarPage() {
     setIsLoading(false);
   }, []);
 
-
   useEffect(() => {
     getWithAuth(`http://localhost:8080/compras/productos/${idProducto}`)
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         console.log(data);
         setProducto({
           ...data,
           idMarca: data.idMarca.idMarca.toString(),
-          idCategoriaProducto: data.idCategoriaProducto.idCategoriaProducto.toString()
+          idCategoriaProducto:
+            data.idCategoriaProducto.idCategoriaProducto.toString(),
         });
         setOriginalProducto(data);
         setIdMarca(data.idMarca.idMarca.toString());
-        setIdCategoriaProducto(data.idCategoriaProducto.idCategoriaProducto.toString());
+        setIdCategoriaProducto(
+          data.idCategoriaProducto.idCategoriaProducto.toString()
+        );
         SetUnidadMedida(data.unidadMedida);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Error al obtener producto:", err);
-        setMensajeError("Error al obtener producto. Por favor, inténtalo de nuevo.");
+        setMensajeError(
+          "Error al obtener producto. Por favor, inténtalo de nuevo."
+        );
         onOpenError();
       });
     setIsLoading(false);
   }, [idProducto]);
-
 
   // Validaciones
   const validarNombre = (nombre: string) => {
@@ -158,8 +179,6 @@ export default function ProductosEditarPage() {
     }
     return "";
   };
-
-
 
   const validarPrecio = (precio: string) => {
     if (isNaN(Number(precio)) || Number(precio) <= 0) {
@@ -186,7 +205,9 @@ export default function ProductosEditarPage() {
     return "";
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setProducto({ ...producto, [name]: value } as Producto);
 
@@ -202,7 +223,7 @@ export default function ProductosEditarPage() {
     setErrores({ ...errores, [name]: error });
   };
 
-  const handleFormSubmit = (e: { preventDefault: () => void; }) => {
+  const handleFormSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
     const errorNombre = validarNombre(producto?.nombre || "");
@@ -212,7 +233,6 @@ export default function ProductosEditarPage() {
       setErrores({
         nombre: errorNombre,
         imagenes: errorImagenes,
-
       });
       setMensajeError("Por favor corrija los errores en el formulario.");
       onOpenError();
@@ -230,11 +250,13 @@ export default function ProductosEditarPage() {
 
   const handleSubmit = async () => {
     try {
-      const response = await postWithAuth(`http://localhost:8080/compras/productos/${producto?.idProducto}`,
+      const response = await postWithAuth(
+        `http://localhost:8080/compras/productos/${producto?.idProducto}`,
         {
           ...producto,
-          idCategoriaProducto: producto?.idCategoriaProducto.toString()
-        });
+          idCategoriaProducto: producto?.idCategoriaProducto.toString(),
+        }
+      );
 
       if (response.ok) {
         toast.success("Producto editado con éxito!");
@@ -244,8 +266,12 @@ export default function ProductosEditarPage() {
       } else {
         const errores = await response.json();
         console.error("Errores de validación:", errores);
-        setErrores("El nombre está repetido con esta marca, por favor ingrese otro nombre");
-        setMensajeError("Hay un nombre que tiene el mismo producto! Cambie el nombre del producto");
+        setErrores(
+          "El nombre está repetido con esta marca, por favor ingrese otro nombre"
+        );
+        setMensajeError(
+          "Hay un nombre que tiene el mismo producto! Cambie el nombre del producto"
+        );
         onOpenError();
       }
     } catch (error) {
@@ -277,11 +303,12 @@ export default function ProductosEditarPage() {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  const handleChangeUnidadMedida = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleChangeUnidadMedida = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const value = e.target.value;
     SetUnidadMedida(value);
     setProducto({ ...producto, unidadMedida: value } as Producto);
-
   };
 
   const UnidadMedida = [
@@ -293,24 +320,24 @@ export default function ProductosEditarPage() {
   return (
     <>
       {acceso ? (
-        <div className="lg:mx-60">
+        <div className="container">
           <h1 className={title()}>Editar Producto</h1>
-          <br /><br />
+          <br />
+          <br />
 
           {isLoading ? (
-            <div className="flex justify-center text-center h-screen">
+            <div className="flex justify-center h-screen text-center">
               <div className="text-center">
                 <Spinner color="warning" size="lg" />
               </div>
             </div>
           ) : (
             <form onSubmit={handleFormSubmit}>
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Input
                   isRequired
                   type="text"
                   label="Nombre"
-                  variant="bordered"
                   value={producto?.nombre}
                   isInvalid={!!errores.nombre}
                   color={errores.nombre ? "danger" : "default"}
@@ -328,7 +355,10 @@ export default function ProductosEditarPage() {
                   required
                 >
                   {marca.map((marca) => (
-                    <SelectItem key={marca.idMarca} value={marca.idMarca.toString()}>
+                    <SelectItem
+                      key={marca.idMarca}
+                      value={marca.idMarca.toString()}
+                    >
                       {marca.nombre}
                     </SelectItem>
                   ))}
@@ -337,7 +367,6 @@ export default function ProductosEditarPage() {
                   isRequired
                   type="text"
                   label="Imagenes"
-                  variant="bordered"
                   value={producto?.imagenes}
                   isInvalid={!!errores.imagenes}
                   color={errores.imagenes ? "danger" : "default"}
@@ -355,7 +384,10 @@ export default function ProductosEditarPage() {
                   required
                 >
                   {categoriasProducto.map((categoria) => (
-                    <SelectItem key={categoria.idCategoriaProducto} value={categoria.idCategoriaProducto.toString()}>
+                    <SelectItem
+                      key={categoria.idCategoriaProducto}
+                      value={categoria.idCategoriaProducto.toString()}
+                    >
                       {categoria.nombre}
                     </SelectItem>
                   ))}
@@ -364,7 +396,6 @@ export default function ProductosEditarPage() {
                   isRequired
                   name="unidad Medida"
                   label="unidad Medida"
-                  variant="bordered"
                   value={unidadMedida}
                   onChange={handleChangeUnidadMedida}
                   selectedKeys={[unidadMedida]}
@@ -378,11 +409,17 @@ export default function ProductosEditarPage() {
               </div>
               <div className="flex justify-end mt-4">
                 <Link href="/admin/compras/producto">
-                  <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
+                  <Button
+                    className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                    type="button"
+                  >
                     Cancelar
                   </Button>
                 </Link>
-                <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" type="submit">
+                <Button
+                  className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                  type="submit"
+                >
                   Enviar
                 </Button>
               </div>
@@ -392,19 +429,23 @@ export default function ProductosEditarPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
                     <h1 className="text-3xl">¿Desea editar el producto?</h1>
-                    <p>El producto se actualizará con la información proporcionada.</p>
+                    <p>
+                      El producto se actualizará con la información
+                      proporcionada.
+                    </p>
                   </ModalBody>
                   <ModalFooter>
                     <Button color="danger" variant="light" onPress={onClose}>
                       Cancelar
                     </Button>
                     <Button
-                      color="warning" variant="light"
+                      color="warning"
+                      variant="light"
                       onPress={() => {
                         handleConfirmSubmit();
                         onClose();
@@ -422,7 +463,7 @@ export default function ProductosEditarPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -441,7 +482,6 @@ export default function ProductosEditarPage() {
 
           <Toaster position="bottom-right" />
         </div>
-
       ) : (
         <CircularProgress color="warning" aria-label="Cargando..." />
       )}

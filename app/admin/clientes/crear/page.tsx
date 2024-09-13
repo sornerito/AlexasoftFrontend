@@ -170,7 +170,7 @@ export default function ClientesPageCrear() {
   return (
     <>
       {acceso ? (
-        <div className="lg:mx-60">
+        <div className="container">
           <h1 className={title()}>Crear Cliente</h1>
           <br />
           <br />
@@ -185,7 +185,7 @@ export default function ClientesPageCrear() {
           ) : (
             // Formulario para crear el cliente
             <form onSubmit={handleFormSubmit}>
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Input
                   isRequired
                   type="text"

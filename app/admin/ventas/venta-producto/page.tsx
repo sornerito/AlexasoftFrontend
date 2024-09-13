@@ -1,11 +1,25 @@
 "use client";
 
 // Importar módulos necesarios
-import React, { useEffect, useRef, useState, ChangeEvent, KeyboardEvent, FormEvent } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  ChangeEvent,
+  KeyboardEvent,
+  FormEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import { Toaster, toast } from "sonner";
-import { CircleHelp, CircleX, Ellipsis, PlusIcon, MinusIcon, X } from "lucide-react";
+import {
+  CircleHelp,
+  CircleX,
+  Ellipsis,
+  PlusIcon,
+  MinusIcon,
+  X,
+} from "lucide-react";
 import {
   Input,
   Button,
@@ -20,11 +34,15 @@ import {
   SelectItem,
   Spinner,
   Chip,
-  Pagination
+  Pagination,
 } from "@nextui-org/react";
 
 // Importar funciones de configuración
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 // Importar estilos
 import { title } from "@/components/primitives";
@@ -64,7 +82,7 @@ export default function VentasPageCrear() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (verificarAccesoPorPermiso("Gestionar Ventas") == false) {
-        window.location.href = "../../../acceso/noAcceso"
+        window.location.href = "../../../acceso/noAcceso";
       }
       setAcceso(verificarAccesoPorPermiso("Gestionar Ventas"));
     }
@@ -80,8 +98,11 @@ export default function VentasPageCrear() {
     total: 0,
     iva: 19,
     idCliente: null,
-    idColaborador: typeof window !== 'undefined' ? sessionStorage.getItem('idUsuario') : null,
-    idPaquete: ""
+    idColaborador:
+      typeof window !== "undefined"
+        ? sessionStorage.getItem("idUsuario")
+        : null,
+    idPaquete: "",
   });
 
   const [mostrarProductos, setMostrarProductos] = useState(true);
@@ -100,7 +121,9 @@ export default function VentasPageCrear() {
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
   const [idColaborador, setIdColaborador] = useState("");
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoSeleccionado[]>([]);
+  const [productosSeleccionados, setProductosSeleccionados] = useState<
+    ProductoSeleccionado[]
+  >([]);
 
   // Estados para la búsqueda de productos
   const [busquedaModal, setBusquedaModal] = useState("");
@@ -115,8 +138,16 @@ export default function VentasPageCrear() {
   // Estados para control de modales
   const [paginaModal, setPaginaModal] = useState(1);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
-  const { isOpen: isProductosModalOpen, onOpen: onOpenProductosModal, onOpenChange: onOpenChangeProductosModal } = useDisclosure();
+  const {
+    isOpen: isOpenError,
+    onOpen: onOpenError,
+    onOpenChange: onOpenChangeError,
+  } = useDisclosure();
+  const {
+    isOpen: isProductosModalOpen,
+    onOpen: onOpenProductosModal,
+    onOpenChange: onOpenChangeProductosModal,
+  } = useDisclosure();
 
   // Router para navegación
   const router = useRouter();
@@ -126,21 +157,24 @@ export default function VentasPageCrear() {
 
   const handleDropdownChangeCitaCliente = async (value: any) => {
     setIdCliente(value.target.value);
-    setVenta({ ...venta, "idCliente": value.target.value });
+    setVenta({ ...venta, idCliente: value.target.value });
     setValidationErrors((prevErrors) => ({
       ...prevErrors,
-      idCliente: validateField("idCliente", value.target.value)
+      idCliente: validateField("idCliente", value.target.value),
     }));
 
     // Obtener las citas aceptadas del cliente seleccionado
     try {
-      const response = await getWithAuth(`http://localhost:8080/cita/cliente/${value.target.value}`);
+      const response = await getWithAuth(
+        `http://localhost:8080/cita/cliente/${value.target.value}`
+      );
       if (response.ok) {
         const data = await response.json();
-        const citasAceptadas = data.filter((cita: any) => cita.estado === "Aceptado");
+        const citasAceptadas = data.filter(
+          (cita: any) => cita.estado === "Aceptado"
+        );
         setCitasCliente(citasAceptadas);
         setCitaSeleccionada(null);
-
       } else {
         setMensajeError("Hubo un problema al obtener las citas del cliente.");
         onOpenError();
@@ -171,9 +205,15 @@ export default function VentasPageCrear() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await Promise.all([fetchClientes(), fetchColaboradores(), fetchProductos()]);
+        await Promise.all([
+          fetchClientes(),
+          fetchColaboradores(),
+          fetchProductos(),
+        ]);
       } catch (error) {
-        setMensajeError("Hubo un problema al obtener los datos. Intenta recargar la página.");
+        setMensajeError(
+          "Hubo un problema al obtener los datos. Intenta recargar la página."
+        );
         onOpenError();
       } finally {
         setIsLoading(false);
@@ -191,11 +231,15 @@ export default function VentasPageCrear() {
         const data = await response.json();
         setClientes(data);
       } else {
-        setMensajeError("Hubo un problema al obtener los clientes. Intenta recargar la página.");
+        setMensajeError(
+          "Hubo un problema al obtener los clientes. Intenta recargar la página."
+        );
         onOpenError();
       }
     } catch (error) {
-      setMensajeError("Hubo un problema al obtener los clientes. Intenta recargar la página.");
+      setMensajeError(
+        "Hubo un problema al obtener los clientes. Intenta recargar la página."
+      );
       onOpenError();
     }
   };
@@ -208,11 +252,15 @@ export default function VentasPageCrear() {
         const data = await response.json();
         setColaboradores(data);
       } else {
-        setMensajeError("Hubo un problema al obtener los colaboradores. Intenta recargar la página.");
+        setMensajeError(
+          "Hubo un problema al obtener los colaboradores. Intenta recargar la página."
+        );
         onOpenError();
       }
     } catch (error) {
-      setMensajeError("Hubo un problema al obtener los colaboradores. Intenta recargar la página.");
+      setMensajeError(
+        "Hubo un problema al obtener los colaboradores. Intenta recargar la página."
+      );
       onOpenError();
     }
   };
@@ -220,16 +268,22 @@ export default function VentasPageCrear() {
   // Función para obtener la lista de productos
   const fetchProductos = async () => {
     try {
-      const response = await getWithAuth("http://localhost:8080/compras/productos");
+      const response = await getWithAuth(
+        "http://localhost:8080/compras/productos"
+      );
       if (response.ok) {
         const data = await response.json();
         setProductos(data);
       } else {
-        setMensajeError("Hubo un problema al obtener los productos. Intenta recargar la página.");
+        setMensajeError(
+          "Hubo un problema al obtener los productos. Intenta recargar la página."
+        );
         onOpenError();
       }
     } catch (error) {
-      setMensajeError("Hubo un problema al obtener los productos. Intenta recargar la página.");
+      setMensajeError(
+        "Hubo un problema al obtener los productos. Intenta recargar la página."
+      );
       onOpenError();
     }
   };
@@ -237,10 +291,13 @@ export default function VentasPageCrear() {
   // Función para crear una nueva venta
   const crearVenta = async (ventaData: any) => {
     try {
-      const response = await postWithAuth("http://localhost:8080/venta", ventaData);
+      const response = await postWithAuth(
+        "http://localhost:8080/venta",
+        ventaData
+      );
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al crear la venta');
+        throw new Error(errorData.error || "Error al crear la venta");
       }
       return await response.json();
     } catch (error) {
@@ -255,20 +312,30 @@ export default function VentasPageCrear() {
     try {
       const detalleVenta = {
         ventas: nuevaVenta,
-        productosId: productosSeleccionados.map(item => item.producto.idProducto),
-        precioUnitario: productosSeleccionados.map(item => item.producto.precio),
-        cantidad: productosSeleccionados.map(item => item.cantidad)
+        productosId: productosSeleccionados.map(
+          (item) => item.producto.idProducto
+        ),
+        precioUnitario: productosSeleccionados.map(
+          (item) => item.producto.precio
+        ),
+        cantidad: productosSeleccionados.map((item) => item.cantidad),
       };
-      const response = await postWithAuth("http://localhost:8080/venta/detalles-productos", detalleVenta);
+      const response = await postWithAuth(
+        "http://localhost:8080/venta/detalles-productos",
+        detalleVenta
+      );
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al crear los detalles de la venta');
+        throw new Error(
+          errorData.error || "Error al crear los detalles de la venta"
+        );
       }
 
       const responseData = await response.json();
-
     } catch (error) {
-      setMensajeError("Error al crear los detalles de la venta. Inténtalo de nuevo.");
+      setMensajeError(
+        "Error al crear los detalles de la venta. Inténtalo de nuevo."
+      );
       onOpenError();
       throw error;
     }
@@ -280,16 +347,24 @@ export default function VentasPageCrear() {
       const detalleVentaCita = {
         idVenta: nuevaVenta.idVenta,
         idCita: citaSeleccionada.idCita,
-        subtotal: calcularTotalCitaConIVA() 
+        subtotal: calcularTotalCitaConIVA(),
       };
-      const response = await postWithAuth("http://localhost:8080/venta/detalles-servicios", detalleVentaCita);
+      const response = await postWithAuth(
+        "http://localhost:8080/venta/detalles-servicios",
+        detalleVentaCita
+      );
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al crear los detalles de la venta de la cita');
+        throw new Error(
+          errorData.error ||
+            "Error al crear los detalles de la venta de la cita"
+        );
       }
       const responseData = await response.json();
     } catch (error) {
-      setMensajeError("Error al crear los detalles de la venta de la cita. Inténtalo de nuevo.");
+      setMensajeError(
+        "Error al crear los detalles de la venta de la cita. Inténtalo de nuevo."
+      );
       onOpenError();
       throw error;
     }
@@ -341,27 +416,29 @@ export default function VentasPageCrear() {
 
   // Función para manejar cambios en el selector de cliente
   const handleDropdownChangeCliente = (value: any) => {
-    setIdCliente(value.target.value)
-    setVenta({ ...venta, "idCliente": value.target.value });
+    setIdCliente(value.target.value);
+    setVenta({ ...venta, idCliente: value.target.value });
     setValidationErrors((prevErrors) => ({
       ...prevErrors,
-      idCliente: validateField("idCliente", value.target.value)
+      idCliente: validateField("idCliente", value.target.value),
     }));
   };
 
   // Función para manejar cambios en el selector de colaborador
   const handleDropdownChangeColaborador = (value: any) => {
-    setIdColaborador(value.target.value)
-    setVenta({ ...venta, "idColaborador": value.target.value });
+    setIdColaborador(value.target.value);
+    setVenta({ ...venta, idColaborador: value.target.value });
     setValidationErrors((prevErrors) => ({
       ...prevErrors,
-      idColaborador: validateField("idColaborador", value.target.value)
+      idColaborador: validateField("idColaborador", value.target.value),
     }));
   };
 
   // Filtrar productos en tiempo real
-  const productosFiltrados = productos.filter((producto) =>
-    producto.nombre.toLowerCase().includes(busquedaProducto.toLowerCase()) && producto.estado === "Activo"
+  const productosFiltrados = productos.filter(
+    (producto) =>
+      producto.nombre.toLowerCase().includes(busquedaProducto.toLowerCase()) &&
+      producto.estado === "Activo"
   );
 
   // Manejar el input de búsqueda de productos
@@ -375,10 +452,12 @@ export default function VentasPageCrear() {
   };
 
   const handleAgregarProducto = (producto: Producto) => {
-    const productoExistente = productosSeleccionados.find(p => p.producto.idProducto === producto.idProducto);
+    const productoExistente = productosSeleccionados.find(
+      (p) => p.producto.idProducto === producto.idProducto
+    );
 
     if (productoExistente) {
-      const nuevosProductosSeleccionados = productosSeleccionados.map(p =>
+      const nuevosProductosSeleccionados = productosSeleccionados.map((p) =>
         p.producto.idProducto === producto.idProducto
           ? { ...p, cantidad: p.cantidad + 1 }
           : p
@@ -386,41 +465,47 @@ export default function VentasPageCrear() {
       setProductosSeleccionados(nuevosProductosSeleccionados);
 
       // Calcula el nuevo total y total con IVA
-      const nuevoTotal = nuevosProductosSeleccionados.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0);
+      const nuevoTotal = nuevosProductosSeleccionados.reduce(
+        (sum, item) => sum + item.producto.precio * item.cantidad,
+        0
+      );
       const nuevoTotalConIVA = calcularTotalProductoConIVA(nuevoTotal);
 
       // Actualiza ventaProductos y venta.total en una sola llamada
-      setVentaProductos(prevVenta => ({
+      setVentaProductos((prevVenta) => ({
         ...prevVenta,
         total: nuevoTotal,
-        totalConIVA: nuevoTotalConIVA
+        totalConIVA: nuevoTotalConIVA,
       }));
 
-      setVenta(prevVenta => ({
+      setVenta((prevVenta) => ({
         ...prevVenta,
-        total: nuevoTotal
+        total: nuevoTotal,
       }));
     } else {
       const nuevosProductosSeleccionados = [
         ...productosSeleccionados,
-        { id: uuidv4(), producto, cantidad: 1 }
+        { id: uuidv4(), producto, cantidad: 1 },
       ];
       setProductosSeleccionados(nuevosProductosSeleccionados);
 
       // Calcula el nuevo total y total con IVA
-      const nuevoTotal = nuevosProductosSeleccionados.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0);
+      const nuevoTotal = nuevosProductosSeleccionados.reduce(
+        (sum, item) => sum + item.producto.precio * item.cantidad,
+        0
+      );
       const nuevoTotalConIVA = calcularTotalProductoConIVA(nuevoTotal);
 
       // Actualiza ventaProductos y venta.total en una sola llamada
-      setVentaProductos(prevVenta => ({
+      setVentaProductos((prevVenta) => ({
         ...prevVenta,
         total: nuevoTotal,
-        totalConIVA: nuevoTotalConIVA
+        totalConIVA: nuevoTotalConIVA,
       }));
 
-      setVenta(prevVenta => ({
+      setVenta((prevVenta) => ({
         ...prevVenta,
-        total: nuevoTotal
+        total: nuevoTotal,
       }));
     }
 
@@ -429,30 +514,36 @@ export default function VentasPageCrear() {
   };
 
   const handleEliminarProducto = (id: string) => {
-    const nuevosProductosSeleccionados = productosSeleccionados.filter(p => p.id !== id);
+    const nuevosProductosSeleccionados = productosSeleccionados.filter(
+      (p) => p.id !== id
+    );
     setProductosSeleccionados(nuevosProductosSeleccionados);
 
     // Calcula el nuevo total y total con IVA
-    const nuevoTotal = nuevosProductosSeleccionados.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0);
+    const nuevoTotal = nuevosProductosSeleccionados.reduce(
+      (sum, item) => sum + item.producto.precio * item.cantidad,
+      0
+    );
     const nuevoTotalConIVA = calcularTotalProductoConIVA(nuevoTotal);
 
     // Actualiza ventaProductos y venta.total en una sola llamada
-    setVentaProductos(prevVenta => ({
+    setVentaProductos((prevVenta) => ({
       ...prevVenta,
       total: nuevoTotal,
-      totalConIVA: nuevoTotalConIVA
+      totalConIVA: nuevoTotalConIVA,
     }));
 
-    setVenta(prevVenta => ({
+    setVenta((prevVenta) => ({
       ...prevVenta,
-      total: nuevoTotal
+      total: nuevoTotal,
     }));
   };
 
   // Manejador del evento "keydown" en el input de búsqueda
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (
-      e.key === "Backspace" && !e.currentTarget.value &&
+      e.key === "Backspace" &&
+      !e.currentTarget.value &&
       productosSeleccionados.length > 0
     ) {
       e.preventDefault();
@@ -481,13 +572,13 @@ export default function VentasPageCrear() {
     if (productosSeleccionados.length === 0) {
       setValidationErrors((prevErrors) => ({
         ...prevErrors,
-        productos: "Debes agregar al menos un producto válido"
+        productos: "Debes agregar al menos un producto válido",
       }));
       return;
     } else {
       setValidationErrors((prevErrors) => ({
         ...prevErrors,
-        productos: ""
+        productos: "",
       }));
     }
     onOpen();
@@ -517,7 +608,7 @@ export default function VentasPageCrear() {
     idCliente: "",
     idColaborador: "",
     idProducto: "",
-    productos: ""
+    productos: "",
   });
 
   // Función para validar un campo individual
@@ -528,13 +619,9 @@ export default function VentasPageCrear() {
           ? ""
           : "El total debe ser un número positivo. Además no puede empezar con 0 o ser 0";
       case "idCliente":
-        return value !== 0
-          ? ""
-          : "Debes seleccionar un cliente.";
+        return value !== 0 ? "" : "Debes seleccionar un cliente.";
       case "idColaborador":
-        return value !== 0
-          ? ""
-          : "Debes seleccionar un colaborador.";
+        return value !== 0 ? "" : "Debes seleccionar un colaborador.";
       default:
         return "";
     }
@@ -544,9 +631,10 @@ export default function VentasPageCrear() {
   return (
     <>
       {acceso ? (
-        <div className="lg:mx-60">
+        <div className="container">
           <h1 className={title()}>Crear Venta</h1>
-          <br /><br />
+          <br />
+          <br />
           {/* Botones para alternar entre productos y citas */}
           <div className="flex gap-4 mb-4">
             <Button
@@ -578,7 +666,7 @@ export default function VentasPageCrear() {
           ) : mostrarProductos ? (
             // Mostrar formulario si la información se ha cargado
             <form onSubmit={handleFormSubmitProductos}>
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {/* Selector de cliente */}
                 <Select
                   isRequired
@@ -594,7 +682,10 @@ export default function VentasPageCrear() {
                   {clientes
                     .filter((cliente) => cliente.estado === "Activo")
                     .map((cliente) => (
-                      <SelectItem key={cliente.idCliente} value={cliente.idCliente.toString()}>
+                      <SelectItem
+                        key={cliente.idCliente}
+                        value={cliente.idCliente.toString()}
+                      >
                         {cliente.nombre}
                       </SelectItem>
                     ))}
@@ -615,7 +706,10 @@ export default function VentasPageCrear() {
                   {colaboradores
                     .filter((colaborador) => colaborador.estado === "Activo")
                     .map((colaborador) => (
-                      <SelectItem key={colaborador.idColaborador} value={colaborador.idColaborador.toString()}>
+                      <SelectItem
+                        key={colaborador.idColaborador}
+                        value={colaborador.idColaborador.toString()}
+                      >
                         {colaborador.nombre}
                       </SelectItem>
                     ))}
@@ -636,7 +730,9 @@ export default function VentasPageCrear() {
                       // Mostrar chips de productos seleccionados
                       Object.values(
                         productosSeleccionados.reduce((acc, item) => {
-                          acc[item.producto.nombre] = acc[item.producto.nombre] || { ...item, cantidad: 0 };
+                          acc[item.producto.nombre] = acc[
+                            item.producto.nombre
+                          ] || { ...item, cantidad: 0 };
                           acc[item.producto.nombre].cantidad += item.cantidad;
                           return acc;
                         }, {} as Record<string, ProductoSeleccionado>)
@@ -645,7 +741,7 @@ export default function VentasPageCrear() {
                         .map((item) => (
                           <Chip
                             key={item.id}
-                            variant="bordered"
+                            
                             color="default"
                             className="mr-2"
                           >
@@ -696,7 +792,7 @@ export default function VentasPageCrear() {
                           className="flex justify-between px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                           onClick={() => handleAgregarProducto(producto)}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
+                            if (e.key === "Enter") {
                               handleAgregarProducto(producto);
                             }
                           }}
@@ -730,7 +826,9 @@ export default function VentasPageCrear() {
                   name="totalConIVA"
                   label="Total con IVA"
                   type="number"
-                  value={calcularTotalProductoConIVA(ventaProductos.total).toFixed(2)}
+                  value={calcularTotalProductoConIVA(
+                    ventaProductos.total
+                  ).toFixed(2)}
                   required
                 />
 
@@ -749,20 +847,25 @@ export default function VentasPageCrear() {
               {/* Botones para cancelar o enviar el formulario */}
               <div className="flex justify-end mt-4">
                 <Link href="/admin/ventas">
-                  <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" type="button">
+                  <Button
+                    className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                    type="button"
+                  >
                     Cancelar
                   </Button>
                 </Link>
-                <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" type="submit">
+                <Button
+                  className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                  type="submit"
+                >
                   Enviar
                 </Button>
               </div>
             </form>
-
           ) : (
             // Formulario para citas
             <form onSubmit={handleFormSubmitCitas}>
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {/* Selector de cliente */}
                 <Select
                   isRequired
@@ -778,7 +881,10 @@ export default function VentasPageCrear() {
                   {clientes
                     .filter((cliente) => cliente.estado === "Activo")
                     .map((cliente) => (
-                      <SelectItem key={cliente.idCliente} value={cliente.idCliente.toString()}>
+                      <SelectItem
+                        key={cliente.idCliente}
+                        value={cliente.idCliente.toString()}
+                      >
                         {cliente.nombre}
                       </SelectItem>
                     ))}
@@ -788,14 +894,19 @@ export default function VentasPageCrear() {
                   label="Seleccionar Cita"
                   disabled={!idCliente}
                   onChange={(e) => {
-                    const citaSeleccionada = citasCliente.find((cita: any) => cita.idCita.toString() === e.target.value);
+                    const citaSeleccionada = citasCliente.find(
+                      (cita: any) => cita.idCita.toString() === e.target.value
+                    );
                     if (citaSeleccionada) {
                       handleCitaChange(citaSeleccionada);
                     }
                   }}
                 >
                   {citasCliente.map((cita: any) => (
-                    <SelectItem key={cita.idCita} value={cita.idCita.toString()}>
+                    <SelectItem
+                      key={cita.idCita}
+                      value={cita.idCita.toString()}
+                    >
                       Cita #{cita.idCita}
                     </SelectItem>
                   ))}
@@ -806,17 +917,24 @@ export default function VentasPageCrear() {
                     isDisabled
                     label="Fecha de la Cita"
                     type="date"
-                    value={new Date(citaSeleccionada.fecha).toISOString().split('T')[0]}
+                    value={
+                      new Date(citaSeleccionada.fecha)
+                        .toISOString()
+                        .split("T")[0]
+                    }
                   />
                 )}
-
                 {/* Input para el Colaborador de la Cita */}
                 {citaSeleccionada && (
                   <Input
                     isDisabled
                     label="Colaborador"
                     value={
-                      colaboradores.find((colaborador) => colaborador.idColaborador === citaSeleccionada.idColaborador)?.nombre || ""
+                      colaboradores.find(
+                        (colaborador) =>
+                          colaborador.idColaborador ===
+                          citaSeleccionada.idColaborador
+                      )?.nombre || ""
                     }
                   />
                 )}
@@ -826,14 +944,8 @@ export default function VentasPageCrear() {
                   label="Paquete"
                   value={venta.idPaquete || ""}
                 />
-
                 {/* Input para el Estado de la Cita */}
-                <Input
-                  isDisabled
-                  label="Estado"
-                  value={venta.estado}
-                />
-
+                <Input isDisabled label="Estado" value={venta.estado} />
                 {/* Input para el Total de la Venta (editable) */}
                 <Input
                   isRequired
@@ -842,14 +954,16 @@ export default function VentasPageCrear() {
                   type="number"
                   value={ventaCitas?.total.toFixed(2) || ""}
                   onChange={(e) => {
-                    setVentaCitas({ ...ventaCitas, total: parseInt(e.target.value) });
+                    setVentaCitas({
+                      ...ventaCitas,
+                      total: parseInt(e.target.value),
+                    });
                   }}
                   required
                   onError={errores.total}
                   isInvalid={!!validationErrors.total}
                   errorMessage={validationErrors.total}
                 />
-
                 {/* Input para el Total con IVA (deshabilitado) */}
                 <Input
                   isDisabled
@@ -859,19 +973,25 @@ export default function VentasPageCrear() {
                   type="number"
                   value={calcularTotalCitaConIVA().toFixed(2)}
                   required
-                />
+                />{" "}
+              </div>
 
-                {/* Botones para cancelar o enviar el formulario */}
-                <div className="flex justify-end mt-4">
-                  <Link href="/admin/ventas">
-                    <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" type="button">
-                      Cancelar
-                    </Button>
-                  </Link>
-                  <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" type="submit">
-                    Enviar
+              {/* Botones para cancelar o enviar el formulario */}
+              <div className="flex justify-end mt-4">
+                <Link href="/admin/ventas">
+                  <Button
+                    className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                    type="button"
+                  >
+                    Cancelar
                   </Button>
-                </div>
+                </Link>
+                <Button
+                  className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                  type="submit"
+                >
+                  Enviar
+                </Button>
               </div>
             </form>
           )}
@@ -939,7 +1059,10 @@ export default function VentasPageCrear() {
           </Modal>
 
           {/* Modal de productos seleccionados */}
-          <Modal isOpen={isProductosModalOpen} onOpenChange={onOpenChangeProductosModal}>
+          <Modal
+            isOpen={isProductosModalOpen}
+            onOpenChange={onOpenChangeProductosModal}
+          >
             <ModalContent>
               {(onClose) => (
                 <>
@@ -955,23 +1078,38 @@ export default function VentasPageCrear() {
                       }}
                     />
                     <ul>
-                      {Object.values(productosSeleccionados.reduce((acc, item) => {
-                        acc[item.producto.nombre] = acc[item.producto.nombre] || { ...item, cantidad: 0 };
-                        acc[item.producto.nombre].cantidad += item.cantidad;
-                        return acc;
-                      }, {} as Record<string, ProductoSeleccionado>))
-                        .filter(item => item.producto.nombre.toLowerCase().includes(busquedaModal.toLowerCase()))
+                      {Object.values(
+                        productosSeleccionados.reduce((acc, item) => {
+                          acc[item.producto.nombre] = acc[
+                            item.producto.nombre
+                          ] || { ...item, cantidad: 0 };
+                          acc[item.producto.nombre].cantidad += item.cantidad;
+                          return acc;
+                        }, {} as Record<string, ProductoSeleccionado>)
+                      )
+                        .filter((item) =>
+                          item.producto.nombre
+                            .toLowerCase()
+                            .includes(busquedaModal.toLowerCase())
+                        )
                         .slice((paginaModal - 1) * 6, paginaModal * 6)
                         .map((item) => (
-                          <li key={item.id} className="flex items-center justify-between mb-2">
-                            <span>{item.producto.nombre} x {item.cantidad}</span>
+                          <li
+                            key={item.id}
+                            className="flex items-center justify-between mb-2"
+                          >
+                            <span>
+                              {item.producto.nombre} x {item.cantidad}
+                            </span>
                             <div className="flex">
                               <Button
                                 isIconOnly
                                 size="sm"
                                 variant="light"
                                 color="success"
-                                onClick={() => handleAgregarProducto(item.producto)}
+                                onClick={() =>
+                                  handleAgregarProducto(item.producto)
+                                }
                                 className="mr-2"
                               >
                                 <PlusIcon size={16} />
@@ -990,15 +1128,29 @@ export default function VentasPageCrear() {
                         ))}
                     </ul>
                     {/* Mostrar mensaje si no hay productos que coincidan con la búsqueda */}
-                    {busquedaModal !== "" && Object.values(productosSeleccionados).filter(item => item.producto.nombre.toLowerCase().includes(busquedaModal.toLowerCase())).length === 0 && (
-                      <p>No se encontraron productos.</p>
-                    )}
+                    {busquedaModal !== "" &&
+                      Object.values(productosSeleccionados).filter((item) =>
+                        item.producto.nombre
+                          .toLowerCase()
+                          .includes(busquedaModal.toLowerCase())
+                      ).length === 0 && <p>No se encontraron productos.</p>}
                     {/* Paginación */}
-                    {Object.values(productosSeleccionados).filter(item => item.producto.nombre.toLowerCase().includes(busquedaModal.toLowerCase())).length > 6 && (
+                    {Object.values(productosSeleccionados).filter((item) =>
+                      item.producto.nombre
+                        .toLowerCase()
+                        .includes(busquedaModal.toLowerCase())
+                    ).length > 6 && (
                       <div className="flex justify-center mt-4">
                         <Pagination
                           color="warning"
-                          total={Math.ceil(Object.values(productosSeleccionados).filter(item => item.producto.nombre.toLowerCase().includes(busquedaModal.toLowerCase())).length / 6)}
+                          total={Math.ceil(
+                            Object.values(productosSeleccionados).filter(
+                              (item) =>
+                                item.producto.nombre
+                                  .toLowerCase()
+                                  .includes(busquedaModal.toLowerCase())
+                            ).length / 6
+                          )}
                           initialPage={paginaModal}
                           onChange={(page) => setPaginaModal(page)}
                           showControls

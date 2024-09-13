@@ -27,7 +27,11 @@ export default function EditarColaboradorPage({
   const [estado, setEstado] = useState("");
   const [idRol, setIdRol] = useState("");
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
+  const {
+    isOpen: isOpenError,
+    onOpen: onOpenError,
+    onOpenChange: onOpenChangeError,
+  } = useDisclosure();
   const [mensajeError, setMensajeError] = useState("");
 
   useEffect(() => {
@@ -56,11 +60,14 @@ export default function EditarColaboradorPage({
       telefono,
       contrasena,
       estado,
-      idRol
+      idRol,
     };
 
     try {
-      const response = await postWithAuth(`http://localhost:8080/colaborador/${params.idColaborador}`, colaboradorActualizado);
+      const response = await postWithAuth(
+        `http://localhost:8080/colaborador/${params.idColaborador}`,
+        colaboradorActualizado
+      );
       if (response.ok) {
         console.log("Colaborador editado exitosamente.");
         window.location.href = "/admin/agendamiento/colaboradores";
@@ -93,7 +100,7 @@ export default function EditarColaboradorPage({
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor);
   };
 
-  const handleFormSubmit = (e: { preventDefault: () => void; }) => {
+  const handleFormSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
     onOpen();
@@ -104,65 +111,80 @@ export default function EditarColaboradorPage({
     onOpenChange();
   };
 
-  const isInvalid = !validarNombre() || !validarCedula(cedula) || !validarTelefono(telefono) || !validarCorreo(correo);
+  const isInvalid =
+    !validarNombre() ||
+    !validarCedula(cedula) ||
+    !validarTelefono(telefono) ||
+    !validarCorreo(correo);
 
   return (
-    <div className="lg:mx-60">
+    <div className="container">
       <h1 className={title()}>Editar Colaborador</h1>
-      <br /><br />
+      <br />
+      <br />
       <form onSubmit={handleFormSubmit}>
-        <div className="grid gap-3 sm">
+        <div className="grid gap-3 sm:grid-cols-2">
           <Input
             isRequired
             type="text"
             label="Nombre"
-            variant="bordered"
             className="block w-full"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             isInvalid={!validarNombre()}
             color={!validarNombre() ? "danger" : "success"}
-            errorMessage={!validarNombre() ? "El nombre no puede contener números." : ""}
+            errorMessage={
+              !validarNombre() ? "El nombre no puede contener números." : ""
+            }
           />
           <Input
             isRequired
             type="text"
             label="Cédula"
-            variant="bordered"
             className="block w-full"
             value={cedula}
             onChange={(e) => setCedula(e.target.value)}
             isInvalid={!validarCedula(cedula)}
             color={!validarCedula(cedula) ? "danger" : "success"}
-            errorMessage={!validarCedula(cedula) ? "La cédula debe tener entre 8 y 13 dígitos." : ""}
+            errorMessage={
+              !validarCedula(cedula)
+                ? "La cédula debe tener entre 8 y 13 dígitos."
+                : ""
+            }
           />
           <Input
             isRequired
             type="email"
             label="Correo"
-            variant="bordered"
             className="block w-full"
             value={correo}
             onChange={(e) => setCorreo(e.target.value)}
             isInvalid={!validarCorreo(correo)}
             color={!validarCorreo(correo) ? "danger" : "success"}
-            errorMessage={!validarCorreo(correo) ? "El correo electrónico debe tener un formato válido." : ""}
+            errorMessage={
+              !validarCorreo(correo)
+                ? "El correo electrónico debe tener un formato válido."
+                : ""
+            }
           />
           <Input
             isRequired
             type="tel"
             label="Teléfono"
-            variant="bordered"
             className="block w-full"
             value={telefono}
             onChange={(e) => setTelefono(e.target.value)}
             isInvalid={!validarTelefono(telefono)}
             color={!validarTelefono(telefono) ? "danger" : "success"}
-            errorMessage={!validarTelefono(telefono) ? "El teléfono debe ser de 10 dígitos." : ""}
+            errorMessage={
+              !validarTelefono(telefono)
+                ? "El teléfono debe ser de 10 dígitos."
+                : ""
+            }
           />
         </div>
 
-        <div className="mt-6 flex justify-end">
+        <div className="flex justify-end mt-6">
           <Button
             type="submit"
             className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
@@ -177,19 +199,23 @@ export default function EditarColaboradorPage({
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleHelp color="#fef08a" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
                 <h1 className="text-3xl">¿Desea editar el colaborador?</h1>
-                <p>El colaborador se actualizará con la información proporcionada.</p>
+                <p>
+                  El colaborador se actualizará con la información
+                  proporcionada.
+                </p>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
                   Cancelar
                 </Button>
                 <Button
-                  color="warning" variant="light"
+                  color="warning"
+                  variant="light"
                   onPress={() => {
                     handleConfirmSubmit();
                     onClose();
@@ -207,7 +233,7 @@ export default function EditarColaboradorPage({
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleX color="#894242" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">

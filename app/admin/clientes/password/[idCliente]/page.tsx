@@ -186,7 +186,7 @@ export default function EditarContrasenaPage() {
   return (
     <>
       {acceso ? (
-        <div className="lg:mx-60">
+        <div className="container">
           <h1 className={title()}>Editar Contraseña</h1>
           <br />
           <br />
@@ -201,7 +201,7 @@ export default function EditarContrasenaPage() {
           ) : (
             // Formulario para editar la contraseña
             <form onSubmit={handleFormSubmit}>
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Input
                   isRequired
                   name="nuevaContrasena"

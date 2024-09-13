@@ -2,12 +2,7 @@
 import { title } from "@/components/primitives";
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  CircleHelp,
-  CircleX,
-  Ellipsis,
-  X,
-} from "lucide-react";
+import { CircleHelp, CircleX, Ellipsis, X } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -26,7 +21,11 @@ import {
   Chip,
   CircularProgress,
 } from "@nextui-org/react";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 // Definición del tipo Proveedor
 interface Proveedor {
@@ -82,11 +81,21 @@ export default function VentasPageCrear() {
   const [idProveedor, setIdProveedro] = React.useState("");
 
   const [busquedaProducto, setBusquedaProducto] = useState("");
-  const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoSeleccionado[]>([]);
+  const [productosSeleccionados, setProductosSeleccionados] = useState<
+    ProductoSeleccionado[]
+  >([]);
   const [errores] = useState<any>({});
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
-  const { isOpen: isProductosModalOpen, onOpen: onOpenProductosModal, onOpenChange: onOpenChangeProductosModal } = useDisclosure();
+  const {
+    isOpen: isOpenError,
+    onOpen: onOpenError,
+    onOpenChange: onOpenChangeError,
+  } = useDisclosure();
+  const {
+    isOpen: isProductosModalOpen,
+    onOpen: onOpenProductosModal,
+    onOpenChange: onOpenChangeProductosModal,
+  } = useDisclosure();
   const [mensajeError, setMensajeError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const [textoInput, setTextoInput] = useState("");
@@ -112,18 +121,24 @@ export default function VentasPageCrear() {
   // Fetch de clientes
   const fetchProveedor = async () => {
     try {
-      const response = await getWithAuth("http://localhost:8080/compras/proveedores");
+      const response = await getWithAuth(
+        "http://localhost:8080/compras/proveedores"
+      );
       if (response.ok) {
         const data = await response.json();
         setProveedores(data);
       } else {
         console.error("Error al obtener proveedores:", response.status);
-        setMensajeError("Hubo un problema al obtener los proveedores. Intenta recargar la página.");
+        setMensajeError(
+          "Hubo un problema al obtener los proveedores. Intenta recargar la página."
+        );
         onOpenError();
       }
     } catch (error) {
       console.error("Error al obtener proveedores:", error);
-      setMensajeError("Hubo un problema al obtener los Proveedores. Intenta recargar la página.");
+      setMensajeError(
+        "Hubo un problema al obtener los Proveedores. Intenta recargar la página."
+      );
       onOpenError();
     }
   };
@@ -131,18 +146,24 @@ export default function VentasPageCrear() {
   // Fetch de Productos
   const fetchProductos = async () => {
     try {
-      const response = await getWithAuth("http://localhost:8080/compras/productos");
+      const response = await getWithAuth(
+        "http://localhost:8080/compras/productos"
+      );
       if (response.ok) {
         const data = await response.json();
         setProductos(data);
       } else {
         console.error("Error al obtener colaboradores:", response.status);
-        setMensajeError("Hubo un problema al obtener los productos. Intenta recargar la página.");
+        setMensajeError(
+          "Hubo un problema al obtener los productos. Intenta recargar la página."
+        );
         onOpenError();
       }
     } catch (error) {
       console.error("Error al obtener colaboradores:", error);
-      setMensajeError("Hubo un problema al obtener los productos. Intenta recargar la página.");
+      setMensajeError(
+        "Hubo un problema al obtener los productos. Intenta recargar la página."
+      );
       onOpenError();
     }
   };
@@ -154,12 +175,11 @@ export default function VentasPageCrear() {
         ...compra,
         subtotal: compra.subTotal,
         precio: compra.precioTotal,
-
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al crear la compra');
+        throw new Error(errorData.error || "Error al crear la compra");
       }
 
       const nuevaCompra = await response.json();
@@ -177,26 +197,35 @@ export default function VentasPageCrear() {
       const detalleCompra = {
         idCompra,
         unidades: productosSeleccionados.map((item) => item.cantidad),
-        idProducto: productosSeleccionados.map((item) => item.producto.idProducto),
-        precioporunidad: productosSeleccionados.map((item) => item.precioporunidad),
+        idProducto: productosSeleccionados.map(
+          (item) => item.producto.idProducto
+        ),
+        precioporunidad: productosSeleccionados.map(
+          (item) => item.precioporunidad
+        ),
       };
 
       console.log("Enviando detalle de compra:", detalleCompra);
 
-      const response = await postWithAuth("http://localhost:8080/compras/detalle-producto-compra",
+      const response = await postWithAuth(
+        "http://localhost:8080/compras/detalle-producto-compra",
         detalleCompra
       );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al crear los detalles de la compra');
+        throw new Error(
+          errorData.error || "Error al crear los detalles de la compra"
+        );
       }
 
       const responseData = await response.json();
       console.log("Respuesta del servidor:", responseData);
     } catch (error) {
       console.error("Error al crear detalles de compra:", error);
-      setMensajeError("Error al crear los detalles de la Compra. Inténtalo de nuevo.");
+      setMensajeError(
+        "Error al crear los detalles de la Compra. Inténtalo de nuevo."
+      );
       onOpenError();
       throw error;
     }
@@ -215,11 +244,10 @@ export default function VentasPageCrear() {
     }
   };
 
-
   // Función para manejar cambios en los selectores de Proveedor
   const handleDropdownChangeProveedor = (value: any) => {
     setIdProveedro(value.target.value);
-    setCompra({ ...compra, "idProveedor": value.target.value });
+    setCompra({ ...compra, idProveedor: value.target.value });
     setValidationErrors((prevErrors) => ({
       ...prevErrors,
       idProveedor: validateField("idProveedor", value.target.value),
@@ -227,13 +255,16 @@ export default function VentasPageCrear() {
   };
 
   // Filtrar productos en tiempo real
-  const productosFiltrados = productos.filter((producto) =>
-    producto.nombre.toLowerCase().includes(busquedaProducto.toLowerCase()) && producto.estado === "Activo"
+  const productosFiltrados = productos.filter(
+    (producto) =>
+      producto.nombre.toLowerCase().includes(busquedaProducto.toLowerCase()) &&
+      producto.estado === "Activo"
   );
 
-
   // Manejar el input de búsqueda
-  const handleBusquedaProductoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBusquedaProductoChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const input = e.target.value;
     const letrasRegex = /^[a-zA-Z\s]*$/;
     if (letrasRegex.test(input)) {
@@ -244,11 +275,16 @@ export default function VentasPageCrear() {
 
   // Agregar producto a la compra
   const handleAgregarProducto = (producto: Producto) => {
-    const productoExistente = productosSeleccionados.find(p => p.producto.idProducto === producto.idProducto);
+    const productoExistente = productosSeleccionados.find(
+      (p) => p.producto.idProducto === producto.idProducto
+    );
 
     if (productoExistente) {
       // Si el producto ya está en la lista, aumenta su cantidad
-      handleCantidadChange(productoExistente.id, productoExistente.cantidad + 1);
+      handleCantidadChange(
+        productoExistente.id,
+        productoExistente.cantidad + 1
+      );
     } else {
       // Si el producto es nuevo, agrégalo a la lista
       setProductosSeleccionados((prevProductos) => [
@@ -266,9 +302,11 @@ export default function VentasPageCrear() {
 
   // Eliminar producto de la compra
   const handleEliminarProducto = (id: string) => {
-    const productoAEliminar = productosSeleccionados.find(p => p.id === id);
+    const productoAEliminar = productosSeleccionados.find((p) => p.id === id);
     if (productoAEliminar) {
-      setProductosSeleccionados((prevProductos) => prevProductos.filter(p => p.id !== id));
+      setProductosSeleccionados((prevProductos) =>
+        prevProductos.filter((p) => p.id !== id)
+      );
       setCompra((prevCompras) => ({
         ...prevCompras,
       }));
@@ -278,7 +316,8 @@ export default function VentasPageCrear() {
   // Manejador del evento "keydown" en el input
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (
-      e.key === "Backspace" && !e.currentTarget.value &&
+      e.key === "Backspace" &&
+      !e.currentTarget.value &&
       productosSeleccionados.length > 0
     ) {
       e.preventDefault();
@@ -321,7 +360,7 @@ export default function VentasPageCrear() {
       setCompra((prevCompra) => ({
         ...prevCompra, // Mantén todas las propiedades anteriores de compra
         subTotal: nuevoSubTotal, // Solo actualiza el subtotal
-        precioTotal: nuevoPrecioTotal // Actualiza el precio total
+        precioTotal: nuevoPrecioTotal, // Actualiza el precio total
       }));
 
       return productosActualizados;
@@ -329,14 +368,19 @@ export default function VentasPageCrear() {
   };
 
   // Manejar cambios en el precio por unidad del producto
-  const handlPrecioporunidadChange = (id: string, nuevaPrecioporunidad: number) => {
+  const handlPrecioporunidadChange = (
+    id: string,
+    nuevaPrecioporunidad: number
+  ) => {
     if (nuevaPrecioporunidad < 1) {
       return;
     }
 
     setProductosSeleccionados((prevProductos) => {
       const productosActualizados = prevProductos.map((item) =>
-        item.id === id ? { ...item, precioporunidad: nuevaPrecioporunidad } : item
+        item.id === id
+          ? { ...item, precioporunidad: nuevaPrecioporunidad }
+          : item
       );
 
       // Recalcula el subtotal después de actualizar el precio por unidad
@@ -348,7 +392,7 @@ export default function VentasPageCrear() {
       setCompra((prevCompra) => ({
         ...prevCompra,
         subTotal: nuevoSubTotal,
-        precioTotal: nuevoPrecioTotal
+        precioTotal: nuevoPrecioTotal,
       }));
 
       return productosActualizados;
@@ -385,13 +429,12 @@ export default function VentasPageCrear() {
     ) {
       onOpen();
     } else {
-
       if (!isValid) {
-
-        toast.error('Por favor, completa los campos de precio y cantidad para todos los productos.');
+        toast.error(
+          "Por favor, completa los campos de precio y cantidad para todos los productos."
+        );
       }
     }
-
 
     if (productosSeleccionados.length === 0) {
       setValidationErrors((prevErrors) => ({
@@ -409,7 +452,8 @@ export default function VentasPageCrear() {
     if (compra.subTotal <= 0) {
       setValidationErrors((prevErrors) => ({
         ...prevErrors,
-        subtotal: "El subtotal no puede ser igual o menor a 0. Por favor agregar el precio por unidad al producto",
+        subtotal:
+          "El subtotal no puede ser igual o menor a 0. Por favor agregar el precio por unidad al producto",
       }));
       return;
     } else {
@@ -421,7 +465,8 @@ export default function VentasPageCrear() {
     if (compra.precioTotal <= 0) {
       setValidationErrors((prevErrors) => ({
         ...prevErrors,
-        precioTotal: "EL precio total no puede ser igual o menor a 0. Por favor agregar el precio por unidad al producto",
+        precioTotal:
+          "EL precio total no puede ser igual o menor a 0. Por favor agregar el precio por unidad al producto",
       }));
       return;
     } else {
@@ -430,7 +475,6 @@ export default function VentasPageCrear() {
         precioTotal: "",
       }));
     }
-
   };
 
   // Función para manejar la confirmación del envío del formulario
@@ -460,14 +504,11 @@ export default function VentasPageCrear() {
           return "";
         }
       case "idProveedor":
-        return value !== 0
-          ? ""
-          : "Debes seleccionar un proveedor.";
+        return value !== 0 ? "" : "Debes seleccionar un proveedor.";
       case "subtotal":
         if (!/^[1-9]\d*$/.test(value.toString())) {
           return "El subtotal no puede empezar con 0 o ser 0";
-        }
-        else {
+        } else {
           return "";
         }
       case "precioporunidad":
@@ -520,18 +561,22 @@ export default function VentasPageCrear() {
     setSearchTerm(e.target.value);
   };
 
-
   // Función formatear el total de string a número con formato de moneda
-  const formatCurrency = (valor: string | number, currencyCode: string = 'COP') => {
+  const formatCurrency = (
+    valor: string | number,
+    currencyCode: string = "COP"
+  ) => {
     let valorString = valor.toString();
-    const valorNumerico = parseFloat(valorString.replace(/[^\d.,]/g, '').replace(',', '.'));
+    const valorNumerico = parseFloat(
+      valorString.replace(/[^\d.,]/g, "").replace(",", ".")
+    );
 
     if (isNaN(valorNumerico)) {
       console.error("Error al convertir el valor a número:", valorString);
-      return 'N/A';
+      return "N/A";
     }
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
       currency: currencyCode,
       minimumFractionDigits: 2,
       notation: "standard",
@@ -544,18 +589,19 @@ export default function VentasPageCrear() {
   return (
     <>
       {acceso ? (
-        <div className="lg:mx-60">
+        <div className="container">
           <h1 className={title()}>Crear Compra de Productos</h1>
-          <br /><br />
+          <br />
+          <br />
           {isLoading ? (
-            <div className="flex justify-center text-center h-screen">
+            <div className="flex justify-center h-screen text-center">
               <div className="text-center">
                 <Spinner color="warning" size="lg" />
               </div>
             </div>
           ) : (
             <form onSubmit={handleFormSubmit}>
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Select
                   isRequired
                   name="idProveedor"
@@ -570,7 +616,10 @@ export default function VentasPageCrear() {
                   {proveedores
                     .filter((proveedor) => proveedor.estado === "Activo")
                     .map((proveedor) => (
-                      <SelectItem key={proveedor.idProveedor} value={proveedor.idProveedor.toString()}>
+                      <SelectItem
+                        key={proveedor.idProveedor}
+                        value={proveedor.idProveedor.toString()}
+                      >
                         {proveedor.nombre}
                       </SelectItem>
                     ))}
@@ -585,26 +634,21 @@ export default function VentasPageCrear() {
                     onKeyDown={handleKeyDown}
                     isInvalid={!!validationErrors.productos}
                     errorMessage={validationErrors.productos}
-                    startContent={
-                      Object.values(
-                        productosSeleccionados.reduce((acc, item) => {
-                          acc[item.producto.nombre] = acc[item.producto.nombre] || { ...item, cantidad: 0 };
-                          acc[item.producto.nombre].cantidad += item.cantidad;
-                          return acc;
-                        }, {} as Record<string, ProductoSeleccionado>)
-                      )
-                        .slice(0, 4)
-                        .map((item) => (
-                          <Chip
-                            key={item.id}
-                            variant="bordered"
-                            color="default"
-                            className="mr-2"
-                          >
-                            {item.producto.nombre} x {item.cantidad}
-                          </Chip>
-                        ))
-                    }
+                    startContent={Object.values(
+                      productosSeleccionados.reduce((acc, item) => {
+                        acc[item.producto.nombre] = acc[
+                          item.producto.nombre
+                        ] || { ...item, cantidad: 0 };
+                        acc[item.producto.nombre].cantidad += item.cantidad;
+                        return acc;
+                      }, {} as Record<string, ProductoSeleccionado>)
+                    )
+                      .slice(0, 4)
+                      .map((item) => (
+                        <Chip key={item.id} color="default" className="mr-2">
+                          {item.producto.nombre} x {item.cantidad}
+                        </Chip>
+                      ))}
                     endContent={
                       <>
                         {textoInput && (
@@ -636,24 +680,23 @@ export default function VentasPageCrear() {
                   {/* Mostrar sugerencias de productos */}
                   {productosFiltrados.length > 0 && busquedaProducto !== "" && (
                     <ul
-                      className="absolute top-full left-0 w-full bg-white dark:bg-gray-800 rounded-md shadow-md z-10 max-h-40 overflow-y-auto"
-                      style={{ backgroundColor: "#303030", zIndex: 1000, }}
-
+                      className="absolute left-0 z-10 w-full overflow-y-auto bg-white rounded-md shadow-md top-full dark:bg-gray-800 max-h-40"
+                      style={{ backgroundColor: "#303030", zIndex: 1000 }}
                     >
                       {productosFiltrados.map((producto) => (
                         <li
                           key={producto.idProducto}
-                          className="px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 flex justify-between"
+                          className="flex justify-between px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
                           onClick={() => handleAgregarProducto(producto)}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
+                            if (e.key === "Enter") {
                               handleAgregarProducto(producto);
                             }
                           }}
                           tabIndex={0}
                         >
                           <span>{producto.nombre}</span>
-                          <span className="text-gray-500 text-sm">
+                          <span className="text-sm text-gray-500">
                             {producto.idMarca.nombre.toString()}
                           </span>
                         </li>
@@ -666,7 +709,7 @@ export default function VentasPageCrear() {
                   isRequired
                   name="subTotal"
                   label="Subtotal"
-                  type="text" 
+                  type="text"
                   value={formattedSubTotal}
                   readOnly
                   onError={errores.subtotal}
@@ -687,11 +730,17 @@ export default function VentasPageCrear() {
               </div>
               <div className="flex justify-end mt-4">
                 <Link href="/admin/compras">
-                  <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
+                  <Button
+                    className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                    type="button"
+                  >
                     Cancelar
                   </Button>
                 </Link>
-                <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" type="submit">
+                <Button
+                  className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                  type="submit"
+                >
                   Enviar
                 </Button>
               </div>
@@ -702,11 +751,11 @@ export default function VentasPageCrear() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">¿Desea crear la Compra?</h1>
+                    <h1 className="text-3xl ">¿Desea crear la Compra?</h1>
                     <p>La compra se creará con la información proporcionada.</p>
                   </ModalBody>
                   <ModalFooter>
@@ -731,11 +780,11 @@ export default function VentasPageCrear() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">Error</h1>
+                    <h1 className="text-3xl ">Error</h1>
                     <p>{mensajeError}</p>
                   </ModalBody>
                   <ModalFooter>
@@ -748,7 +797,11 @@ export default function VentasPageCrear() {
             </ModalContent>
           </Modal>
           {/* Modal de productos seleccionados */}
-          <Modal isOpen={isProductosModalOpen} onOpenChange={onOpenChangeProductosModal} size="xl">
+          <Modal
+            isOpen={isProductosModalOpen}
+            onOpenChange={onOpenChangeProductosModal}
+            size="xl"
+          >
             <ModalContent>
               {(onClose) => (
                 <>
@@ -762,19 +815,30 @@ export default function VentasPageCrear() {
                       onChange={handleSearchChange}
                       className="mb-4"
                     />
-                    <ul className="max-h-40 overflow-y-auto">
+                    <ul className="overflow-y-auto max-h-40">
                       {/* Agrupar y filtrar productos por nombre */}
-                      {Object.values(productosSeleccionados.reduce((acc, item) => {
-                        acc[item.producto.nombre] = acc[item.producto.nombre] || { ...item, cantidad: 0 };
-                        acc[item.producto.nombre].cantidad += item.cantidad;
-                        return acc;
-                      }, {} as Record<string, ProductoSeleccionado>))
+                      {Object.values(
+                        productosSeleccionados.reduce((acc, item) => {
+                          acc[item.producto.nombre] = acc[
+                            item.producto.nombre
+                          ] || { ...item, cantidad: 0 };
+                          acc[item.producto.nombre].cantidad += item.cantidad;
+                          return acc;
+                        }, {} as Record<string, ProductoSeleccionado>)
+                      )
                         .filter((item) =>
-                          item.producto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+                          item.producto.nombre
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase())
                         )
                         .map((item) => (
-                          <li key={item.id} className="flex items-center justify-between mb-3">
-                            <span className="flex-1 text-center">{item.producto.nombre}</span>
+                          <li
+                            key={item.id}
+                            className="flex items-center justify-between mb-3"
+                          >
+                            <span className="flex-1 text-center">
+                              {item.producto.nombre}
+                            </span>
                             <div className="flex-1 text-center">
                               <Input
                                 name="precio por unidad"
@@ -782,7 +846,12 @@ export default function VentasPageCrear() {
                                 type="number"
                                 required
                                 value={item.precioporunidad.toString()}
-                                onChange={(e) => handlPrecioporunidadChange(item.id, parseInt(e.target.value))}
+                                onChange={(e) =>
+                                  handlPrecioporunidadChange(
+                                    item.id,
+                                    parseInt(e.target.value)
+                                  )
+                                }
                                 onError={errores.precioporunidad}
                                 isInvalid={!!validationErrors.precioporunidad}
                                 errorMessage={validationErrors.precioporunidad}
@@ -796,7 +865,12 @@ export default function VentasPageCrear() {
                                 type="number"
                                 min={1}
                                 value={item.cantidad.toString()}
-                                onChange={(e) => handleCantidadChange(item.id, parseInt(e.target.value))}
+                                onChange={(e) =>
+                                  handleCantidadChange(
+                                    item.id,
+                                    parseInt(e.target.value)
+                                  )
+                                }
                                 className="w-20 mx-auto"
                               />
                             </div>
@@ -813,7 +887,6 @@ export default function VentasPageCrear() {
               )}
             </ModalContent>
           </Modal>
-
 
           <Toaster position="bottom-right" />
         </div>

@@ -5,7 +5,11 @@ import { Toaster, toast } from "sonner";
 import { title } from "@/components/primitives";
 import { useMediaQuery } from "react-responsive";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 import { PlusIcon, Ellipsis, Edit, CircleHelp, CircleX } from "lucide-react";
 import {
   Table,
@@ -31,7 +35,7 @@ import {
   Chip,
   Card,
   CardBody,
-  Spinner
+  Spinner,
 } from "@nextui-org/react";
 
 // Definición de la interfaz Cliente
@@ -115,7 +119,9 @@ export default function ClientesPage() {
           }))
         );
       } catch (err) {
-        setMensajeError("Error al obtener clientes. Por favor, inténtalo de nuevo.");
+        setMensajeError(
+          "Error al obtener clientes. Por favor, inténtalo de nuevo."
+        );
         onOpenError();
       } finally {
         setIsLoading(false);
@@ -125,13 +131,15 @@ export default function ClientesPage() {
   }, []);
 
   // Filtra los clientes en función del término de búsqueda
-  const clientesFiltrados = useMemo(() =>
-    clientes.filter((cliente) =>
-      Object.values(cliente).some((value) =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    )
-    , [clientes, searchTerm]);
+  const clientesFiltrados = useMemo(
+    () =>
+      clientes.filter((cliente) =>
+        Object.values(cliente).some((value) =>
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      ),
+    [clientes, searchTerm]
+  );
 
   // Calcula los elementos a mostrar en la página actual
   const items = useMemo(() => {
@@ -141,41 +149,52 @@ export default function ClientesPage() {
   }, [page, clientesFiltrados]);
 
   // Maneja el cambio de estado de un cliente
-  const handleToggleEstado = useCallback((idCliente: string) => {
-    const cliente = clientes.find((cliente) => cliente.idCliente === idCliente);
-    if (!cliente) return;
+  const handleToggleEstado = useCallback(
+    (idCliente: string) => {
+      const cliente = clientes.find(
+        (cliente) => cliente.idCliente === idCliente
+      );
+      if (!cliente) return;
 
-    const updatedEstado = cliente.estado === "Activo" ? "Desactivado" : "Activo";
-    const updatedCliente = { ...cliente, estado: updatedEstado };
+      const updatedEstado =
+        cliente.estado === "Activo" ? "Desactivado" : "Activo";
+      const updatedCliente = { ...cliente, estado: updatedEstado };
 
-    const promise = new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        postWithAuth(`http://localhost:8080/cliente/${idCliente}`, updatedCliente)
-          .then((response) => {
-            if (response.ok) {
-              setClientes((prevClientes) =>
-                prevClientes.map((c) =>
-                  c.idCliente === idCliente ? updatedCliente : c
-                )
+      const promise = new Promise<void>((resolve, reject) => {
+        setTimeout(() => {
+          postWithAuth(
+            `http://localhost:8080/cliente/${idCliente}`,
+            updatedCliente
+          )
+            .then((response) => {
+              if (response.ok) {
+                setClientes((prevClientes) =>
+                  prevClientes.map((c) =>
+                    c.idCliente === idCliente ? updatedCliente : c
+                  )
+                );
+                resolve();
+              } else {
+                reject(new Error("Error al cambiar el estado"));
+              }
+            })
+            .catch((error) => {
+              setMensajeError(
+                "Error al cambiar el estado del cliente. Por favor, inténtalo de nuevo."
               );
-              resolve();
-            } else {
-              reject(new Error("Error al cambiar el estado"));
-            }
-          })
-          .catch((error) => {
-            setMensajeError("Error al cambiar el estado del cliente. Por favor, inténtalo de nuevo.");
-            onOpenError();
-            reject();
-          });
-      }, 1000);
-    });
-    toast.promise(promise, {
-      loading: "Editando...",
-      success: "El estado ha sido cambiado con éxito",
-      error: (err) => err.message,
-    });
-  }, [clientes]);
+              onOpenError();
+              reject();
+            });
+        }, 1000);
+      });
+      toast.promise(promise, {
+        loading: "Editando...",
+        success: "El estado ha sido cambiado con éxito",
+        error: (err) => err.message,
+      });
+    },
+    [clientes]
+  );
 
   // Abre el modal de cambio de estado
   const handleOpenModal = (idCliente: string) => {
@@ -252,162 +271,154 @@ export default function ClientesPage() {
                 <Spinner color="warning" size="lg" />
               </div>
             </div>
+          ) : // Muestra la tabla de clientes o la vista móvil
+          tamanoMovil ? (
+            <div>
+              {items.map((item) => (
+                <Card key={item.idCliente} className="mb-4">
+                  <CardBody>
+                    {columns.map((column) => (
+                      <div key={column.uid}>
+                        <strong>{column.name}: </strong>
+                        {column.uid === "acciones" ? (
+                          // Dropdown de acciones para cada cliente
+                          <Dropdown>
+                            <DropdownTrigger className="w-auto my-2 bg-transparent">
+                              <Button
+                                isIconOnly
+                                className="border"
+                                aria-label="Actions"
+                                isDisabled={item.estado === "Desactivado"}
+                              >
+                                <Ellipsis />
+                              </Button>
+                            </DropdownTrigger>
+                            <DropdownMenu onAction={(action) => action}>
+                              <DropdownItem
+                                key="editar"
+                                href={`clientes/editar/${item.idCliente}`}
+                                isDisabled={item.estado === "Desactivado"}
+                              >
+                                <Button
+                                  className="w-full bg-transparent"
+                                  disabled={item.estado === "Desactivado"}
+                                >
+                                  <Edit />
+                                  Editar
+                                </Button>
+                              </DropdownItem>
+                              <DropdownItem
+                                key="editarContrasena"
+                                href={`clientes/password/${item.idCliente}`}
+                                isDisabled={item.estado === "Desactivado"}
+                              >
+                                <Button
+                                  className="w-full bg-transparent"
+                                  disabled={item.estado === "Desactivado"}
+                                >
+                                  <Edit />
+                                  Contraseña
+                                </Button>
+                              </DropdownItem>
+                            </DropdownMenu>
+                          </Dropdown>
+                        ) : column.uid === "fechaInteraccion" ? (
+                          <span>{formatDate(item.fechaInteraccion)}</span>
+                        ) : column.uid === "estado" ? (
+                          // Chip para mostrar el estado del cliente
+                          <Chip
+                            color={
+                              item.estado === "Activo" ? "success" : "danger"
+                            }
+                            variant="bordered"
+                            className="align-middle transition-transform duration-100 ease-in-out cursor-pointer hover:scale-90"
+                            onClick={() => handleOpenModal(item.idCliente)}
+                          >
+                            {item.estado}
+                          </Chip>
+                        ) : (
+                          <span>{item[column.uid as keyof Cliente]}</span>
+                        )}
+                      </div>
+                    ))}
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
           ) : (
-            // Muestra la tabla de clientes o la vista móvil
-            tamanoMovil ? (
-              <div>
-                {items.map((item) => (
-                  <Card key={item.idCliente} className="mb-4">
-                    <CardBody>
-                      {columns.map((column) => (
-                        <div key={column.uid}>
-                          <strong>{column.name}: </strong>
-                          {column.uid === "acciones" ? (
-                            // Dropdown de acciones para cada cliente
-                            <Dropdown>
-                              <DropdownTrigger className="w-auto my-2 bg-transparent">
-                                <Button
-                                  isIconOnly
-                                  className="border"
-                                  aria-label="Actions"
-                                  isDisabled={item.estado === "Desactivado"}
-                                >
-                                  <Ellipsis />
-                                </Button>
-                              </DropdownTrigger>
-                              <DropdownMenu
-                                onAction={(action) => (action)}
+            // Tabla para visualización de escritorio
+            <Table className="mb-8" isStriped>
+              <TableHeader columns={columns}>
+                {(column) => (
+                  <TableColumn className="text-base" key={column.uid}>
+                    {column.name}
+                  </TableColumn>
+                )}
+              </TableHeader>
+              <TableBody items={items}>
+                {(item) => (
+                  <TableRow key={item.idCliente}>
+                    {columns.map((column) => (
+                      <TableCell key={column.uid}>
+                        {column.uid === "acciones" ? (
+                          // Dropdown de acciones para cada cliente
+                          <Dropdown>
+                            <DropdownTrigger>
+                              <Button
+                                aria-label="Acciones"
+                                className="bg-transparent"
+                                isDisabled={item.estado === "Desactivado"}
                               >
-                                <DropdownItem
-                                  key="editar"
-                                  href={`clientes/editar/${item.idCliente}`}
-                                  isDisabled={item.estado === "Desactivado"}
-                                >
-                                  <Button
-                                    className="w-full bg-transparent"
-                                    disabled={item.estado === "Desactivado"}
-                                  >
-                                    <Edit />
-                                    Editar
-                                  </Button>
-                                </DropdownItem>
-                                <DropdownItem
-                                  key="editarContrasena"
-                                  href={`clientes/password/${item.idCliente}`}
-                                  isDisabled={item.estado === "Desactivado"}
-                                >
-                                  <Button
-                                    className="w-full bg-transparent"
-                                    disabled={item.estado === "Desactivado"}
-                                  >
-                                    <Edit />
-                                    Contraseña
-                                  </Button>
-                                </DropdownItem>
-                              </DropdownMenu>
-                            </Dropdown>
-                          ) : column.uid === "fechaInteraccion" ? (
-                            <span>{formatDate(item.fechaInteraccion)}</span>
-                          ) : column.uid === "estado" ? (
-                            // Chip para mostrar el estado del cliente
-                            <Chip
-                              color={
-                                item.estado === "Activo" ? "success" : "danger"
-                              }
-                              variant="bordered"
-                              className="align-middle transition-transform duration-100 ease-in-out cursor-pointer hover:scale-90"
-                              onClick={() => handleOpenModal(item.idCliente)}
-                            >
-                              {item.estado}
-                            </Chip>
-                          ) : (
-                            <span>
-                              {item[column.uid as keyof Cliente]}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </CardBody>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              // Tabla para visualización de escritorio
-              <Table className="mb-8" isStriped>
-                <TableHeader columns={columns}>
-                  {(column) => (
-                    <TableColumn className="text-base" key={column.uid}>
-                      {column.name}
-                    </TableColumn>
-                  )}
-                </TableHeader>
-                <TableBody items={items}>
-                  {(item) => (
-                    <TableRow key={item.idCliente}>
-                      {columns.map((column) => (
-                        <TableCell key={column.uid}>
-                          {column.uid === "acciones" ? (
-                            // Dropdown de acciones para cada cliente
-                            <Dropdown>
-                              <DropdownTrigger>
-                                <Button
-                                  aria-label="Acciones"
-                                  className="bg-transparent"
-                                  isDisabled={item.estado === "Desactivado"}
-                                >
-                                  <Ellipsis />
-                                </Button>
-                              </DropdownTrigger>
-                              <DropdownMenu
-                                onAction={(action) => (action)}
+                                <Ellipsis />
+                              </Button>
+                            </DropdownTrigger>
+                            <DropdownMenu onAction={(action) => action}>
+                              <DropdownItem
+                                href={`clientes/editar/${item.idCliente}`}
+                                isDisabled={item.estado === "Desactivado"}
                               >
-                                <DropdownItem
-                                  href={`clientes/editar/${item.idCliente}`}
-                                  isDisabled={item.estado === "Desactivado"}
-                                >
-                                  <Button className="w-full bg-transparent">
-                                    <Edit />
-                                    Editar
-                                  </Button>
-                                </DropdownItem>
-                                <DropdownItem
-                                  href={`clientes/password/${item.idCliente}`}
-                                  isDisabled={item.estado === "Desactivado"}
-                                >
-                                  <Button className="w-full bg-transparent">
-                                    <Edit />
-                                    Contraseña
-                                  </Button>
-                                </DropdownItem>
-                              </DropdownMenu>
-                            </Dropdown>
-                          ) : column.uid === "instagram" &&
-                            item.instagram === null ? (
-                            "N/A"
-                          ) : column.uid === "fechaInteraccion" ? (
-                            formatDate(item.fechaInteraccion)
-                          ) : column.uid === "estado" ? (
-                            // Chip para mostrar el estado del cliente
-                            <Chip
-                              color={
-                                item.estado === "Activo" ? "success" : "danger"
-                              }
-                              variant="bordered"
-                              className="transition-transform duration-100 ease-in-out cursor-pointer hover:scale-110"
-                              onClick={() => handleOpenModal(item.idCliente)}
-                            >
-                              {item.estado}
-                            </Chip>
-                          ) : (
-                            item[column.uid as keyof Cliente]
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            )
+                                <Button className="w-full bg-transparent">
+                                  <Edit />
+                                  Editar
+                                </Button>
+                              </DropdownItem>
+                              <DropdownItem
+                                href={`clientes/password/${item.idCliente}`}
+                                isDisabled={item.estado === "Desactivado"}
+                              >
+                                <Button className="w-full bg-transparent">
+                                  <Edit />
+                                  Contraseña
+                                </Button>
+                              </DropdownItem>
+                            </DropdownMenu>
+                          </Dropdown>
+                        ) : column.uid === "instagram" &&
+                          item.instagram === null ? (
+                          "N/A"
+                        ) : column.uid === "fechaInteraccion" ? (
+                          formatDate(item.fechaInteraccion)
+                        ) : column.uid === "estado" ? (
+                          // Chip para mostrar el estado del cliente
+                          <Chip
+                            color={
+                              item.estado === "Activo" ? "success" : "danger"
+                            }
+                            variant="bordered"
+                            className="transition-transform duration-100 ease-in-out cursor-pointer hover:scale-110"
+                            onClick={() => handleOpenModal(item.idCliente)}
+                          >
+                            {item.estado}
+                          </Chip>
+                        ) : (
+                          item[column.uid as keyof Cliente]
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           )}
 
           {/* Paginación */}

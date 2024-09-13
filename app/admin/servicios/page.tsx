@@ -2,8 +2,19 @@
 import { title } from "@/components/primitives";
 import React from "react";
 import { useRouter } from "next/navigation";
-import { PlusIcon, PencilIcon, Ellipsis, Edit, CircleHelp, CircleX } from "lucide-react";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  PlusIcon,
+  PencilIcon,
+  Ellipsis,
+  Edit,
+  CircleHelp,
+  CircleX,
+} from "lucide-react";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 import {
   Table,
@@ -50,7 +61,6 @@ interface Servicio {
   descripcion: string;
   tiempoMinutos: string;
   estado: string;
-  
 }
 
 export default function ServiciosPage() {
@@ -59,7 +69,7 @@ export default function ServiciosPage() {
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       if (verificarAccesoPorPermiso("Gestionar Servicios") == false) {
-        window.location.href = "../../../acceso/noAcceso"
+        window.location.href = "../../../acceso/noAcceso";
       }
       setAcceso(verificarAccesoPorPermiso("Gestionar Servicios"));
     }
@@ -76,8 +86,14 @@ export default function ServiciosPage() {
     onOpenChange: onOpenChangeError,
   } = useDisclosure(); //Hook de modal error
   const [mensajeError, setMensajeError] = React.useState(""); //Mensaje de error
-  const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
-  const [servicioSeleccionado, setServicioSeleccionado] = React.useState<any | null>(null);
+  const {
+    isOpen: isOpenWarning,
+    onOpen: onOpenWarning,
+    onOpenChange: onOpenChangeWarning,
+  } = useDisclosure();
+  const [servicioSeleccionado, setServicioSeleccionado] = React.useState<
+    any | null
+  >(null);
   const {
     isOpen: isOpenDetalles,
     onOpen: onOpenDetalles,
@@ -94,8 +110,26 @@ export default function ServiciosPage() {
         // Procesar los datos para que coincidan con la estructura de columnas
         const processedData: Servicio[] = data.map(
           (item: {
-            servicios: { idServicio: any; nombre: any; descripcion: any; tiempoMinutos: any; estado: any },
-            productos: [{ idProducto: any; nombre: any; marca: any; precio: any; unidades: any; estado: any; idCategoriaProducto: any; cantidad: any; unidadMedida: any; }]
+            servicios: {
+              idServicio: any;
+              nombre: any;
+              descripcion: any;
+              tiempoMinutos: any;
+              estado: any;
+            };
+            productos: [
+              {
+                idProducto: any;
+                nombre: any;
+                marca: any;
+                precio: any;
+                unidades: any;
+                estado: any;
+                idCategoriaProducto: any;
+                cantidad: any;
+                unidadMedida: any;
+              }
+            ];
           }) => ({
             idServicio: item.servicios.idServicio,
             nombre: item.servicios.nombre,
@@ -112,7 +146,9 @@ export default function ServiciosPage() {
           onOpenWarning();
         } else {
           console.error("Error al obtener los servicios:", err);
-          setMensajeError("Error al obtener los servicios. Por favor, inténtalo de nuevo.");
+          setMensajeError(
+            "Error al obtener los servicios. Por favor, inténtalo de nuevo."
+          );
           onOpenError();
         }
       });
@@ -121,7 +157,6 @@ export default function ServiciosPage() {
   React.useEffect(() => {
     setPaginaCargada(true);
   }, []);
-
 
   const rowsPerPage = 10; // Número de registros por página
 
@@ -144,13 +179,13 @@ export default function ServiciosPage() {
     return serviciosFiltradas.slice(start, end);
   }, [page, serviciosFiltradas]);
 
-
   const mostrarDetalleServicio = (idServicio: string) => {
-    const servicio = servicios.find(servicio => servicio.idServicio === idServicio);
+    const servicio = servicios.find(
+      (servicio) => servicio.idServicio === idServicio
+    );
     setServicioSeleccionado(servicio || null);
     onOpenDetalles(); // Abre el modal
   };
-
 
   const [servicioId, setServicioId] = React.useState("");
   const [estadoActual, setEstadoActual] = React.useState("");
@@ -175,7 +210,9 @@ export default function ServiciosPage() {
           estadoActual === "Activo" ? "Desactivado" : "Activo";
         setServicios((prevSrrvicio) =>
           prevSrrvicio.map((servicio) =>
-            servicio.idServicio === idServicio ? { ...servicio, estado: nuevoEstado } : servicio
+            servicio.idServicio === idServicio
+              ? { ...servicio, estado: nuevoEstado }
+              : servicio
           )
         );
       } else {
@@ -236,7 +273,10 @@ export default function ServiciosPage() {
             <div className="basis-1/2"></div>
             <div className="flex items-center justify-end mb-4 space-x-2 basis-1/4 sm:my-4 text-end">
               <Link href="/admin/servicios/crear">
-                <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Servicio">
+                <Button
+                  className="bg-gradient-to-tr from-red-600 to-orange-300"
+                  aria-label="Crear Servicio"
+                >
                   <PlusIcon /> Crear Servicio
                 </Button>
               </Link>
@@ -259,7 +299,7 @@ export default function ServiciosPage() {
                             {column.uid === "acciones" ? "" : column.name + ":"}{" "}
                           </strong>
                           {column.uid === "acciones" &&
-                            item.estado == "Activo" ? (
+                          item.estado == "Activo" ? (
                             <Dropdown>
                               <DropdownTrigger className="w-auto my-2 bg-transparent">
                                 <Button
@@ -273,16 +313,22 @@ export default function ServiciosPage() {
                               <DropdownMenu
                                 onAction={(action) => console.log(action)}
                               >
-                                <DropdownItem href={`/admin/servicios/editar/${item.idServicio}`}>
+                                <DropdownItem
+                                  href={`/admin/servicios/editar/${item.idServicio}`}
+                                >
                                   <Button className="w-full bg-transparent">
                                     <Edit />
                                     Editar Servicio
                                   </Button>
                                 </DropdownItem>
                                 <DropdownItem>
-                                    <Button onClick={() => mostrarDetalleServicio(item.idServicio)}>
-                                      Ver Detalles
-                                    </Button>
+                                  <Button
+                                    onClick={() =>
+                                      mostrarDetalleServicio(item.idServicio)
+                                    }
+                                  >
+                                    Ver Detalles
+                                  </Button>
                                 </DropdownItem>
                               </DropdownMenu>
                             </Dropdown>
@@ -324,7 +370,7 @@ export default function ServiciosPage() {
                     {columns.map((column) => (
                       <TableCell key={column.uid}>
                         {column.uid === "acciones" &&
-                          item.estado == "Activo" ? (
+                        item.estado == "Activo" ? (
                           <Dropdown>
                             <DropdownTrigger>
                               <Button
@@ -337,22 +383,30 @@ export default function ServiciosPage() {
                             <DropdownMenu
                               onAction={(action) => console.log(action)}
                             >
-                              <DropdownItem href={`/admin/servicios/editar/${item.idServicio}`}>
+                              <DropdownItem
+                                href={`/admin/servicios/editar/${item.idServicio}`}
+                              >
                                 <Button className="w-full bg-transparent">
                                   <Edit />
                                   Editar Servicio
                                 </Button>
                               </DropdownItem>
                               <DropdownItem>
-                                    <Button onClick={() => mostrarDetalleServicio(item.idServicio)}>
-                                      Ver Detalles
-                                    </Button>
-                                </DropdownItem>
+                                <Button
+                                  onClick={() =>
+                                    mostrarDetalleServicio(item.idServicio)
+                                  }
+                                >
+                                  Ver Detalles
+                                </Button>
+                              </DropdownItem>
                             </DropdownMenu>
                           </Dropdown>
                         ) : column.uid === "estado" ? (
                           <Chip
-                            color={item.estado === "Activo" ? "success" : "danger"}
+                            color={
+                              item.estado === "Activo" ? "success" : "danger"
+                            }
                             variant="bordered"
                             className="transition-transform duration-100 ease-in-out cursor-pointer hover:scale-110"
                             onClick={() =>
@@ -382,7 +436,6 @@ export default function ServiciosPage() {
             />
           </div>
 
-
           <Modal isOpen={isOpenDetalles} onOpenChange={onOpenChangeDetalles}>
             <ModalContent>
               {(onClose) => (
@@ -394,18 +447,33 @@ export default function ServiciosPage() {
                     {servicioSeleccionado ? (
                       <div>
                         <h1 className="mb-4 text-2xl">Detalles del Servicio</h1>
-                        <p><strong>ID:</strong> {servicioSeleccionado.idServicio}</p>
-                        <p><strong>Nombre:</strong> {servicioSeleccionado.nombre}</p>
-                        <p><strong>Descripción:</strong> {servicioSeleccionado.descripcion}</p>
-                        <p><strong>Tiempo (minutos):</strong> {servicioSeleccionado.tiempoMinutos}</p>
-                        <p><strong>Estado:</strong> {servicioSeleccionado.estado}</p>
+                        <p>
+                          <strong>ID:</strong> {servicioSeleccionado.idServicio}
+                        </p>
+                        <p>
+                          <strong>Nombre:</strong> {servicioSeleccionado.nombre}
+                        </p>
+                        <p>
+                          <strong>Descripción:</strong>{" "}
+                          {servicioSeleccionado.descripcion}
+                        </p>
+                        <p>
+                          <strong>Tiempo (minutos):</strong>{" "}
+                          {servicioSeleccionado.tiempoMinutos}
+                        </p>
+                        <p>
+                          <strong>Estado:</strong> {servicioSeleccionado.estado}
+                        </p>
                       </div>
                     ) : (
                       <p>No se encontró el servicio.</p>
                     )}
                   </ModalBody>
                   <ModalFooter>
-                    <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" onPress={onClose}>
+                    <Button
+                      className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                      onPress={onClose}
+                    >
                       Cerrar
                     </Button>
                   </ModalFooter>
@@ -413,7 +481,6 @@ export default function ServiciosPage() {
               )}
             </ModalContent>
           </Modal>
-
 
           {/*Modal Cambiar Estado*/}
           <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
@@ -424,10 +491,15 @@ export default function ServiciosPage() {
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className="text-3xl ">¿Desea cambiar el estado del servicio?</h1>
+                    <h1 className="text-3xl ">
+                      ¿Desea cambiar el estado del servicio?
+                    </h1>
                   </ModalBody>
                   <ModalFooter>
-                    <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" onPress={onClose}>
+                    <Button
+                      className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                      onPress={onClose}
+                    >
                       Cancelar
                     </Button>
                     <Button
@@ -466,7 +538,6 @@ export default function ServiciosPage() {
               )}
             </ModalContent>
           </Modal>
-
 
           {/*Modal de error*/}
           <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>

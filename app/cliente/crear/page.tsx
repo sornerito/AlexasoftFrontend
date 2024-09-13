@@ -1,8 +1,24 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Input, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, CircularProgress, Select, SelectItem } from "@nextui-org/react";
+import {
+  Input,
+  Button,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  CircularProgress,
+  Select,
+  SelectItem,
+} from "@nextui-org/react";
 import { PlusIcon, CircleCheck, CircleX, CircleHelp } from "lucide-react";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 import { title } from "@/components/primitives";
 
 interface Colaborador {
@@ -36,7 +52,8 @@ interface Paquete {
 }
 
 export default function CrearCitaPage() {
-  const idUsuario = typeof window !== "undefined" ? sessionStorage.getItem("idUsuario") : null;
+  const idUsuario =
+    typeof window !== "undefined" ? sessionStorage.getItem("idUsuario") : null;
   const idCliente = idUsuario !== null ? Number(idUsuario) : 0;
   const [acceso, setAcceso] = useState<boolean>(false);
   const [formData, setFormData] = useState<Cita>({
@@ -57,9 +74,21 @@ export default function CrearCitaPage() {
   const [minHora, setMinHora] = useState("08:00");
   const [maxHora, setMaxHora] = useState("17:00");
   const [opcionesHoras, setOpcionesHoras] = useState<string[]>([]);
-  const { isOpen: isOpenSuccess, onOpen: onOpenSuccess, onClose: onCloseSuccess } = useDisclosure();
-  const { isOpen: isOpenError, onOpen: onOpenError, onClose: onCloseError } = useDisclosure();
-  const { isOpen: isOpenConfirm, onOpen: onOpenConfirm, onClose: onCloseConfirm } = useDisclosure();
+  const {
+    isOpen: isOpenSuccess,
+    onOpen: onOpenSuccess,
+    onClose: onCloseSuccess,
+  } = useDisclosure();
+  const {
+    isOpen: isOpenError,
+    onOpen: onOpenError,
+    onClose: onCloseError,
+  } = useDisclosure();
+  const {
+    isOpen: isOpenConfirm,
+    onOpen: onOpenConfirm,
+    onClose: onCloseConfirm,
+  } = useDisclosure();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -79,12 +108,16 @@ export default function CrearCitaPage() {
     getWithAuth("http://localhost:8080/servicio/paquetes")
       .then((response) => response.json())
       .then((data) => {
-        const fetchedPaquetes: { [key: number]: Paquete } = {};  // Cambia el tipo a Paquete
-        data.forEach((item: { paquete: { idPaquete: number; nombre: string; estado: string } }) => {
-          const { idPaquete, nombre, estado } = item.paquete;
-          fetchedPaquetes[idPaquete] = { idPaquete, nombre, estado };  // Almacena un objeto Paquete completo
-        });
-        setPaquetes(fetchedPaquetes);  // Esto ahora debe coincidir con el tipo esperado
+        const fetchedPaquetes: { [key: number]: Paquete } = {}; // Cambia el tipo a Paquete
+        data.forEach(
+          (item: {
+            paquete: { idPaquete: number; nombre: string; estado: string };
+          }) => {
+            const { idPaquete, nombre, estado } = item.paquete;
+            fetchedPaquetes[idPaquete] = { idPaquete, nombre, estado }; // Almacena un objeto Paquete completo
+          }
+        );
+        setPaquetes(fetchedPaquetes); // Esto ahora debe coincidir con el tipo esperado
       })
       .catch((err) => console.log(err.message));
 
@@ -137,7 +170,9 @@ export default function CrearCitaPage() {
     const diaSemana = new Date(fecha).getDay() + 1;
     const diaSemanaAjustado = diaSemana === 0 ? 7 : diaSemana;
 
-    const horario = horarios.find((h) => parseInt(h.numeroDia) === diaSemanaAjustado);
+    const horario = horarios.find(
+      (h) => parseInt(h.numeroDia) === diaSemanaAjustado
+    );
     if (horario) {
       setMinHora(horario.inicioJornada);
       setMaxHora(horario.finJornada);
@@ -146,7 +181,10 @@ export default function CrearCitaPage() {
     }
   };
 
-  const validarFecha = (fecha: string) => !!fecha && new Date(fecha) >= new Date(minDate) && new Date(fecha) <= new Date(maxDate);
+  const validarFecha = (fecha: string) =>
+    !!fecha &&
+    new Date(fecha) >= new Date(minDate) &&
+    new Date(fecha) <= new Date(maxDate);
   const validarHora = (hora: string) => opcionesHoras.includes(hora);
   const validarPaquete = (idPaquete: number) => idPaquete > 0;
   const validarColaborador = (idColaborador: number) => idColaborador > 0;
@@ -157,7 +195,9 @@ export default function CrearCitaPage() {
     validarPaquete(formData.idPaquete) &&
     validarColaborador(formData.idColaborador);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
@@ -178,12 +218,14 @@ export default function CrearCitaPage() {
   };
 
   const handleConfirmSubmit = async () => {
-
     const horaConSegundos = `${formData.hora}:00`;
-    console.log(formData)
+    console.log(formData);
 
     try {
-      const response = await postWithAuth("http://localhost:8080/cita", { ...formData, hora: horaConSegundos });
+      const response = await postWithAuth("http://localhost:8080/cita", {
+        ...formData,
+        hora: horaConSegundos,
+      });
       if (response.ok) {
         onOpenSuccess();
         window.location.href = "/cliente";
@@ -200,7 +242,7 @@ export default function CrearCitaPage() {
   return (
     <>
       {acceso ? (
-        <div className="lg:mx-60">
+        <div className="container">
           <h1 className={title()}>Crear Cita</h1>
           <br /> <br />
           <form onSubmit={handleSubmit}>
@@ -208,18 +250,24 @@ export default function CrearCitaPage() {
               <Select
                 label="Colaborador"
                 name="idColaborador"
-                variant="bordered"
                 placeholder="Seleccione un colaborador"
                 onChange={handleInputChange}
                 size="lg"
                 className="block w-full"
                 isInvalid={!validarColaborador(formData.idColaborador)}
-                errorMessage={!validarColaborador(formData.idColaborador) ? "Debe seleccionar un colaborador" : ""}
+                errorMessage={
+                  !validarColaborador(formData.idColaborador)
+                    ? "Debe seleccionar un colaborador"
+                    : ""
+                }
               >
                 {colaboradores
                   .filter((colaborador) => colaborador.estado === "Activo") // Filtrar por estado "Activo"
                   .map((colaborador) => (
-                    <SelectItem key={colaborador.idColaborador} value={colaborador.idColaborador}>
+                    <SelectItem
+                      key={colaborador.idColaborador}
+                      value={colaborador.idColaborador}
+                    >
                       {colaborador.nombre}
                     </SelectItem>
                   ))}
@@ -229,25 +277,31 @@ export default function CrearCitaPage() {
                 type="date"
                 name="fecha"
                 label="Fecha"
-                variant="bordered"
                 placeholder="Seleccione una fecha"
                 onChange={handleInputChange}
                 className="block w-full"
                 min={minDate}
                 max={maxDate}
                 isInvalid={!validarFecha(formData.fecha)}
-                errorMessage={!validarFecha(formData.fecha) ? "Fecha fuera del rango permitido" : ""}
+                errorMessage={
+                  !validarFecha(formData.fecha)
+                    ? "Fecha fuera del rango permitido"
+                    : ""
+                }
               />
               <Select
                 label="Hora"
                 name="hora"
-                variant="bordered"
                 placeholder="Seleccione una hora"
                 onChange={handleInputChange}
                 size="lg"
                 className="block w-full"
                 isInvalid={!validarHora(formData.hora)}
-                errorMessage={!validarHora(formData.hora) ? "La hora no está disponible" : ""}
+                errorMessage={
+                  !validarHora(formData.hora)
+                    ? "La hora no está disponible"
+                    : ""
+                }
               >
                 {opcionesHoras.map((hora) => (
                   <SelectItem key={hora} value={hora}>
@@ -258,35 +312,36 @@ export default function CrearCitaPage() {
               <Select
                 label="Paquete"
                 name="idPaquete"
-                variant="bordered"
                 placeholder="Seleccione un paquete"
                 onChange={handleInputChange}
                 size="lg"
                 className="block w-full"
                 isInvalid={!validarPaquete(formData.idPaquete)}
-                errorMessage={!validarPaquete(formData.idPaquete) ? "Debe seleccionar un paquete" : ""}
+                errorMessage={
+                  !validarPaquete(formData.idPaquete)
+                    ? "Debe seleccionar un paquete"
+                    : ""
+                }
               >
                 {Object.entries(paquetes)
                   .filter(([idPaquete, paquete]) => paquete.estado === "Activo") // Acceder a `estado` correctamente
                   .map(([idPaquete, paquete]) => (
                     <SelectItem key={idPaquete} value={idPaquete}>
-                      {paquete.nombre}  {/* Acceder a `nombre` correctamente */}
+                      {paquete.nombre} {/* Acceder a `nombre` correctamente */}
                     </SelectItem>
                   ))}
               </Select>
-
 
               <Input
                 name="detalle"
                 type="text"
                 label="Detalle (opcional)"
-                variant="bordered"
                 className="block w-full"
                 value={formData.detalle || ""}
                 onChange={handleInputChange}
               />
             </div>
-            <div className="mt-6 flex justify-end">
+            <div className="flex justify-end mt-6">
               <Button
                 type="submit"
                 className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
@@ -296,10 +351,9 @@ export default function CrearCitaPage() {
               </Button>
             </div>
           </form>
-
           <Modal isOpen={isOpenConfirm} onOpenChange={onCloseConfirm}>
             <ModalContent>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleHelp color="#fef08a" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
@@ -310,16 +364,19 @@ export default function CrearCitaPage() {
                 <Button color="danger" variant="light" onPress={onCloseConfirm}>
                   Cancelar
                 </Button>
-                <Button color="warning" variant="light" onPress={handleConfirmSubmit}>
+                <Button
+                  color="warning"
+                  variant="light"
+                  onPress={handleConfirmSubmit}
+                >
                   Crear
                 </Button>
               </ModalFooter>
             </ModalContent>
           </Modal>
-
           <Modal isOpen={isOpenSuccess} onOpenChange={onCloseSuccess}>
             <ModalContent>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleCheck color="#4caf50" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
@@ -327,16 +384,19 @@ export default function CrearCitaPage() {
                 <p>La cita se creó exitosamente.</p>
               </ModalBody>
               <ModalFooter>
-                <Button color="success" variant="light" onPress={onCloseSuccess}>
+                <Button
+                  color="success"
+                  variant="light"
+                  onPress={onCloseSuccess}
+                >
                   Cerrar
                 </Button>
               </ModalFooter>
             </ModalContent>
           </Modal>
-
           <Modal isOpen={isOpenError} onOpenChange={onCloseError}>
             <ModalContent>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleX color="#894242" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
@@ -352,7 +412,7 @@ export default function CrearCitaPage() {
           </Modal>
         </div>
       ) : (
-        <div className="flex justify-center items-center h-screen">
+        <div className="flex items-center justify-center h-screen">
           <CircularProgress size="lg" />
         </div>
       )}

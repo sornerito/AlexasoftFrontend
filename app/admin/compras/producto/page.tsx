@@ -2,7 +2,14 @@
 import { title } from "@/components/primitives";
 import React, { useState, useEffect } from "react";
 import { useMediaQuery } from "react-responsive";
-import { PlusIcon, Ellipsis, Edit, CircleHelp, CircleX, Delete } from "lucide-react";
+import {
+  PlusIcon,
+  Ellipsis,
+  Edit,
+  CircleHelp,
+  CircleX,
+  Delete,
+} from "lucide-react";
 import { Toaster, toast } from "sonner";
 import {
   Table,
@@ -30,19 +37,23 @@ import {
   CardBody,
   CircularProgress,
 } from "@nextui-org/react";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 const columns = [
   { name: "ID", uid: "idProducto" },
   { name: "Nombre", uid: "nombre" },
   { name: "Marca", uid: "marca" },
-  { name: "Precio Compra", uid: "precioporunidad" }, 
+  { name: "Precio Compra", uid: "precioporunidad" },
   { name: "Precio venta", uid: "precio" },
   { name: "Unidades", uid: "unidades" },
   { name: "Estado", uid: "estado" },
   { name: "Categoria", uid: "categoria" },
-  { name: "Unidad Medidas", uid: "unidadMedida"},
-  { name: "Acciones", uid: "acciones" }
+  { name: "Unidad Medidas", uid: "unidadMedida" },
+  { name: "Acciones", uid: "acciones" },
 ];
 
 interface Producto {
@@ -58,10 +69,10 @@ interface Producto {
 }
 
 interface Compras {
-  unidades: number,
-  idCompra: number,
-  idProducto: number,
-  precioporunidad: number,
+  unidades: number;
+  idCompra: number;
+  idProducto: number;
+  precioporunidad: number;
 }
 
 export default function ProductosPage() {
@@ -70,7 +81,7 @@ export default function ProductosPage() {
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       if (verificarAccesoPorPermiso("Gestionar Productos") == false) {
-        window.location.href = "../../../../acceso/noAcceso"
+        window.location.href = "../../../../acceso/noAcceso";
       }
       setAcceso(verificarAccesoPorPermiso("Gestionar Productos"));
     }
@@ -79,14 +90,24 @@ export default function ProductosPage() {
   const [compras, setCompras] = useState<Compras[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
-  const [selectedProductoId, setSelectedProductoId] = useState<number | null>(null);
+  const [selectedProductoId, setSelectedProductoId] = useState<number | null>(
+    null
+  );
   const [mensajeError, setMensajeError] = useState("");
   const [isOpenEliminar, setIsOpenEliminar] = useState(false);
   const onCloseEliminar = () => setIsOpenEliminar(false);
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
-  const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
+  const {
+    isOpen: isOpenError,
+    onOpen: onOpenError,
+    onOpenChange: onOpenChangeError,
+  } = useDisclosure();
+  const {
+    isOpen: isOpenWarning,
+    onOpen: onOpenWarning,
+    onOpenChange: onOpenChangeWarning,
+  } = useDisclosure();
 
   const rowsPerPage = 6;
   const tamanoMovil = useMediaQuery({ maxWidth: 768 });
@@ -94,31 +115,35 @@ export default function ProductosPage() {
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const response = await getWithAuth("http://localhost:8080/compras/productos");
+        const response = await getWithAuth(
+          "http://localhost:8080/compras/productos"
+        );
         const data = await response.json();
-        setProductos(data.map((item: any) => ({
-          idProducto: item.idProducto,
-          nombre: item.nombre,
-          marca: item.idMarca.nombre,
-          precio: item.precio,
-          unidades: item.unidades,
-          estado: item.estado,
-          categoria: item.idCategoriaProducto.nombre,
-          imagenes: item.imagenes,
-          unidadMedida: item.unidadMedida,
-        })));
+        setProductos(
+          data.map((item: any) => ({
+            idProducto: item.idProducto,
+            nombre: item.nombre,
+            marca: item.idMarca.nombre,
+            precio: item.precio,
+            unidades: item.unidades,
+            estado: item.estado,
+            categoria: item.idCategoriaProducto.nombre,
+            imagenes: item.imagenes,
+            unidadMedida: item.unidadMedida,
+          }))
+        );
       } catch (err: any) {
         if (err.message === "Unexpected end of JSON input") {
           setMensajeError("No hay Categoria Producto registradas aún.");
           onOpenWarning();
         } else {
           console.error("Error al obtener Producto:", err);
-          setMensajeError("Error al obtener Producto. Por favor, inténtalo de nuevo.");
+          setMensajeError(
+            "Error al obtener Producto. Por favor, inténtalo de nuevo."
+          );
           onOpenError();
         }
-
       }
-
     };
 
     fetchProductos();
@@ -126,16 +151,22 @@ export default function ProductosPage() {
   useEffect(() => {
     const fetchProductosCompra = async () => {
       try {
-        const response = await getWithAuth("http://localhost:8080/compras/detalle-producto-compra-producto");
+        const response = await getWithAuth(
+          "http://localhost:8080/compras/detalle-producto-compra-producto"
+        );
         const data = await response.json();
-        setCompras(data
-          .map((item: any) => ({
-            unidades: item.unidades,
-            idCompra: item.idCompra,
-            idProducto: item.idProducto,
-            precioporunidad: item.precioporunidad,
-          }))
-          .sort((a: { idCompra: number }, b: { idCompra: number }) => b.idCompra - a.idCompra)
+        setCompras(
+          data
+            .map((item: any) => ({
+              unidades: item.unidades,
+              idCompra: item.idCompra,
+              idProducto: item.idProducto,
+              precioporunidad: item.precioporunidad,
+            }))
+            .sort(
+              (a: { idCompra: number }, b: { idCompra: number }) =>
+                b.idCompra - a.idCompra
+            )
         );
       } catch (err) {
         console.error("Advertencia! al obtener el precio de Producto:", err);
@@ -148,23 +179,28 @@ export default function ProductosPage() {
   }, []);
 
   const productosConPrecioCompra = React.useMemo(() => {
-    return productos.map(producto => {
-      const compra = compras.find(c => c.idProducto === producto.idProducto);
+    return productos.map((producto) => {
+      const compra = compras.find((c) => c.idProducto === producto.idProducto);
       return {
         ...producto,
-        precioporunidad: compra ? compra.precioporunidad : 0
+        precioporunidad: compra ? compra.precioporunidad : 0,
       };
     });
   }, [productos, compras]);
 
-  const productosFiltrados = React.useMemo(() =>
-    productosConPrecioCompra.filter((producto) =>
-      Object.entries(producto).some(([key, value]) =>
-        ( key === "precio" || key === "precioporunidad") && typeof value === "number"
-          ? value.toString().toLowerCase().includes(searchTerm.replace(/[$,,.]/g, "").toLowerCase())
-          : String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    ),
+  const productosFiltrados = React.useMemo(
+    () =>
+      productosConPrecioCompra.filter((producto) =>
+        Object.entries(producto).some(([key, value]) =>
+          (key === "precio" || key === "precioporunidad") &&
+          typeof value === "number"
+            ? value
+                .toString()
+                .toLowerCase()
+                .includes(searchTerm.replace(/[$,,.]/g, "").toLowerCase())
+            : String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      ),
     [productosConPrecioCompra, searchTerm]
   );
 
@@ -174,75 +210,92 @@ export default function ProductosPage() {
     return productosFiltrados.slice(start, end);
   }, [page, productosFiltrados]);
 
-  const handleToggleEstado = React.useCallback((idProducto: number) => {
-    const producto = productos.find(producto => producto.idProducto === idProducto);
-    if (!producto) return;
+  const handleToggleEstado = React.useCallback(
+    (idProducto: number) => {
+      const producto = productos.find(
+        (producto) => producto.idProducto === idProducto
+      );
+      if (!producto) return;
 
-    const updatedEstado = producto.estado === "Activo" ? "Desactivado" : "Activo";
+      const updatedEstado =
+        producto.estado === "Activo" ? "Desactivado" : "Activo";
 
-    const promise = new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        postWithAuth(`http://localhost:8080/compras/productos/${idProducto}`, { estado: updatedEstado })
-          .then(response => {
-            if (response.ok) {
-              setProductos(prevProductos => prevProductos.map(p => p.idProducto === idProducto ? { ...p, estado: updatedEstado } : p));
-              resolve();
-            } else {
-              response.text().then(text => reject(new Error(text)));
-            }
-          })
-          .catch(error => {
-            console.error("Error al cambiar el estado:", error);
-            setMensajeError("Error al cambiar el estado del producto. Por favor, inténtalo de nuevo.");
-            onOpenError();
-            reject(error);
-          });
-      }, 1000);
-    });
+      const promise = new Promise<void>((resolve, reject) => {
+        setTimeout(() => {
+          postWithAuth(
+            `http://localhost:8080/compras/productos/${idProducto}`,
+            { estado: updatedEstado }
+          )
+            .then((response) => {
+              if (response.ok) {
+                setProductos((prevProductos) =>
+                  prevProductos.map((p) =>
+                    p.idProducto === idProducto
+                      ? { ...p, estado: updatedEstado }
+                      : p
+                  )
+                );
+                resolve();
+              } else {
+                response.text().then((text) => reject(new Error(text)));
+              }
+            })
+            .catch((error) => {
+              console.error("Error al cambiar el estado:", error);
+              setMensajeError(
+                "Error al cambiar el estado del producto. Por favor, inténtalo de nuevo."
+              );
+              onOpenError();
+              reject(error);
+            });
+        }, 1000);
+      });
 
-    toast.promise(promise, {
-      loading: 'Editando...',
-      success: 'El estado ha sido cambiado con éxito',
-      error: (err) => err.message,
-    });
-  }, [productos, onOpenError]);
-  ;
-
+      toast.promise(promise, {
+        loading: "Editando...",
+        success: "El estado ha sido cambiado con éxito",
+        error: (err) => err.message,
+      });
+    },
+    [productos, onOpenError]
+  );
   const handleOpenModal = (idProducto: number) => {
     setSelectedProductoId(idProducto);
     onOpen();
   };
 
   // Función formatear el total de string a número con formato de moneda
-  const formatCurrency = (valor: string | number, currencyCode: string = 'COP') => {
+  const formatCurrency = (
+    valor: string | number,
+    currencyCode: string = "COP"
+  ) => {
     let valorString = valor.toString();
-    const valorNumerico = parseFloat(valorString.replace(/[^\d.,]/g, '').replace(',', '.'));
+    const valorNumerico = parseFloat(
+      valorString.replace(/[^\d.,]/g, "").replace(",", ".")
+    );
 
     if (isNaN(valorNumerico)) {
       console.error("Error al convertir el valor a número:", valorString);
-      return 'N/A';
+      return "N/A";
     }
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
       currency: currencyCode,
       minimumFractionDigits: 2,
       notation: "standard",
     }).format(valorNumerico);
   };
 
-
   return (
     <>
       {acceso ? (
-
-
         <div>
           <h1 className={title()}>Productos</h1>
           {/* Toaster para notificaciones */}
           <Toaster position="bottom-right" />
 
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
-            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -271,9 +324,12 @@ export default function ProductosPage() {
               />
             </div>
             <div className="basis-1/2"></div>
-            <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
+            <div className="flex items-center justify-end mb-4 space-x-2 basis-1/4 sm:my-4 text-end">
               <Link href="/admin/compras/producto/crear">
-                <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Producto">
+                <Button
+                  className="bg-gradient-to-tr from-red-600 to-orange-300"
+                  aria-label="Crear Producto"
+                >
                   <PlusIcon /> Crear Producto
                 </Button>
               </Link>
@@ -289,7 +345,7 @@ export default function ProductosPage() {
                         <strong>{column.name}: </strong>
                         {column.uid === "acciones" ? (
                           <Dropdown>
-                            <DropdownTrigger className="bg-transparent w-auto my-2">
+                            <DropdownTrigger className="w-auto my-2 bg-transparent">
                               <Button
                                 isIconOnly
                                 className="border"
@@ -304,10 +360,13 @@ export default function ProductosPage() {
                             >
                               <DropdownItem
                                 key="editar"
-                                href={'producto/editar/${item.idProducto}'}
+                                href={"producto/editar/${item.idProducto}"}
                                 isDisabled={item.estado === "Desactivado"}
                               >
-                                <Button className="bg-transparent w-full" disabled={item.estado === "Desactivado"}>
+                                <Button
+                                  className="w-full bg-transparent"
+                                  disabled={item.estado === "Desactivado"}
+                                >
                                   <Edit />
                                   Editar
                                 </Button>
@@ -316,22 +375,22 @@ export default function ProductosPage() {
                           </Dropdown>
                         ) : column.uid === "precio" ? (
                           formatCurrency(item.precio)
-                        ): column.uid === "precioporunidad" ? (
+                        ) : column.uid === "precioporunidad" ? (
                           formatCurrency(item.precioporunidad)
                         ) : column.uid === "estado" ? (
                           <Chip
-                            color={item.estado === "Activo" ? "success" : "danger"}
-                            variant="bordered"
-                            className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
-                            onClick={() =>
-                              handleOpenModal(item.idProducto)
+                            color={
+                              item.estado === "Activo" ? "success" : "danger"
                             }
+                            variant="bordered"
+                            className="align-middle transition-transform duration-100 ease-in-out cursor-pointer hover:scale-90"
+                            onClick={() => handleOpenModal(item.idProducto)}
                           >
                             {item.estado}
                           </Chip>
                         ) : column.uid === "precio" ? (
                           formatCurrency(item.precio)
-                        ): column.uid === "precioporunidad" ? (
+                        ) : column.uid === "precioporunidad" ? (
                           formatCurrency(item.precioporunidad)
                         ) : column.uid === "precioporunidad" ? (
                           formatCurrency(item.precioporunidad)
@@ -361,7 +420,10 @@ export default function ProductosPage() {
                         {column.uid === "acciones" ? (
                           <Dropdown>
                             <DropdownTrigger>
-                              <Button aria-label="Acciones" className="bg-transparent" isDisabled={item.estado === "Desactivado"}
+                              <Button
+                                aria-label="Acciones"
+                                className="bg-transparent"
+                                isDisabled={item.estado === "Desactivado"}
                               >
                                 <Ellipsis />
                               </Button>
@@ -374,7 +436,7 @@ export default function ProductosPage() {
                                 href={`producto/editar/${item.idProducto}`}
                                 isDisabled={item.estado === "Desactivado"}
                               >
-                                <Button className="bg-transparent w-full">
+                                <Button className="w-full bg-transparent">
                                   <Edit />
                                   Editar
                                 </Button>
@@ -387,12 +449,12 @@ export default function ProductosPage() {
                           formatCurrency(item.precioporunidad)
                         ) : column.uid === "estado" ? (
                           <Chip
-                            color={item.estado === "Activo" ? "success" : "danger"}
-                            variant="bordered"
-                            className="hover:scale-110 cursor-pointer transition-transform duration-100 ease-in-out"
-                            onClick={() =>
-                              handleOpenModal(item.idProducto)
+                            color={
+                              item.estado === "Activo" ? "success" : "danger"
                             }
+                            variant="bordered"
+                            className="transition-transform duration-100 ease-in-out cursor-pointer hover:scale-110"
+                            onClick={() => handleOpenModal(item.idProducto)}
                           >
                             {item.estado}
                           </Chip>
@@ -407,7 +469,7 @@ export default function ProductosPage() {
             </Table>
           )}
 
-          <div className="flex w-full justify-center mb-4">
+          <div className="flex justify-center w-full mb-4">
             <Pagination
               showControls
               color="warning"
@@ -422,11 +484,13 @@ export default function ProductosPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className="text-3xl">¿Desea cambiar el estado del producto?</h1>
+                    <h1 className="text-3xl">
+                      ¿Desea cambiar el estado del producto?
+                    </h1>
                   </ModalBody>
                   <ModalFooter>
                     <Button color="danger" variant="light" onPress={onClose}>
@@ -453,7 +517,7 @@ export default function ProductosPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="gold" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -474,7 +538,7 @@ export default function ProductosPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">

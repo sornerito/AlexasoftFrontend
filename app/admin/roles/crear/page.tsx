@@ -19,11 +19,15 @@ import {
   ModalFooter,
   useDisclosure,
   Link,
-  CircularProgress
+  CircularProgress,
 } from "@nextui-org/react";
 import { PlusIcon, CircleHelp, CircleX } from "lucide-react";
 import { validarCampoString } from "@/config/validaciones";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 //Encabezado de la tabla, el uid debe coincidir con la forma en la que procesamos la data en el fetch
 const columns = [
@@ -43,12 +47,12 @@ export default function CrearRolPage() {
   //Valida permiso
   const [acceso, setAcceso] = React.useState<boolean>(false);
   React.useEffect(() => {
-    if(typeof window !== "undefined"){
-    if(verificarAccesoPorPermiso("Gestionar Roles") == false){
-      window.location.href = "../../../acceso/noAcceso"
+    if (typeof window !== "undefined") {
+      if (verificarAccesoPorPermiso("Gestionar Roles") == false) {
+        window.location.href = "../../../acceso/noAcceso";
+      }
+      setAcceso(verificarAccesoPorPermiso("Gestionar Roles"));
     }
-    setAcceso(verificarAccesoPorPermiso("Gestionar Roles"));
-  }
   }, []);
   const [permisos, setPermisos] = React.useState<Permiso[]>([]); // Hook permisos procesados
   const [searchTerm, setSearchTerm] = React.useState(""); // Hook buscar
@@ -110,14 +114,14 @@ export default function CrearRolPage() {
   //Metodo para guardar y validar registro
   const [creandoRol, setCreandoRol] = React.useState(false);
   const guardarRol = async () => {
-    setCreandoRol(true)
+    setCreandoRol(true);
     const errorNombre = validarCampoString(nombreRol, "Nombre de rol");
 
     let arrayfinal;
     if (errorNombre != "") {
       setMensajeError(errorNombre);
       onOpenError();
-      setCreandoRol(false)
+      setCreandoRol(false);
       return;
     }
 
@@ -126,7 +130,7 @@ export default function CrearRolPage() {
       if (arrayPermisos.length <= 0) {
         setMensajeError("Debe seleccionar al menos un permiso");
         onOpenError();
-        setCreandoRol(false)
+        setCreandoRol(false);
         return;
       }
       arrayfinal = arrayPermisos;
@@ -152,14 +156,14 @@ export default function CrearRolPage() {
       if (!response.ok) {
         const errorResponse = await response.text();
         setMensajeError(errorResponse);
-        setCreandoRol(false)
+        setCreandoRol(false);
         onOpenError();
         throw new Error("Error al intentar guardar el rol");
       }
       //router.push("/admin/roles");
       window.location.href = "/admin/roles";
     } catch (error) {
-      setCreandoRol(false)
+      setCreandoRol(false);
       console.error("Error al enviar los datos:", error);
     }
   };
@@ -182,156 +186,163 @@ export default function CrearRolPage() {
 
   return (
     <>
-{acceso ? (
-      
-    
-    <div>
-      <h1 className={title()}>Crear Rol</h1>
+      {acceso ? (
+        <div>
+          <h1 className={title()}>Crear Rol</h1>
 
-      <Input
-        isRequired
-        type="text"
-        label="Nombre"
-        variant="bordered"
-        value={nombreRol}
-        className="max-w-xs mt-4"
-        isInvalid={errors.nombreRol}
-        color={errors.nombreRol ? "danger" : "default"}
-        errorMessage="El nombre debe tener al menos 5 caracteres, no puede contener números ni caracteres especiales"
-        onValueChange={setNombreRol}
-      />
-      <div className="flex flex-col items-start sm:flex-row sm:items-center">
-        <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
           <Input
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "shadow-xl",
-                "rounded-lg",
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focus=true]:bg-default-200/50",
-                "dark:group-data-[focus=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
-            placeholder="Buscar Permiso..."
-            onChange={(e: any) => setSearchTerm(e.target.value)}
+            isRequired
+            type="text"
+            label="Nombre"
+            value={nombreRol}
+            className="max-w-xs mt-4"
+            isInvalid={errors.nombreRol}
+            color={errors.nombreRol ? "danger" : "default"}
+            errorMessage="El nombre debe tener al menos 5 caracteres, no puede contener números ni caracteres especiales"
+            onValueChange={setNombreRol}
           />
-        </div>
-      </div>
-
-      <Table
-        aria-label="Tabla de roles"
-        selectionMode="multiple"
-        selectedKeys={selectedKeys}
-        onSelectionChange={setSelectedKeys as any}
-        isStriped
-        bottomContent={
-          <div className="flex w-full justify-center">
-            <Pagination
-              showControls
-              color="warning"
-              page={page}
-              total={Math.ceil(permisosFiltrados.length / rowsPerPage)}
-              onChange={(page) => setPage(page)}
-            />
+          <div className="flex flex-col items-start sm:flex-row sm:items-center">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+              <Input
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  input: [
+                    "bg-transparent",
+                    "text-black/90 dark:text-white/90",
+                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                  ],
+                  innerWrapper: "bg-transparent",
+                  inputWrapper: [
+                    "shadow-xl",
+                    "rounded-lg",
+                    "bg-default-200/50",
+                    "dark:bg-default/60",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-default-200/70",
+                    "dark:hover:bg-default/70",
+                    "group-data-[focus=true]:bg-default-200/50",
+                    "dark:group-data-[focus=true]:bg-default/60",
+                    "!cursor-text",
+                  ],
+                }}
+                placeholder="Buscar Permiso..."
+                onChange={(e: any) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
-        }
-      >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn className="text-base" key={column.uid}>
-              {column.name}
-            </TableColumn>
-          )}
-        </TableHeader>
-        <TableBody items={items}>
-          {(item: Permiso) => (
-            <TableRow key={item.idPermiso}>
-              {(columnKey) => (
-                <TableCell>{getKeyValue(item, columnKey)}</TableCell>
+
+          <Table
+            aria-label="Tabla de roles"
+            selectionMode="multiple"
+            selectedKeys={selectedKeys}
+            onSelectionChange={setSelectedKeys as any}
+            isStriped
+            bottomContent={
+              <div className="flex justify-center w-full">
+                <Pagination
+                  showControls
+                  color="warning"
+                  page={page}
+                  total={Math.ceil(permisosFiltrados.length / rowsPerPage)}
+                  onChange={(page) => setPage(page)}
+                />
+              </div>
+            }
+          >
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn className="text-base" key={column.uid}>
+                  {column.name}
+                </TableColumn>
               )}
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            </TableHeader>
+            <TableBody items={items}>
+              {(item: Permiso) => (
+                <TableRow key={item.idPermiso}>
+                  {(columnKey) => (
+                    <TableCell>{getKeyValue(item, columnKey)}</TableCell>
+                  )}
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
 
-      <div className="flex justify-end mt-4">
-        <Link href="/admin/roles">
-          <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
-            Cancelar
-          </Button>
-        </Link>
-        <Button isLoading={creandoRol ? true : false} className="bg-gradient-to-tr from-yellow-600 to-yellow-300" onPress={onOpen}>
-          <PlusIcon />
-          Crear Rol
-        </Button>
-      </div>
+          <div className="flex justify-end mt-4">
+            <Link href="/admin/roles">
+              <Button
+                className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                type="button"
+              >
+                Cancelar
+              </Button>
+            </Link>
+            <Button
+              isLoading={creandoRol ? true : false}
+              className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+              onPress={onOpen}
+            >
+              <PlusIcon />
+              Crear Rol
+            </Button>
+          </div>
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleHelp color="#fef08a" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className=" text-3xl">¿Desea crear el rol?</h1>
-                <p>El rol no podrá eliminarse, pero si podrá desactivarse.</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button
-                  color="warning" variant="light"
-                  onPress={onClose}
-                  onClick={guardarRol}
-                >
-                  Crear
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+          <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center gap-1">
+                    <CircleHelp color="#fef08a" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl ">¿Desea crear el rol?</h1>
+                    <p>
+                      El rol no podrá eliminarse, pero si podrá desactivarse.
+                    </p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      color="warning"
+                      variant="light"
+                      onPress={onClose}
+                      onClick={guardarRol}
+                    >
+                      Crear
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
-      {/*Modal de error*/}
-      <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleX color="#894242" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className=" text-3xl">Error</h1>
-                <p>{mensajeError}</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-    </div>
-    ) :(
-      <CircularProgress color="warning" aria-label="Cargando..." />
-    )}
-</>
+          {/*Modal de error*/}
+          <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center gap-1">
+                    <CircleX color="#894242" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl ">Error</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+        </div>
+      ) : (
+        <CircularProgress color="warning" aria-label="Cargando..." />
+      )}
+    </>
   );
 }

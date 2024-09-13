@@ -156,12 +156,12 @@ export default function CrearProductoPage() {
         <>
 {acceso ? (
       
-        <div className="lg:mx-60">
+        <div className="container">
             <h1 className={title()}>Crear salida de  Producto</h1>
             <br />
             <br />
             <form onSubmit={handleFormSubmit}>
-                <div className="grid gap-3 sm:grid-cols-1">
+                <div className="grid gap-3 sm:grid-cols-2">
                 <Select
                         isRequired
                         name="idProducto"

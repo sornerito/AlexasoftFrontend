@@ -271,11 +271,11 @@ export default function CrearUsuarioPage() {
     idRolUsuario == roles.find((rol) => rol.nombre == "Colaborador")?.idRol ||
     idRolUsuario == roles.find((rol) => rol.nombre == "Cliente")?.idRol ? (
       <Card
-        className="font-bold mb-4  text-center"
+        className="mb-4 font-bold text-center"
         aria-label="Tarjeta de alerta"
       >
         <CardHeader>
-          <AlertCircle size={100} className=" text-yellow-400" />
+          <AlertCircle size={100} className="text-yellow-400 " />
           <Spacer></Spacer>
           El usuario 'Cliente' o 'Colaborador' se creará en sus respectivas
           tablas en vez de crearse en la tabla usuario.
@@ -288,7 +288,7 @@ export default function CrearUsuarioPage() {
     idRolUsuario ==
     roles.find((rol) => rol.nombre == "Administrador")?.idRol ? (
       <Card
-        className="font-bold mb-4 text-center"
+        className="mb-4 font-bold text-center"
         aria-label="Tarjeta de alerta"
       >
         <CardHeader>
@@ -305,7 +305,7 @@ export default function CrearUsuarioPage() {
   return (
     <>
       {acceso ? (
-        <div className="lg:mx-60">
+        <div className="container">
           <h1 className={title()}>Crear Usuario</h1>
           <br />
           <br />
@@ -314,7 +314,6 @@ export default function CrearUsuarioPage() {
               isRequired
               type="text"
               label="Nombre"
-              variant="bordered"
               value={nombreUsuario}
               isInvalid={errors.nombreUsuario}
               color={errors.nombreUsuario ? "danger" : "default"}
@@ -325,7 +324,6 @@ export default function CrearUsuarioPage() {
               isRequired
               type="email"
               label="Email"
-              variant="bordered"
               value={correoUsuario}
               isInvalid={errors.correoUsuario}
               color={errors.correoUsuario ? "danger" : "default"}
@@ -336,7 +334,6 @@ export default function CrearUsuarioPage() {
               isRequired
               type="number"
               label="Teléfono"
-              variant="bordered"
               value={telefonoUsuario}
               isInvalid={errors.telefonoUsuario}
               color={errors.telefonoUsuario ? "danger" : "default"}
@@ -347,7 +344,6 @@ export default function CrearUsuarioPage() {
               isRequired
               type="password"
               label="Contraseña"
-              variant="bordered"
               value={contrasenaUsuario}
               isInvalid={errors.contrasenaUsuario}
               color={errors.contrasenaUsuario ? "danger" : "default"}
@@ -364,7 +360,6 @@ export default function CrearUsuarioPage() {
               disallowEmptySelection
               label="Rol del usuario"
               isRequired
-              variant="bordered"
               placeholder="Selecciona un rol"
               selectedKeys={[idRolUsuario]}
               onChange={manejarSelect}
@@ -382,7 +377,6 @@ export default function CrearUsuarioPage() {
                 isRequired
                 type="number"
                 label="Cédula"
-                variant="bordered"
                 value={cedula}
                 isInvalid={errors.cedula}
                 color={errors.cedula ? "danger" : "default"}
@@ -395,7 +389,6 @@ export default function CrearUsuarioPage() {
               <Input
                 type="text"
                 label="Instagram (Opcional)"
-                variant="bordered"
                 value={instagram}
                 isInvalid={errors.instagram}
                 color={errors.instagram ? "danger" : "default"}
@@ -416,10 +409,10 @@ export default function CrearUsuarioPage() {
             </div>
           </div>
 
-          <div className="mt-6 flex justify-end">
+          <div className="flex justify-end mt-6">
             <Link href="/admin/usuarios">
               <Button
-                className="bg-gradient-to-tr from-red-600 to-red-300 mr-2"
+                className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
                 type="button"
               >
                 Cancelar
@@ -439,11 +432,11 @@ export default function CrearUsuarioPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">¿Desea crear el usuario?</h1>
+                    <h1 className="text-3xl ">¿Desea crear el usuario?</h1>
                     <p>El usuario no podrá eliminarse.</p>
                     {mensajeAlertaRol}
                     {mensajeAlertaRolAdmin}
@@ -471,11 +464,11 @@ export default function CrearUsuarioPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">Error</h1>
+                    <h1 className="text-3xl ">Error</h1>
                     <p>{mensajeError}</p>
                   </ModalBody>
                   <ModalFooter>

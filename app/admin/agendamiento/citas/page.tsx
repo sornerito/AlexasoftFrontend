@@ -27,7 +27,11 @@ import {
   SelectItem,
 } from "@nextui-org/react";
 import { PlusIcon, Ellipsis, Edit, Info, FileBarChart2 } from "lucide-react";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 const columns = [
   { name: "ID", uid: "idCita" },
@@ -63,10 +67,10 @@ interface Cita {
 }
 
 const estadoColors: { [key: string]: string } = {
-  "En_espera": "yellow",
-  "Aceptado": "green",
-  "Cancelado": "red",
-  "Finalizado": "blue"
+  En_espera: "yellow",
+  Aceptado: "green",
+  Cancelado: "red",
+  Finalizado: "blue",
 };
 
 export default function CitasPage() {
@@ -75,7 +79,7 @@ export default function CitasPage() {
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       if (verificarAccesoPorPermiso("Gestionar Agendamiento") == false) {
-        window.location.href = "../../../../acceso/noAcceso"
+        window.location.href = "../../../../acceso/noAcceso";
       }
       setAcceso(verificarAccesoPorPermiso("Gestionar Agendamiento"));
     }
@@ -83,16 +87,30 @@ export default function CitasPage() {
   const [citas, setCitas] = useState<Cita[]>([]);
   const [clientes, setClientes] = useState<{ [key: number]: string }>({});
   const [paquetes, setPaquetes] = useState<{ [key: number]: string }>({});
-  const [colaboradores, setColaboradores] = useState<{ [key: number]: string }>({});
+  const [colaboradores, setColaboradores] = useState<{ [key: number]: string }>(
+    {}
+  );
   const [motivos, setMotivos] = useState<{ [key: number]: string }>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [selectedCita, setSelectedCita] = useState<Cita | null>(null);
   const [nuevoEstado, setNuevoEstado] = useState("");
-  const { isOpen: isOpenEstado, onOpen: onOpenEstado, onClose: onCloseEstado } = useDisclosure();
-  const { isOpen: isOpenError, onOpen: onOpenError, onClose: onCloseError } = useDisclosure();
+  const {
+    isOpen: isOpenEstado,
+    onOpen: onOpenEstado,
+    onClose: onCloseEstado,
+  } = useDisclosure();
+  const {
+    isOpen: isOpenError,
+    onOpen: onOpenError,
+    onClose: onCloseError,
+  } = useDisclosure();
   const [mensajeError, setMensajeError] = useState("");
-  const { isOpen: isOpenDetails, onOpen: onOpenDetails, onClose: onCloseDetails } = useDisclosure();
+  const {
+    isOpen: isOpenDetails,
+    onOpen: onOpenDetails,
+    onClose: onCloseDetails,
+  } = useDisclosure();
 
   useEffect(() => {
     getWithAuth("http://localhost:8080/cita")
@@ -100,7 +118,7 @@ export default function CitasPage() {
       .then((data) => {
         const processedData = data.map((item: Cita) => ({
           ...item,
-          fecha: new Date(item.fecha).toISOString().split('T')[0], // Formatear fecha a YYYY-MM-DD
+          fecha: new Date(item.fecha).toISOString().split("T")[0], // Formatear fecha a YYYY-MM-DD
         }));
         setCitas(processedData);
       })
@@ -114,7 +132,9 @@ export default function CitasPage() {
       const ids = Array.from(new Set(citas.map((cita) => cita.idCliente)));
       const fetchedClientes: { [key: number]: string } = {};
       for (const id of ids) {
-        const response = await getWithAuth(`http://localhost:8080/cliente/${id}`);
+        const response = await getWithAuth(
+          `http://localhost:8080/cliente/${id}`
+        );
         const data = await response.json();
         fetchedClientes[id] = data.nombre;
       }
@@ -125,7 +145,9 @@ export default function CitasPage() {
       const ids = Array.from(new Set(citas.map((cita) => cita.idPaquete)));
       const fetchedPaquetes: { [key: number]: string } = {};
       for (const id of ids) {
-        const response = await getWithAuth(`http://localhost:8080/servicio/paquete/${id}`);
+        const response = await getWithAuth(
+          `http://localhost:8080/servicio/paquete/${id}`
+        );
         const data = await response.json();
         if (data && data.paquete) {
           fetchedPaquetes[id] = data.paquete.nombre;
@@ -138,7 +160,9 @@ export default function CitasPage() {
       const ids = Array.from(new Set(citas.map((cita) => cita.idColaborador)));
       const fetchedColaboradores: { [key: number]: string } = {};
       for (const id of ids) {
-        const response = await getWithAuth(`http://localhost:8080/colaborador/${id}`);
+        const response = await getWithAuth(
+          `http://localhost:8080/colaborador/${id}`
+        );
         const data = await response.json();
         fetchedColaboradores[id] = data.nombre;
       }
@@ -146,7 +170,9 @@ export default function CitasPage() {
     };
 
     const fetchMotivos = async () => {
-      const response = await getWithAuth(`http://localhost:8080/motivocancelacion`);
+      const response = await getWithAuth(
+        `http://localhost:8080/motivocancelacion`
+      );
       const data = await response.json();
       const fetchedMotivos: { [key: number]: string } = {};
       data.forEach((motivo: { idMotivo: number; motivo: string }) => {
@@ -168,14 +194,24 @@ export default function CitasPage() {
       (cita) =>
         cita.fecha.toLowerCase().includes(searchTerm.toLowerCase()) ||
         cita.hora.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (cita.detalle && cita.detalle.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (cita.detalle &&
+          cita.detalle.toLowerCase().includes(searchTerm.toLowerCase())) ||
         cita.estado.toLowerCase().includes(searchTerm.toLowerCase()) ||
         cita.idCita.toString().includes(searchTerm.toLowerCase()) ||
-        (cita.idMotivo && cita.idMotivo.toString().includes(searchTerm.toLowerCase())) ||
-        clientes[cita.idCliente]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        paquetes[cita.idPaquete]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        diasSemana[cita.idHorario]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        colaboradores[cita.idColaborador]?.toLowerCase().includes(searchTerm.toLowerCase())
+        (cita.idMotivo &&
+          cita.idMotivo.toString().includes(searchTerm.toLowerCase())) ||
+        clientes[cita.idCliente]
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        paquetes[cita.idPaquete]
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        diasSemana[cita.idHorario]
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        colaboradores[cita.idColaborador]
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase())
     );
   }, [citas, searchTerm, clientes, paquetes, colaboradores]);
 
@@ -190,18 +226,25 @@ export default function CitasPage() {
     if (!selectedCita || !nuevoEstado) return;
 
     try {
-      const response = await postWithAuth(`http://localhost:8080/cita/${selectedCita.idCita}/estado`, {
-        estado: nuevoEstado
-      });
+      const response = await postWithAuth(
+        `http://localhost:8080/cita/${selectedCita.idCita}/estado`,
+        {
+          estado: nuevoEstado,
+        }
+      );
 
       if (response.ok) {
         const updatedCita = await response.json();
         console.log("Cita después de cambiar estado:", updatedCita);
 
         // Actualiza solo el estado en el estado local
-        setCitas(citas.map(cita =>
-          cita.idCita === selectedCita.idCita ? { ...cita, estado: nuevoEstado } : cita
-        ));
+        setCitas(
+          citas.map((cita) =>
+            cita.idCita === selectedCita.idCita
+              ? { ...cita, estado: nuevoEstado }
+              : cita
+          )
+        );
         onCloseEstado();
       } else {
         setMensajeError("Error al cambiar el estado de la cita");
@@ -213,8 +256,10 @@ export default function CitasPage() {
     }
   };
 
-
-  const handleEstadoSelect = (cita: Cita, e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleEstadoSelect = (
+    cita: Cita,
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const estadoSeleccionado = e.target.value;
     setSelectedCita(cita);
     setNuevoEstado(estadoSeleccionado);
@@ -229,12 +274,11 @@ export default function CitasPage() {
   return (
     <>
       {acceso ? (
-
         <div>
           <h1 className={title()}>Citas</h1>
 
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
-            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -263,13 +307,21 @@ export default function CitasPage() {
               />
             </div>
             <div className="basis-1/2"></div>
-            <div className="basis-1/4 mb-4 sm:my-4 text-end">
-              <Button isIconOnly className="bg-gradient-to-tr from-red-600 to-red-100" aria-label="Crear Reporte">
+            <div className="mb-4 basis-1/4 sm:my-4 text-end">
+              <Button
+                isIconOnly
+                className="bg-gradient-to-tr from-red-600 to-red-100"
+                aria-label="Crear Reporte"
+              >
                 <FileBarChart2 />
               </Button>
               <Link href="/admin/agendamiento/citas/crear">
-                <Button className="bg-gradient-to-tr from-red-600 to-orange-300 ml-2" aria-label="Crear Cita">
-                  <PlusIcon />Crear Cita
+                <Button
+                  className="ml-2 bg-gradient-to-tr from-red-600 to-orange-300"
+                  aria-label="Crear Cita"
+                >
+                  <PlusIcon />
+                  Crear Cita
                 </Button>
               </Link>
             </div>
@@ -278,7 +330,7 @@ export default function CitasPage() {
             className="mb-8"
             isStriped
             bottomContent={
-              <div className="flex w-full justify-center">
+              <div className="flex justify-center w-full">
                 <Pagination
                   showControls
                   color="warning"
@@ -308,38 +360,82 @@ export default function CitasPage() {
                           className="hover:scale-105 focus:outline-none"
                           style={{
                             backgroundColor: "transparent",
-                            color: 'white',
-                            border: '2px solid',
+                            color: "white",
+                            border: "2px solid",
                             borderColor: estadoColors[item.estado],
-                            borderRadius: '9999px',
-                            padding: '0.5rem 1rem',
-                            cursor: 'pointer',
-                            transition: 'transform 0.1s ease-in-out',
+                            borderRadius: "9999px",
+                            padding: "0.5rem 1rem",
+                            cursor: "pointer",
+                            transition: "transform 0.1s ease-in-out",
                           }}
                         >
-                          <SelectItem key="En_espera" value="En_espera" style={{ backgroundColor: "transparent", color: "white", border: '2px solid', borderColor: estadoColors["En_espera"], borderRadius: '9999px' }}>
+                          <SelectItem
+                            key="En_espera"
+                            value="En_espera"
+                            style={{
+                              backgroundColor: "transparent",
+                              color: "white",
+                              border: "2px solid",
+                              borderColor: estadoColors["En_espera"],
+                              borderRadius: "9999px",
+                            }}
+                          >
                             En espera
                           </SelectItem>
-                          <SelectItem key="Aceptado" value="Aceptado" style={{ backgroundColor: "transparent", color: 'white', border: '2px solid', borderColor: estadoColors["Aceptado"], borderRadius: '9999px' }}>
+                          <SelectItem
+                            key="Aceptado"
+                            value="Aceptado"
+                            style={{
+                              backgroundColor: "transparent",
+                              color: "white",
+                              border: "2px solid",
+                              borderColor: estadoColors["Aceptado"],
+                              borderRadius: "9999px",
+                            }}
+                          >
                             Aceptado
                           </SelectItem>
-                          <SelectItem key="Cancelado" value="Cancelado" style={{ backgroundColor: "transparent", color: 'white', border: '2px solid', borderColor: estadoColors["Cancelado"], borderRadius: '9999px' }}>
+                          <SelectItem
+                            key="Cancelado"
+                            value="Cancelado"
+                            style={{
+                              backgroundColor: "transparent",
+                              color: "white",
+                              border: "2px solid",
+                              borderColor: estadoColors["Cancelado"],
+                              borderRadius: "9999px",
+                            }}
+                          >
                             Cancelado
                           </SelectItem>
-                          <SelectItem key="Finalizado" value="Finalizado" style={{ backgroundColor: "transparent", color: 'white', border: '2px solid', borderColor: estadoColors["Finalizado"], borderRadius: '9999px' }}>
+                          <SelectItem
+                            key="Finalizado"
+                            value="Finalizado"
+                            style={{
+                              backgroundColor: "transparent",
+                              color: "white",
+                              border: "2px solid",
+                              borderColor: estadoColors["Finalizado"],
+                              borderRadius: "9999px",
+                            }}
+                          >
                             Finalizado
                           </SelectItem>
                         </Select>
-
                       ) : column.uid === "acciones" ? (
                         <Button
                           className="bg-transparent"
                           onClick={() => handleShowDetails(item)}
                         >
-                          <Info className="mr-2" />Detalles
+                          <Info className="mr-2" />
+                          Detalles
                         </Button>
                       ) : column.uid === "idMotivo" ? (
-                        item.idMotivo !== null ? motivos[item.idMotivo] : "N/A"
+                        item.idMotivo !== null ? (
+                          motivos[item.idMotivo]
+                        ) : (
+                          "N/A"
+                        )
                       ) : column.uid === "idCliente" ? (
                         clientes[item.idCliente] || item.idCliente.toString()
                       ) : column.uid === "idPaquete" ? (
@@ -347,9 +443,10 @@ export default function CitasPage() {
                       ) : column.uid === "idHorario" ? (
                         diasSemana[item.idHorario] || "Día no disponible"
                       ) : column.uid === "idColaborador" ? (
-                        colaboradores[item.idColaborador] || "Colaborador no disponible"
+                        colaboradores[item.idColaborador] ||
+                        "Colaborador no disponible"
                       ) : column.uid === "fecha" ? (
-                        new Date(item.fecha).toISOString().split('T')[0]
+                        new Date(item.fecha).toISOString().split("T")[0]
                       ) : (
                         item[column.uid as keyof Cita]?.toString()
                       )}
@@ -367,13 +464,30 @@ export default function CitasPage() {
               <ModalBody>
                 {selectedCita && (
                   <div>
-                    <p><strong>ID de Cita:</strong> {selectedCita.idCita}</p>
-                    <p><strong>Cliente:</strong> {clientes[selectedCita.idCliente]}</p>
-                    <p><strong>Colaborador:</strong> {colaboradores[selectedCita.idColaborador]}</p>
-                    <p><strong>Fecha:</strong> {selectedCita.fecha}</p>
-                    <p><strong>Hora:</strong> {selectedCita.hora}</p>
-                    <p><strong>Paquete:</strong> {paquetes[selectedCita.idPaquete]}</p>
-                    <p><strong>Detalle:</strong> {selectedCita.detalle || "N/A"}</p>
+                    <p>
+                      <strong>ID de Cita:</strong> {selectedCita.idCita}
+                    </p>
+                    <p>
+                      <strong>Cliente:</strong>{" "}
+                      {clientes[selectedCita.idCliente]}
+                    </p>
+                    <p>
+                      <strong>Colaborador:</strong>{" "}
+                      {colaboradores[selectedCita.idColaborador]}
+                    </p>
+                    <p>
+                      <strong>Fecha:</strong> {selectedCita.fecha}
+                    </p>
+                    <p>
+                      <strong>Hora:</strong> {selectedCita.hora}
+                    </p>
+                    <p>
+                      <strong>Paquete:</strong>{" "}
+                      {paquetes[selectedCita.idPaquete]}
+                    </p>
+                    <p>
+                      <strong>Detalle:</strong> {selectedCita.detalle || "N/A"}
+                    </p>
                   </div>
                 )}
               </ModalBody>
@@ -401,7 +515,10 @@ export default function CitasPage() {
             <ModalContent>
               <ModalHeader>Cambiar Estado de Cita</ModalHeader>
               <ModalBody>
-                <p>¿Está seguro de que desea cambiar el estado de esta cita a <strong>{nuevoEstado}</strong>?</p>
+                <p>
+                  ¿Está seguro de que desea cambiar el estado de esta cita a{" "}
+                  <strong>{nuevoEstado}</strong>?
+                </p>
               </ModalBody>
               <ModalFooter>
                 <Button onClick={onCloseEstado}>Cancelar</Button>
@@ -410,7 +527,6 @@ export default function CitasPage() {
             </ModalContent>
           </Modal>
         </div>
-
       ) : (
         <CircularProgress color="warning" aria-label="Cargando..." />
       )}

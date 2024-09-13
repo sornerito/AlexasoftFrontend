@@ -75,9 +75,11 @@ export default function UsuariosPage() {
   const [searchTerm, setSearchTerm] = React.useState(""); // Hook para buscar
   const [page, setPage] = React.useState(1); // Hook, dice la pagina que carga por defecto
   const { isOpen, onOpen, onOpenChange } = useDisclosure(); //Hook del modal para cambiar estado
-  const { isOpen: isOpenWarning, 
-    onOpen: onOpenWarning, 
-    onOpenChange: onOpenChangeWarning } = useDisclosure();
+  const {
+    isOpen: isOpenWarning,
+    onOpen: onOpenWarning,
+    onOpenChange: onOpenChangeWarning,
+  } = useDisclosure();
   const {
     isOpen: isOpenError,
     onOpen: onOpenError,
@@ -86,44 +88,43 @@ export default function UsuariosPage() {
   const [mensajeError, setMensajeError] = React.useState(""); //Mensaje de error
   // Hacer Fetch para obtener usuarios y acomodarlos a conveniencia
   React.useEffect(() => {
-      getWithAuth("http://localhost:8080/usuario")
-        .then((response: any) => {
-          if(response.status === 204){
-            setMensajeError("No hay usuarios, ¡Crea uno nuevo!");
-            onOpenWarning()
-            return [];
-          }else{
-            return response.json();
-          }
-        })
-        .then((data: any) => {
-          const processedData: Usuario[] = data.map(
-            (item: {
-              usuario: {
-                idUsuario: any;
-                nombre: any;
-                correo: any;
-                telefono: any;
-                contrasena: any;
-                estado: any;
-                idRol: any;
-              };
-              rolNombre: any;
-            }) => ({
-              idUsuario: item.usuario.idUsuario,
-              nombre: item.usuario.nombre,
-              correo: item.usuario.correo,
-              telefono: item.usuario.telefono,
-              estado: item.usuario.estado,
-              rol: item.rolNombre,
-            })
-          );
-          setUsuarios(processedData);
-        })
-        .catch((err: any) => {
-          console.log(err.message);
-        });
-    
+    getWithAuth("http://localhost:8080/usuario")
+      .then((response: any) => {
+        if (response.status === 204) {
+          setMensajeError("No hay usuarios, ¡Crea uno nuevo!");
+          onOpenWarning();
+          return [];
+        } else {
+          return response.json();
+        }
+      })
+      .then((data: any) => {
+        const processedData: Usuario[] = data.map(
+          (item: {
+            usuario: {
+              idUsuario: any;
+              nombre: any;
+              correo: any;
+              telefono: any;
+              contrasena: any;
+              estado: any;
+              idRol: any;
+            };
+            rolNombre: any;
+          }) => ({
+            idUsuario: item.usuario.idUsuario,
+            nombre: item.usuario.nombre,
+            correo: item.usuario.correo,
+            telefono: item.usuario.telefono,
+            estado: item.usuario.estado,
+            rol: item.rolNombre,
+          })
+        );
+        setUsuarios(processedData);
+      })
+      .catch((err: any) => {
+        console.log(err.message);
+      });
   }, []);
 
   // CONFIGURACION DE PAGINACION Y BUSQUEDA(FILTRO)
@@ -195,7 +196,7 @@ export default function UsuariosPage() {
         <div>
           <h1 className={title()}>Usuarios</h1>
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
-            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -224,7 +225,7 @@ export default function UsuariosPage() {
               />
             </div>
             <div className="basis-1/2"></div>
-            <div className="basis-1/4 mb-4 sm:my-4 text-end">
+            <div className="mb-4 basis-1/4 sm:my-4 text-end">
               <Link href="/admin/usuarios/crear">
                 <Button
                   className="bg-gradient-to-tr from-red-600 to-orange-300"
@@ -255,7 +256,7 @@ export default function UsuariosPage() {
                           item.estado == "Activo" &&
                           item.correo != "alexandraAdmin@gmail.com" ? (
                             <Dropdown>
-                              <DropdownTrigger className="bg-transparent w-auto my-2">
+                              <DropdownTrigger className="w-auto my-2 bg-transparent">
                                 <Button
                                   isIconOnly
                                   className="border"
@@ -270,7 +271,7 @@ export default function UsuariosPage() {
                                 <DropdownItem
                                   href={`usuarios/editar/${item.idUsuario}`}
                                 >
-                                  <Button className="bg-transparent w-full">
+                                  <Button className="w-full bg-transparent">
                                     <Edit />
                                     Editar Usuario
                                   </Button>
@@ -283,7 +284,7 @@ export default function UsuariosPage() {
                                 item.estado === "Activo" ? "success" : "danger"
                               }
                               variant="bordered"
-                              className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
+                              className="align-middle transition-transform duration-100 ease-in-out cursor-pointer hover:scale-90"
                               onClick={() =>
                                 handleEstadoChange(item.idUsuario, item.estado)
                               }
@@ -332,7 +333,7 @@ export default function UsuariosPage() {
                               <DropdownItem
                                 href={`usuarios/editar/${item.idUsuario}`}
                               >
-                                <Button className="bg-transparent w-full">
+                                <Button className="w-full bg-transparent">
                                   <Edit />
                                   Editar Usuario
                                 </Button>
@@ -345,7 +346,7 @@ export default function UsuariosPage() {
                               item.estado === "Activo" ? "success" : "danger"
                             }
                             variant="bordered"
-                            className="hover:scale-110 cursor-pointer transition-transform duration-100 ease-in-out"
+                            className="transition-transform duration-100 ease-in-out cursor-pointer hover:scale-110"
                             onClick={() =>
                               handleEstadoChange(item.idUsuario, item.estado)
                             }
@@ -363,7 +364,7 @@ export default function UsuariosPage() {
             </Table>
           )}
 
-          <div className="flex w-full justify-center mb-4">
+          <div className="flex justify-center w-full mb-4">
             <Pagination
               showControls
               color="warning"
@@ -377,11 +378,11 @@ export default function UsuariosPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">
+                    <h1 className="text-3xl ">
                       ¿Desea cambiar el estado del usuario?
                     </h1>
                     <p>
@@ -413,11 +414,11 @@ export default function UsuariosPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">Error</h1>
+                    <h1 className="text-3xl ">Error</h1>
                     <p>{mensajeError}</p>
                   </ModalBody>
                   <ModalFooter>
@@ -435,7 +436,7 @@ export default function UsuariosPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="gold" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -451,7 +452,6 @@ export default function UsuariosPage() {
               )}
             </ModalContent>
           </Modal>
-
         </div>
       ) : (
         <CircularProgress color="warning" aria-label="Cargando..." />

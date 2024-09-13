@@ -160,15 +160,15 @@ export default function EditarRolPage({
   const [mensajeError, setMensajeError] = React.useState(""); //Mensaje de error
 
   //Metodo para guardar(actualizar) rol
-  const [editandoRol, setEditandoRol] = React.useState(false)
+  const [editandoRol, setEditandoRol] = React.useState(false);
   const guardarRol = async () => {
-    setEditandoRol(true)
+    setEditandoRol(true);
     const errorNombre = validarCampoString(nombreRol, "Nombre de rol");
     let arrayfinal;
     if (errorNombre != "") {
       setMensajeError(errorNombre);
       onOpenError();
-      setEditandoRol(false)
+      setEditandoRol(false);
       return;
     }
 
@@ -177,7 +177,7 @@ export default function EditarRolPage({
       if (arrayPermisos.length <= 0) {
         setMensajeError("Debe seleccionar al menos un permiso");
         onOpenError();
-        setEditandoRol(false)
+        setEditandoRol(false);
         return;
       }
       arrayfinal = arrayPermisos;
@@ -205,12 +205,12 @@ export default function EditarRolPage({
         const errorResponse = await response.text();
         setMensajeError(errorResponse);
         onOpenError();
-        setEditandoRol(false)
+        setEditandoRol(false);
         throw new Error("Error al intentar guardar el rol");
       }
       window.location.href = "/admin/roles";
     } catch (error) {
-      setEditandoRol(false)
+      setEditandoRol(false);
       console.error("Error al enviar los datos:", error);
     }
   };
@@ -238,7 +238,6 @@ export default function EditarRolPage({
             isRequired
             type="text"
             label="Nombre"
-            variant="bordered"
             value={nombreRol}
             className="max-w-xs mt-4"
             isInvalid={errors.nombreRol}
@@ -247,7 +246,7 @@ export default function EditarRolPage({
             onValueChange={setNombreRol}
           />
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
-            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -284,7 +283,7 @@ export default function EditarRolPage({
             onSelectionChange={setSelectedKeys as any}
             isStriped
             bottomContent={
-              <div className="flex w-full justify-center">
+              <div className="flex justify-center w-full">
                 <Pagination
                   showControls
                   color="warning"
@@ -316,14 +315,14 @@ export default function EditarRolPage({
           <div className="flex justify-end mt-4">
             <Link href="/admin/roles">
               <Button
-                className="bg-gradient-to-tr from-red-600 to-red-300 mr-2"
+                className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
                 type="button"
               >
                 Cancelar
               </Button>
             </Link>
             <Button
-            isLoading={editandoRol ? true : false}
+              isLoading={editandoRol ? true : false}
               className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
               onPress={onOpen}
             >
@@ -336,11 +335,11 @@ export default function EditarRolPage({
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">¿Desea editar el rol?</h1>
+                    <h1 className="text-3xl ">¿Desea editar el rol?</h1>
                     <p>
                       Los usuarios con este rol tendrán acceso a las funciones
                       de los permisos seleccionados.
@@ -369,11 +368,11 @@ export default function EditarRolPage({
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className=" text-3xl">Error</h1>
+                    <h1 className="text-3xl ">Error</h1>
                     <p>{mensajeError}</p>
                   </ModalBody>
                   <ModalFooter>

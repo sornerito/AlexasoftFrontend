@@ -1,12 +1,12 @@
 "use client";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 import {
   Navbar as NextUINavbar,
   NavbarContent,
   NavbarMenuToggle,
   NavbarBrand,
   NavbarItem,
-  NavbarMenu
+  NavbarMenu,
 } from "@nextui-org/navbar";
 
 import { Button } from "@nextui-org/button";
@@ -16,7 +16,10 @@ import NextLink from "next/link";
 import { ThemeSwitch } from "@/components/theme-switch";
 import Logo from "@/public/logobarrasf.png";
 import { ShoppingCartIcon, CircleUserRound } from "lucide-react";
-import { cerrarSesion, verificarAccesoPorPermiso } from '@/config/peticionesConfig';
+import {
+  cerrarSesion,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 export const Navbar = () => {
   const [token, setToken] = useState<string | null>();
@@ -29,46 +32,70 @@ export const Navbar = () => {
   };
 
   const handleClickOutside = (event: MouseEvent) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target as Node)
+    ) {
       setOpenCategory(null);
     }
   };
 
   useEffect(() => {
-    setToken(typeof window !== 'undefined' ? sessionStorage.getItem('token') : null);
-    document.addEventListener('mousedown', handleClickOutside);
+    setToken(
+      typeof window !== "undefined" ? sessionStorage.getItem("token") : null
+    );
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   const filteredNavItems = siteConfig.navItems
-    .map(category => ({
+    .map((category) => ({
       ...category,
-      items: category.items.filter(item => verificarAccesoPorPermiso(item.permiso))
+      items: category.items.filter((item) =>
+        verificarAccesoPorPermiso(item.permiso)
+      ),
     }))
-    .filter(category => category.items.length > 0);
+    .filter((category) => category.items.length > 0);
 
-	const filteredNavMenuItems = siteConfig.navMenuItems
-    .map(category => ({
+  const filteredNavMenuItems = siteConfig.navMenuItems
+    .map((category) => ({
       ...category,
-      items: category.items.filter(item => verificarAccesoPorPermiso(item.permiso))
+      items: category.items.filter((item) =>
+        verificarAccesoPorPermiso(item.permiso)
+      ),
     }))
-    .filter(category => category.items.length > 0);
+    .filter((category) => category.items.length > 0);
 
   return (
-    <NextUINavbar maxWidth="xl" position="sticky" className="bg-zinc-900 text-white">
+    <NextUINavbar
+      maxWidth="xl"
+      position="sticky"
+      className="bg-zinc-900 text-white"
+    >
       <NavbarContent>
-      <NavbarBrand as="li" className="gap-3 max-w-fit">
-  <NextLink className="flex justify-start items-center gap-1" href="/">
-    <img width={300} className="min-w-[100px]" src={Logo.src} alt="Logo"></img>
-  </NextLink>
-</NavbarBrand>
+        <NavbarBrand as="li" className="gap-3 max-w-fit">
+          <NextLink className="flex justify-start items-center gap-1" href="/">
+            <img
+              width={300}
+              className="min-w-[100px]"
+              src={Logo.src}
+              alt="Logo"
+            ></img>
+          </NextLink>
+        </NavbarBrand>
 
         {token ? (
-          <ul className="hidden lg:flex gap-4 justify-center ml-2" ref={dropdownRef}>
+          <ul
+            className="hidden lg:flex gap-4 justify-center ml-2"
+            ref={dropdownRef}
+          >
             {filteredNavItems.map((category, index) => (
-              <li key={`${category.categoryLabel}-${index}`} className="relative">
+              <li
+                key={`${category.categoryLabel}-${index}`}
+                className="relative"
+              >
                 <button
                   onClick={() => toggleCategory(category.categoryLabel)}
                   className="p-0 bg-transparent data-[hover=true]:bg-transparent"
@@ -83,7 +110,11 @@ export const Navbar = () => {
                         className="hover:bg-zinc"
                       >
                         <NextLink href={item.href} passHref>
-                          <Button className="bg-zinc-900 text-white w-48 border border-zinc-900" radius="sm" size='lg'>
+                          <Button
+                            className="bg-zinc-900 text-white w-48 border border-zinc-900"
+                            radius="sm"
+                            size="lg"
+                          >
                             {item.label}
                           </Button>
                         </NextLink>
@@ -94,7 +125,9 @@ export const Navbar = () => {
               </li>
             ))}
           </ul>
-        ) : ("")}
+        ) : (
+          ""
+        )}
       </NavbarContent>
       <NavbarContent
         className="hidden sm:flex basis-1/5 sm:basis-full"
@@ -104,14 +137,28 @@ export const Navbar = () => {
           <NavbarItem className="hidden sm:flex gap-2">
             {verificarAccesoPorPermiso("Carrito de compras") ? (
               <Link className="" href="/carrito">
-                <ShoppingCartIcon size={24} className="text-yellow-600 hover:text-yellow-800 mr-2" />
+                <ShoppingCartIcon
+                  size={24}
+                  className="text-yellow-600 hover:text-yellow-800 mr-2"
+                />
               </Link>
-            ) : ("")}
-            
+            ) : (
+              ""
+            )}
+
             <Link className="" href="/acceso/perfil">
-              <CircleUserRound size={24} className="text-yellow-600 hover:text-yellow-800 mr-2" />
+              <CircleUserRound
+                size={24}
+                className="text-yellow-600 hover:text-yellow-800 mr-2"
+              />
             </Link>
-			<Button size="sm" className="bg-gradient-to-tr from-red-600 to-red-300" onClick={cerrarSesion}>Cerrar Sesión</Button>
+            <Button
+              size="sm"
+              className="bg-gradient-to-tr from-red-600 to-red-300"
+              onClick={cerrarSesion}
+            >
+              Cerrar Sesión
+            </Button>
           </NavbarItem>
         ) : (
           <NavbarItem className="hidden sm:flex gap-2">
@@ -119,7 +166,10 @@ export const Navbar = () => {
               <Button size="sm">Iniciar Sesión</Button>
             </Link>
             <Link href="../acceso/registro">
-              <Button size="sm" className="bg-gradient-to-tr from-red-500 to-yellow-500 text-white">
+              <Button
+                size="sm"
+                className="bg-gradient-to-tr from-red-500 to-yellow-500 text-white"
+              >
                 Crear Cuenta
               </Button>
             </Link>
@@ -157,8 +207,16 @@ export const Navbar = () => {
             </div>
           ))}
           {token ? (
-            <Button size="sm" className="bg-gradient-to-tr from-red-600 to-red-300" onClick={cerrarSesion}>Cerrar Sesión</Button>
-          ) : ("")}
+            <Button
+              size="sm"
+              className="bg-gradient-to-tr from-red-600 to-red-300"
+              onClick={cerrarSesion}
+            >
+              Cerrar Sesión
+            </Button>
+          ) : (
+            ""
+          )}
         </div>
       </NavbarMenu>
     </NextUINavbar>

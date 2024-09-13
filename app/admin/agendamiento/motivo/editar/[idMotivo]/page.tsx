@@ -13,7 +13,11 @@ import {
   CircularProgress,
 } from "@nextui-org/react";
 import { CircleHelp, CircleX, PlusIcon } from "lucide-react";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 export default function EditarMotivosPage({
   params,
@@ -25,16 +29,20 @@ export default function EditarMotivosPage({
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       if (verificarAccesoPorPermiso("Gestionar Agendamiento") == false) {
-        window.location.href = "../../../../acceso/noAcceso"
+        window.location.href = "../../../../acceso/noAcceso";
       }
       setAcceso(verificarAccesoPorPermiso("Gestionar Agendamiento"));
     }
   }, []);
-  
+
   const [motivo, setMotivo] = useState("");
   const [estado, setEstado] = useState("");
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
+  const {
+    isOpen: isOpenError,
+    onOpen: onOpenError,
+    onOpenChange: onOpenChangeError,
+  } = useDisclosure();
   const [mensajeError, setMensajeError] = useState("");
 
   useEffect(() => {
@@ -59,11 +67,14 @@ export default function EditarMotivosPage({
     const motivoActualizado = {
       idMotivo: params.idMotivo,
       motivo,
-      estado
+      estado,
     };
 
     try {
-      const response = await postWithAuth(`http://localhost:8080/motivocancelacion/${params.idMotivo}`, motivoActualizado);
+      const response = await postWithAuth(
+        `http://localhost:8080/motivocancelacion/${params.idMotivo}`,
+        motivoActualizado
+      );
       if (response.ok) {
         console.log("Motivo editado exitosamente.");
         window.location.href = "/admin/agendamiento/motivo";
@@ -79,9 +90,9 @@ export default function EditarMotivosPage({
     }
   };
 
-  const handleFormSubmit = (e: { preventDefault: () => void; }) => {
+  const handleFormSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    
+
     if (isInvalid) {
       // Si el motivo es inválido, no abrir el modal de confirmación ni continuar
       return;
@@ -98,16 +109,17 @@ export default function EditarMotivosPage({
   return (
     <>
       {acceso ? (
-        <div className="lg:mx-60">
+        <div className="container">
           <h1 className={title()}>Editar Motivo</h1>
           <br /> <br />
           <form onSubmit={handleFormSubmit}>
-            <div className="grid gap-3 sm">
+            <div className="grid gap-4">
               <Input
-                variant="bordered"
                 isInvalid={isInvalid}
                 color={isInvalid ? "danger" : "success"}
-                errorMessage={isInvalid ? "El motivo debe tener más de 3 caracteres." : ""}
+                errorMessage={
+                  isInvalid ? "El motivo debe tener más de 3 caracteres." : ""
+                }
                 isRequired
                 type="text"
                 label="Nombre Motivo"
@@ -117,7 +129,7 @@ export default function EditarMotivosPage({
               />
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="flex justify-end mt-6">
               <Button
                 type="submit"
                 className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
@@ -127,17 +139,18 @@ export default function EditarMotivosPage({
               </Button>
             </div>
           </form>
-
           <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
                     <h1 className="text-3xl">¿Desea editar el motivo?</h1>
-                    <p>El motivo se actualizará con la información proporcionada.</p>
+                    <p>
+                      El motivo se actualizará con la información proporcionada.
+                    </p>
                   </ModalBody>
                   <ModalFooter>
                     <Button color="danger" variant="light" onPress={onClose}>
@@ -157,12 +170,11 @@ export default function EditarMotivosPage({
               )}
             </ModalContent>
           </Modal>
-
           <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">

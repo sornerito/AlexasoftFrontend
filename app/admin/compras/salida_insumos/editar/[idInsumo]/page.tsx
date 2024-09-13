@@ -205,7 +205,7 @@ export default function ProductosEditarPage() {
         </div>
       ) : (
         <form onSubmit={handleFormSubmit}>
-          <div className="grid gap-4">
+          <div className="grid gap-3 sm:grid-cols-2">
             <Input
               isRequired
               type="text"

@@ -25,7 +25,10 @@ import {
   CircularProgress,
 } from "@nextui-org/react";
 import { PlusIcon, Ellipsis, Info } from "lucide-react";
-import { getWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 const columns = [
   { name: "Cliente", uid: "idCliente" },
@@ -53,7 +56,7 @@ export default function CitasPage() {
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       if (verificarAccesoPorPermiso("Gestionar Cita") == false) {
-        window.location.href = "../../../../acceso/noAcceso"
+        window.location.href = "../../../../acceso/noAcceso";
       }
       setAcceso(verificarAccesoPorPermiso("Gestionar Cita"));
     }
@@ -61,17 +64,30 @@ export default function CitasPage() {
   const [citas, setCitas] = useState<Cita[]>([]);
   const [clientes, setClientes] = useState<{ [key: number]: string }>({});
   const [paquetes, setPaquetes] = useState<{ [key: number]: string }>({});
-  const [colaboradores, setColaboradores] = useState<{ [key: number]: string }>({});
+  const [colaboradores, setColaboradores] = useState<{ [key: number]: string }>(
+    {}
+  );
   const [motivos, setMotivos] = useState<{ [key: number]: string }>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [selectedCita, setSelectedCita] = useState<Cita | null>(null);
-  const { isOpen: isOpenError, onOpen: onOpenError, onClose: onCloseError } = useDisclosure();
+  const {
+    isOpen: isOpenError,
+    onOpen: onOpenError,
+    onClose: onCloseError,
+  } = useDisclosure();
   const [mensajeError, setMensajeError] = useState("");
-  const { isOpen: isOpenDetails, onOpen: onOpenDetails, onClose: onCloseDetails } = useDisclosure();
+  const {
+    isOpen: isOpenDetails,
+    onOpen: onOpenDetails,
+    onClose: onCloseDetails,
+  } = useDisclosure();
 
   useEffect(() => {
-    const idUsuario = typeof window !== "undefined" ? sessionStorage.getItem("idUsuario") : null;
+    const idUsuario =
+      typeof window !== "undefined"
+        ? sessionStorage.getItem("idUsuario")
+        : null;
     console.log(idUsuario);
 
     if (idUsuario) {
@@ -79,11 +95,16 @@ export default function CitasPage() {
         .then((response) => response.json())
         .then((data) => {
           // Filtrar solo las citas con estado 'aceptado' o 'En_espera'
-          const citasFiltradas = data.filter((item: Cita) => item.estado === "Aceptado" || item.estado === "En_espera" || item.estado === "Finalizado");
+          const citasFiltradas = data.filter(
+            (item: Cita) =>
+              item.estado === "Aceptado" ||
+              item.estado === "En_espera" ||
+              item.estado === "Finalizado"
+          );
 
           const processedData = citasFiltradas.map((item: Cita) => ({
             ...item,
-            fecha: new Date(item.fecha).toISOString().split('T')[0], // Formatear fecha a YYYY-MM-DD
+            fecha: new Date(item.fecha).toISOString().split("T")[0], // Formatear fecha a YYYY-MM-DD
           }));
 
           setCitas(processedData);
@@ -96,15 +117,14 @@ export default function CitasPage() {
     }
   }, []);
 
-
-
-
   useEffect(() => {
     const fetchClientes = async () => {
       const ids = Array.from(new Set(citas.map((cita) => cita.idCliente)));
       const fetchedClientes: { [key: number]: string } = {};
       for (const id of ids) {
-        const response = await getWithAuth(`http://localhost:8080/cliente/${id}`);
+        const response = await getWithAuth(
+          `http://localhost:8080/cliente/${id}`
+        );
         const data = await response.json();
         fetchedClientes[id] = data.nombre;
       }
@@ -115,7 +135,9 @@ export default function CitasPage() {
       const ids = Array.from(new Set(citas.map((cita) => cita.idPaquete)));
       const fetchedPaquetes: { [key: number]: string } = {};
       for (const id of ids) {
-        const response = await getWithAuth(`http://localhost:8080/servicio/paquete/${id}`);
+        const response = await getWithAuth(
+          `http://localhost:8080/servicio/paquete/${id}`
+        );
         const data = await response.json();
         if (data && data.paquete) {
           fetchedPaquetes[id] = data.paquete.nombre;
@@ -128,7 +150,9 @@ export default function CitasPage() {
       const ids = Array.from(new Set(citas.map((cita) => cita.idColaborador)));
       const fetchedColaboradores: { [key: number]: string } = {};
       for (const id of ids) {
-        const response = await getWithAuth(`http://localhost:8080/colaborador/${id}`);
+        const response = await getWithAuth(
+          `http://localhost:8080/colaborador/${id}`
+        );
         const data = await response.json();
         fetchedColaboradores[id] = data.nombre;
       }
@@ -136,7 +160,9 @@ export default function CitasPage() {
     };
 
     const fetchMotivos = async () => {
-      const response = await getWithAuth(`http://localhost:8080/motivocancelacion`);
+      const response = await getWithAuth(
+        `http://localhost:8080/motivocancelacion`
+      );
       const data = await response.json();
       const fetchedMotivos: { [key: number]: string } = {};
       data.forEach((motivo: { idMotivo: number; motivo: string }) => {
@@ -158,13 +184,21 @@ export default function CitasPage() {
       (cita) =>
         cita.fecha.toLowerCase().includes(searchTerm.toLowerCase()) ||
         cita.hora.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (cita.detalle && cita.detalle.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (cita.detalle &&
+          cita.detalle.toLowerCase().includes(searchTerm.toLowerCase())) ||
         cita.estado.toLowerCase().includes(searchTerm.toLowerCase()) ||
         cita.idCita.toString().includes(searchTerm.toLowerCase()) ||
-        (cita.idMotivo && cita.idMotivo.toString().includes(searchTerm.toLowerCase())) ||
-        clientes[cita.idCliente]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        paquetes[cita.idPaquete]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        colaboradores[cita.idColaborador]?.toLowerCase().includes(searchTerm.toLowerCase())
+        (cita.idMotivo &&
+          cita.idMotivo.toString().includes(searchTerm.toLowerCase())) ||
+        clientes[cita.idCliente]
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        paquetes[cita.idPaquete]
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        colaboradores[cita.idColaborador]
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase())
     );
   }, [citas, searchTerm, clientes, paquetes, colaboradores]);
 
@@ -183,12 +217,11 @@ export default function CitasPage() {
   return (
     <>
       {acceso ? (
-
         <div>
           <h1 className={title()}>Mis Citas</h1>
 
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
-            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -217,10 +250,14 @@ export default function CitasPage() {
               />
             </div>
             <div className="basis-1/2"></div>
-            <div className="basis-1/4 mb-4 sm:my-4 text-end">
+            <div className="mb-4 basis-1/4 sm:my-4 text-end">
               <Link href="/cliente/crear">
-                <Button className="bg-gradient-to-tr from-red-600 to-orange-300 ml-2" aria-label="Crear Cita">
-                  <PlusIcon />Crear Cita
+                <Button
+                  className="ml-2 bg-gradient-to-tr from-red-600 to-orange-300"
+                  aria-label="Crear Cita"
+                >
+                  <PlusIcon />
+                  Crear Cita
                 </Button>
               </Link>
             </div>
@@ -229,7 +266,7 @@ export default function CitasPage() {
             className="mb-8"
             isStriped
             bottomContent={
-              <div className="flex w-full justify-center">
+              <div className="flex justify-center w-full">
                 <Pagination
                   showControls
                   color="warning"
@@ -251,24 +288,34 @@ export default function CitasPage() {
                   {columns.map((column) => (
                     <TableCell key={column.uid}>
                       {column.uid === "estado" ? (
-                        item.estado === "En_espera" ? "En espera" : item.estado
+                        item.estado === "En_espera" ? (
+                          "En espera"
+                        ) : (
+                          item.estado
+                        )
                       ) : column.uid === "detalles" ? (
                         <Button
                           className="bg-transparent"
                           onClick={() => handleShowDetails(item)}
                         >
-                          <Info className="mr-2" />Detalles
+                          <Info className="mr-2" />
+                          Detalles
                         </Button>
                       ) : column.uid === "idMotivo" ? (
-                        item.idMotivo !== null ? motivos[item.idMotivo] : "N/A"
+                        item.idMotivo !== null ? (
+                          motivos[item.idMotivo]
+                        ) : (
+                          "N/A"
+                        )
                       ) : column.uid === "idCliente" ? (
                         clientes[item.idCliente] || item.idCliente.toString()
                       ) : column.uid === "idPaquete" ? (
                         paquetes[item.idPaquete] || item.idPaquete.toString()
                       ) : column.uid === "idColaborador" ? (
-                        colaboradores[item.idColaborador] || "Colaborador no disponible"
+                        colaboradores[item.idColaborador] ||
+                        "Colaborador no disponible"
                       ) : column.uid === "fecha" ? (
-                        new Date(item.fecha).toISOString().split('T')[0]
+                        new Date(item.fecha).toISOString().split("T")[0]
                       ) : (
                         item[column.uid as keyof Cita]?.toString()
                       )}
@@ -286,13 +333,30 @@ export default function CitasPage() {
               <ModalBody>
                 {selectedCita && (
                   <div>
-                    <p><strong>Cliente:</strong> {clientes[selectedCita.idCliente]}</p>
-                    <p><strong>Colaborador:</strong> {colaboradores[selectedCita.idColaborador]}</p>
-                    <p><strong>Fecha:</strong> {selectedCita.fecha}</p>
-                    <p><strong>Hora:</strong> {selectedCita.hora}</p>
-                    <p><strong>Paquete:</strong> {paquetes[selectedCita.idPaquete]}</p>
-                    <p><strong>Detalle:</strong> {selectedCita.detalle || "N/A"}</p>
-                    <p><strong>Estado:</strong> {selectedCita.estado}</p>
+                    <p>
+                      <strong>Cliente:</strong>{" "}
+                      {clientes[selectedCita.idCliente]}
+                    </p>
+                    <p>
+                      <strong>Colaborador:</strong>{" "}
+                      {colaboradores[selectedCita.idColaborador]}
+                    </p>
+                    <p>
+                      <strong>Fecha:</strong> {selectedCita.fecha}
+                    </p>
+                    <p>
+                      <strong>Hora:</strong> {selectedCita.hora}
+                    </p>
+                    <p>
+                      <strong>Paquete:</strong>{" "}
+                      {paquetes[selectedCita.idPaquete]}
+                    </p>
+                    <p>
+                      <strong>Detalle:</strong> {selectedCita.detalle || "N/A"}
+                    </p>
+                    <p>
+                      <strong>Estado:</strong> {selectedCita.estado}
+                    </p>
                   </div>
                 )}
               </ModalBody>

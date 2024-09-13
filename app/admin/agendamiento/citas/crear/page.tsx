@@ -15,7 +15,11 @@ import {
   SelectItem,
 } from "@nextui-org/react";
 import { PlusIcon, CircleHelp, CircleX } from "lucide-react";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 interface Colaborador {
   idColaborador: number;
@@ -72,8 +76,16 @@ export default function CrearCitaPage() {
   const [minHora, setMinHora] = useState("08:00");
   const [maxHora, setMaxHora] = useState("17:00");
   const [opcionesHoras, setOpcionesHoras] = useState<string[]>([]);
-  const { isOpen: isOpenConfirm, onOpen: onOpenConfirm, onClose: onCloseConfirm } = useDisclosure();
-  const { isOpen: isOpenError, onOpen: onOpenError, onClose: onCloseError } = useDisclosure();
+  const {
+    isOpen: isOpenConfirm,
+    onOpen: onOpenConfirm,
+    onClose: onCloseConfirm,
+  } = useDisclosure();
+  const {
+    isOpen: isOpenError,
+    onOpen: onOpenError,
+    onClose: onCloseError,
+  } = useDisclosure();
 
   useEffect(() => {
     // Fetch clientes, colaboradores, paquetes
@@ -94,7 +106,9 @@ export default function CrearCitaPage() {
       .then((response) => response.json())
       .then((data) => {
         // Filtra solo colaboradores activos
-        const colaboradoresActivos = data.filter((colaborador: Colaborador) => colaborador.estado === "Activo");
+        const colaboradoresActivos = data.filter(
+          (colaborador: Colaborador) => colaborador.estado === "Activo"
+        );
         setColaboradores(colaboradoresActivos);
       })
       .catch((err) => console.log(err.message));
@@ -104,11 +118,16 @@ export default function CrearCitaPage() {
       .then((data) => {
         const fetchedPaquetes: { [key: number]: string } = {};
         data
-          .filter((item: { paquete: { estado: string } }) => item.paquete.estado === "Activo") // Filtra paquetes activos
-          .forEach((item: { paquete: { idPaquete: number; nombre: string } }) => {
-            const { idPaquete, nombre } = item.paquete;
-            fetchedPaquetes[idPaquete] = nombre;
-          });
+          .filter(
+            (item: { paquete: { estado: string } }) =>
+              item.paquete.estado === "Activo"
+          ) // Filtra paquetes activos
+          .forEach(
+            (item: { paquete: { idPaquete: number; nombre: string } }) => {
+              const { idPaquete, nombre } = item.paquete;
+              fetchedPaquetes[idPaquete] = nombre;
+            }
+          );
         setPaquetes(fetchedPaquetes);
       })
       .catch((err) => console.log(err.message));
@@ -163,7 +182,9 @@ export default function CrearCitaPage() {
     const diaSemana = new Date(fecha).getDay() + 1;
     const diaSemanaAjustado = diaSemana === 0 ? 7 : diaSemana;
 
-    const horario = horarios.find((h) => parseInt(h.numeroDia) === diaSemanaAjustado);
+    const horario = horarios.find(
+      (h) => parseInt(h.numeroDia) === diaSemanaAjustado
+    );
     if (horario) {
       setMinHora(horario.inicioJornada);
       setMaxHora(horario.finJornada);
@@ -175,7 +196,10 @@ export default function CrearCitaPage() {
   // Validaciones
 
   const validarCliente = (idCliente: number) => idCliente > 0;
-  const validarFecha = (fecha: string) => !!fecha && new Date(fecha) >= new Date(minDate) && new Date(fecha) <= new Date(maxDate);
+  const validarFecha = (fecha: string) =>
+    !!fecha &&
+    new Date(fecha) >= new Date(minDate) &&
+    new Date(fecha) <= new Date(maxDate);
   const validarHora = (hora: string) => opcionesHoras.includes(hora);
   const validarPaquete = (idPaquete: number) => idPaquete > 0;
   const validarColaborador = (idColaborador: number) => idColaborador > 0;
@@ -187,7 +211,9 @@ export default function CrearCitaPage() {
     validarPaquete(formData.idPaquete) &&
     validarColaborador(formData.idColaborador);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
@@ -221,7 +247,10 @@ export default function CrearCitaPage() {
     };
 
     try {
-      const response = await postWithAuth("http://localhost:8080/cita", datosParaEnviar);
+      const response = await postWithAuth(
+        "http://localhost:8080/cita",
+        datosParaEnviar
+      );
       if (response.ok) {
         window.location.href = "/admin/agendamiento/citas";
       } else {
@@ -238,21 +267,24 @@ export default function CrearCitaPage() {
   return (
     <>
       {acceso ? (
-        <div className="lg:mx-60">
+        <div className="container">
           <h1 className={title()}>Crear Cita</h1>
           <br /> <br />
           <form onSubmit={handleSubmit}>
-            <div className="grid gap-3 sm">
+            <div className="grid gap-3 sm:grid-cols-2">
               <Select
                 label="Cliente"
                 name="idCliente"
-                variant="bordered"
                 placeholder="Seleccione un cliente"
                 onChange={handleInputChange}
                 size="lg"
                 className="block w-full"
                 isInvalid={!validarCliente(formData.idCliente)}
-                errorMessage={!validarCliente(formData.idCliente) ? "Debe seleccionar un cliente" : ""}
+                errorMessage={
+                  !validarCliente(formData.idCliente)
+                    ? "Debe seleccionar un cliente"
+                    : ""
+                }
               >
                 {Object.entries(clientes).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
@@ -264,16 +296,22 @@ export default function CrearCitaPage() {
               <Select
                 label="Colaborador"
                 name="idColaborador"
-                variant="bordered"
                 placeholder="Seleccione un colaborador"
                 onChange={handleInputChange}
                 size="lg"
                 className="block w-full"
                 isInvalid={!validarColaborador(formData.idColaborador)}
-                errorMessage={!validarColaborador(formData.idColaborador) ? "Debe seleccionar un colaborador" : ""}
+                errorMessage={
+                  !validarColaborador(formData.idColaborador)
+                    ? "Debe seleccionar un colaborador"
+                    : ""
+                }
               >
                 {colaboradores.map((colaborador) => (
-                  <SelectItem key={colaborador.idColaborador} value={colaborador.idColaborador}>
+                  <SelectItem
+                    key={colaborador.idColaborador}
+                    value={colaborador.idColaborador}
+                  >
                     {colaborador.nombre}
                   </SelectItem>
                 ))}
@@ -282,25 +320,31 @@ export default function CrearCitaPage() {
                 type="date"
                 name="fecha"
                 label="Fecha"
-                variant="bordered"
                 placeholder="Seleccione una fecha"
                 onChange={handleInputChange}
                 className="block w-full"
                 min={minDate}
                 max={maxDate}
                 isInvalid={!validarFecha(formData.fecha)}
-                errorMessage={!validarFecha(formData.fecha) ? "Fecha fuera del rango permitido" : ""}
+                errorMessage={
+                  !validarFecha(formData.fecha)
+                    ? "Fecha fuera del rango permitido"
+                    : ""
+                }
               />
               <Select
                 label="Hora"
                 name="hora"
-                variant="bordered"
                 placeholder="Seleccione una hora"
                 onChange={handleInputChange}
                 size="lg"
                 className="block w-full"
                 isInvalid={!validarHora(formData.hora)}
-                errorMessage={!validarHora(formData.hora) ? "La hora no está disponible" : ""}
+                errorMessage={
+                  !validarHora(formData.hora)
+                    ? "La hora no está disponible"
+                    : ""
+                }
               >
                 {opcionesHoras.map((hora) => (
                   <SelectItem key={hora} value={hora}>
@@ -311,13 +355,16 @@ export default function CrearCitaPage() {
               <Select
                 label="Paquete"
                 name="idPaquete"
-                variant="bordered"
                 placeholder="Seleccione un paquete"
                 onChange={handleInputChange}
                 size="lg"
                 className="block w-full"
                 isInvalid={!validarPaquete(formData.idPaquete)}
-                errorMessage={!validarPaquete(formData.idPaquete) ? "Debe seleccionar un paquete" : ""}
+                errorMessage={
+                  !validarPaquete(formData.idPaquete)
+                    ? "Debe seleccionar un paquete"
+                    : ""
+                }
               >
                 {Object.entries(paquetes).map(([idPaquete, nombre]) => (
                   <SelectItem key={idPaquete} value={idPaquete}>
@@ -329,14 +376,13 @@ export default function CrearCitaPage() {
                 name="detalle"
                 type="text"
                 label="Detalle (opcional)"
-                variant="bordered"
                 className="block w-full"
                 value={formData.detalle || ""}
                 onChange={handleInputChange}
               />
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="flex justify-end mt-6">
               <Button
                 type="submit"
                 className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
@@ -346,10 +392,9 @@ export default function CrearCitaPage() {
               </Button>
             </div>
           </form>
-
           <Modal isOpen={isOpenConfirm} onOpenChange={onCloseConfirm}>
             <ModalContent>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleHelp color="#fef08a" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
@@ -366,10 +411,9 @@ export default function CrearCitaPage() {
               </ModalFooter>
             </ModalContent>
           </Modal>
-
           <Modal isOpen={isOpenError} onOpenChange={onCloseError}>
             <ModalContent>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleX color="#894242" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
@@ -389,5 +433,4 @@ export default function CrearCitaPage() {
       )}
     </>
   );
-
 }

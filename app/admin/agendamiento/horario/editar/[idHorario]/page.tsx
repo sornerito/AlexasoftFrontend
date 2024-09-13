@@ -13,7 +13,11 @@ import {
   CircularProgress,
 } from "@nextui-org/react";
 import { CircleHelp, CircleX } from "lucide-react";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 export default function EditarHorarioPage({
   params,
@@ -36,7 +40,11 @@ export default function EditarHorarioPage({
   const [finJornada, setFinJornada] = useState("");
   const [estado, setEstado] = useState("");
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
+  const {
+    isOpen: isOpenError,
+    onOpen: onOpenError,
+    onOpenChange: onOpenChangeError,
+  } = useDisclosure();
   const [mensajeError, setMensajeError] = useState("");
 
   useEffect(() => {
@@ -112,15 +120,15 @@ export default function EditarHorarioPage({
   return (
     <>
       {acceso ? (
-        <div className="lg:mx-60">
+        <div className="container">
           <h1 className={title()}>Editar Horarios</h1>
-          <br /><br />
+          <br />
+          <br />
           <form onSubmit={handleFormSubmit}>
-            <div className="grid gap-3 sm">
+            <div className="grid gap-3 sm:grid-cols-2">
               <Input
                 type="time"
                 label="Inicio Jornada"
-                variant="bordered"
                 placeholder="Seleccione una hora"
                 className="block w-full"
                 value={inicioJornada}
@@ -136,18 +144,19 @@ export default function EditarHorarioPage({
                 type="time"
                 label="Fin Jornada"
                 placeholder="Seleccione una hora"
-                variant="bordered"
                 className="block w-full"
                 value={finJornada}
                 isInvalid={!validateTime(finJornada)}
                 errorMessage={
-                  !validateTime(finJornada) ? "Hora no válida. Formato HH:MM." : ""
+                  !validateTime(finJornada)
+                    ? "Hora no válida. Formato HH:MM."
+                    : ""
                 }
                 onChange={(e) => setFinJornada(e.target.value)}
               />
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="flex justify-end mt-6">
               <Button
                 type="submit"
                 className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
@@ -162,12 +171,15 @@ export default function EditarHorarioPage({
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
                     <h1 className="text-3xl">¿Desea editar el horario?</h1>
-                    <p>El horario se actualizará con la información proporcionada.</p>
+                    <p>
+                      El horario se actualizará con la información
+                      proporcionada.
+                    </p>
                   </ModalBody>
                   <ModalFooter>
                     <Button color="danger" variant="light" onPress={onClose}>
@@ -192,7 +204,7 @@ export default function EditarHorarioPage({
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">

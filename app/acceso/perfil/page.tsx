@@ -18,12 +18,7 @@ import {
   CardFooter,
   CircularProgress,
 } from "@nextui-org/react";
-import {
-  PencilLine,
-  CircleHelp,
-  CircleX,
-  CircleCheckBig
-} from "lucide-react";
+import { PencilLine, CircleHelp, CircleX, CircleCheckBig } from "lucide-react";
 import {
   validarCampoString,
   validarEmailModal,
@@ -31,8 +26,11 @@ import {
   validarInstagramModal,
   validarContrasenaModal,
 } from "@/config/validaciones";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
-
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 interface Usuario {
   nombre: string;
@@ -42,19 +40,20 @@ interface Usuario {
   cedula: string;
 }
 export default function EditarUsuarioPage() {
-
   const [token, setToken] = React.useState<string | null>(null);
   React.useEffect(() => {
-    setToken(typeof window !== "undefined" ? sessionStorage.getItem("token") : null);
+    setToken(
+      typeof window !== "undefined" ? sessionStorage.getItem("token") : null
+    );
     if (sessionStorage.getItem("token") == null) {
-      window.location.href = "../acceso/iniciarsesion"
+      window.location.href = "../acceso/iniciarsesion";
     }
   }, []);
 
-  const rol = typeof window !== "undefined" ? sessionStorage.getItem("rol") : null;
-  const idUsuario = typeof window !== "undefined" ? sessionStorage.getItem("idUsuario") : null;
-
-
+  const rol =
+    typeof window !== "undefined" ? sessionStorage.getItem("rol") : null;
+  const idUsuario =
+    typeof window !== "undefined" ? sessionStorage.getItem("idUsuario") : null;
 
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure(); //Hook modal crear
   const {
@@ -87,7 +86,6 @@ export default function EditarUsuarioPage() {
 
   const [usuario, setUsuario] = React.useState<Usuario>();
   React.useEffect(() => {
-
     let url = "http://localhost:8080/usuario/" + idUsuario;
     if (rol == "Cliente") {
       url = "http://localhost:8080/cliente/" + idUsuario;
@@ -102,8 +100,6 @@ export default function EditarUsuarioPage() {
       .catch((err) => {
         console.log(err.message);
       });
-
-
   }, [idUsuario, rol]);
 
   const reestablecerDatosFormulario = () => {
@@ -120,17 +116,20 @@ export default function EditarUsuarioPage() {
     setContrasenaActual("");
   };
 
-
   const updateUser = (newData: any) => {
-    setUsuario(prevState => ({
+    setUsuario((prevState) => ({
       ...prevState,
-      ...newData
+      ...newData,
     }));
   };
 
   //FORMULARIO
-  const [nombreUsuario, setNombreUsuario] = React.useState<string | undefined>("");
-  const [correoUsuario, setCorreoUsuario] = React.useState<string | undefined>("");
+  const [nombreUsuario, setNombreUsuario] = React.useState<string | undefined>(
+    ""
+  );
+  const [correoUsuario, setCorreoUsuario] = React.useState<string | undefined>(
+    ""
+  );
   const [telefonoUsuario, setTelefonoUsuario] = React.useState<
     string | undefined
   >("");
@@ -210,7 +209,7 @@ export default function EditarUsuarioPage() {
       console.error("Error al enviar los datos:", error);
     }
   };
-  const [enviandoContrasena, setEnviandoContrasena] = React.useState(false)
+  const [enviandoContrasena, setEnviandoContrasena] = React.useState(false);
   //Formulario Cambiar Contraseña
   const [contrasenaActual, setContrasenaActual] = React.useState("");
   const [contrasenaUsuario, setContrasenaUsuario] = React.useState("");
@@ -230,25 +229,30 @@ export default function EditarUsuarioPage() {
       setMensajeError("La contraseña ingresada no coincide");
       reestablecerCamposContrasena();
       onOpenError();
-      setEnviandoContrasena(false)
+      setEnviandoContrasena(false);
       return;
     }
 
     let url =
-      "http://localhost:8080/acceso/cambiarContrasena?id=" +idUsuario +"&rol=" +rol+"&contrasenaActual="+contrasenaActual;
+      "http://localhost:8080/acceso/cambiarContrasena?id=" +
+      idUsuario +
+      "&rol=" +
+      rol +
+      "&contrasenaActual=" +
+      contrasenaActual;
     try {
       const response = await postWithAuth(url, contrasenaUsuario);
       const responseText = await response.text();
       setMensajeError(responseText);
       if (!response.ok) {
         onOpenError();
-        setEnviandoContrasena(false)
+        setEnviandoContrasena(false);
         throw new Error("Error al intentar cambiar la contraseña");
       }
       onOpenExito();
-      setEnviandoContrasena(false)
+      setEnviandoContrasena(false);
     } catch (error) {
-      setEnviandoContrasena(false)
+      setEnviandoContrasena(false);
       console.error("Error al enviar los datos:", error);
     }
   };
@@ -281,7 +285,7 @@ export default function EditarUsuarioPage() {
       correoUsuario: correoUsuario !== "" && !validarCorreo(correoUsuario),
       contrasenaUsuario:
         contrasenaUsuario !== "" && !validarContrasena(contrasenaUsuario),
-        contrasenaActual:
+      contrasenaActual:
         contrasenaActual !== "" && !validarContrasena(contrasenaActual),
       instagram: instagram !== "" && !validarInstagram(instagram),
       telefonoUsuario:
@@ -298,24 +302,26 @@ export default function EditarUsuarioPage() {
 
   return (
     <div className="lg:mx-40">
-
       {usuario != undefined && token != null ? (
         <>
           <h1 className={title()}>¡Bienvenid@, {usuario?.nombre}!</h1>
           <br />
           <Divider className="h-1 my-4" />
-          <div className="grid gap-3 grid-flow-row-dense sm:grid-cols-2 mb-3 items-stretch">
-            <Card isFooterBlurred className="text-black h-64  bg-slate-300 min-h-80 max-h-80">
-              <CardHeader className="absolute z-10 top-1 flex-col items-start">
-                <h1 className=" font-medium text-4xl">Tu Información</h1>
+          <div className="grid items-stretch grid-flow-row-dense gap-3 mb-3 sm:grid-cols-2">
+            <Card
+              isFooterBlurred
+              className="h-64 text-black bg-slate-300 min-h-80 max-h-80"
+            >
+              <CardHeader className="absolute z-10 flex-col items-start top-1">
+                <h1 className="text-4xl font-medium ">Tu Información</h1>
               </CardHeader>
               <Image
                 removeWrapper
                 alt="Relaxing app background"
-                className="z-0 w-full h-full object-cover"
+                className="z-0 object-cover w-full h-full"
                 src="https://cdn.pixabay.com/photo/2012/09/01/23/08/floor-55519_1280.jpg"
               />
-              <CardBody className="absolute top-12 lg:text-lg mb-2">
+              <CardBody className="absolute mb-2 top-12 lg:text-lg">
                 <p>
                   <b>Nombre:</b> {usuario?.nombre}
                 </p>
@@ -325,22 +331,24 @@ export default function EditarUsuarioPage() {
                 <p>
                   <b>Teléfono:</b> {usuario?.telefono}
                 </p>
-                {rol == "Cliente" && (usuario?.instagram != "" && usuario?.instagram != "@") && (
-                  <p>
-                    <b>Instagram:</b> {usuario?.instagram}
-                  </p>
-                )}
+                {rol == "Cliente" &&
+                  usuario?.instagram != "" &&
+                  usuario?.instagram != "@" && (
+                    <p>
+                      <b>Instagram:</b> {usuario?.instagram}
+                    </p>
+                  )}
                 {rol == "Colaborador" && (
                   <p>
                     <b>Cédula:</b> {usuario?.cedula}
                   </p>
                 )}
               </CardBody>
-              <CardFooter className="absolute bg-black/40 bottom-0 z-10 border-t-1 border-default-600 dark:border-default-100">
-                <div className="flex justify-between gap-2 items-center w-full">
+              <CardFooter className="absolute bottom-0 z-10 bg-black/40 border-t-1 border-default-600 dark:border-default-100">
+                <div className="flex items-center justify-between w-full gap-2">
                   <Button
                     radius="sm"
-                    className="w-full bg-black text-white"
+                    className="w-full text-white bg-black"
                     onPress={onOpenEditar}
                     onClick={reestablecerDatosFormulario}
                     isLoading={enviandoEditar ? true : false}
@@ -349,7 +357,7 @@ export default function EditarUsuarioPage() {
                   </Button>
                   <Button
                     radius="sm"
-                    className="w-full bg-black text-white"
+                    className="w-full text-white bg-black"
                     onPress={onOpenContrasena}
                     onClick={reestablecerCamposContrasena}
                     isLoading={enviandoContrasena ? true : false}
@@ -362,20 +370,23 @@ export default function EditarUsuarioPage() {
 
             {verificarAccesoPorPermiso("Carrito de compras") ? (
               <a href="/carrito">
-                <Card isFooterBlurred className="hover:scale-95 h-64 min-h-80 max-h-80">
-                  <CardHeader className="absolute z-10 top-1 flex-col items-start">
-                    <h4 className="text-white/90 font-medium text-4xl">
+                <Card
+                  isFooterBlurred
+                  className="h-64 hover:scale-95 min-h-80 max-h-80"
+                >
+                  <CardHeader className="absolute z-10 flex-col items-start top-1">
+                    <h4 className="text-4xl font-medium text-white/90">
                       Carrito de compras
                     </h4>
                   </CardHeader>
                   <Image
                     removeWrapper
                     alt="Relaxing app background"
-                    className="z-0 w-full h-full object-cover"
+                    className="z-0 object-cover w-full h-full"
                     src="https://cdn.pixabay.com/photo/2019/10/08/21/33/shopping-cart-4536066_1280.jpg"
                   />
-                  <CardFooter className="absolute bg-black/40 bottom-0 z-10 border-t-1 border-default-600 dark:border-default-100 ">
-                    <div className="flex flex-grow gap-2 items-center">
+                  <CardFooter className="absolute bottom-0 z-10 bg-black/40 border-t-1 border-default-600 dark:border-default-100 ">
+                    <div className="flex items-center flex-grow gap-2">
                       <div className="flex flex-col">
                         <p className=" text-white/60">Haz un pedido, crea</p>
                         <p className=" text-white/60">tu carrito de compra.</p>
@@ -384,34 +395,42 @@ export default function EditarUsuarioPage() {
                   </CardFooter>
                 </Card>
               </a>
-            ) : ("")}
+            ) : (
+              ""
+            )}
 
             {verificarAccesoPorPermiso("Gestionar Citas") ? (
               <a href="#">
-                <Card isFooterBlurred className="hover:scale-95 h-64 min-h-80 max-h-80">
-                  <CardHeader className="absolute z-10 top-1 flex-col items-start">
-                    <h4 className="text-white/90 font-medium text-4xl">
+                <Card
+                  isFooterBlurred
+                  className="h-64 hover:scale-95 min-h-80 max-h-80"
+                >
+                  <CardHeader className="absolute z-10 flex-col items-start top-1">
+                    <h4 className="text-4xl font-medium text-white/90">
                       Citas
                     </h4>
                   </CardHeader>
                   <Image
                     removeWrapper
                     alt="Relaxing app background"
-                    className="z-0 w-full h-full object-cover"
+                    className="z-0 object-cover w-full h-full"
                     src="https://cdn.pixabay.com/photo/2016/07/14/08/39/hairdressing-1516352_1280.jpg"
                   />
-                  <CardFooter className="absolute bg-black/40 bottom-0 z-10 border-t-1 border-default-600 dark:border-default-100 ">
-                    <div className="flex flex-grow gap-2 items-center">
+                  <CardFooter className="absolute bottom-0 z-10 bg-black/40 border-t-1 border-default-600 dark:border-default-100 ">
+                    <div className="flex items-center flex-grow gap-2">
                       <div className="flex flex-col">
                         <p className=" text-white/60">Solicita una cita a</p>
-                        <p className=" text-white/60">nuestro estudio de belleza.</p>
+                        <p className=" text-white/60">
+                          nuestro estudio de belleza.
+                        </p>
                       </div>
                     </div>
                   </CardFooter>
                 </Card>
               </a>
-            ) : ("")}
-
+            ) : (
+              ""
+            )}
           </div>
         </>
       ) : (
@@ -423,17 +442,16 @@ export default function EditarUsuarioPage() {
         <ModalContent>
           {(onCloseEditar) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <PencilLine color="#fef08a" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
-                <h1 className=" text-3xl">Modifica tus Datos</h1>
+                <h1 className="text-3xl ">Modifica tus Datos</h1>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Input
                     isRequired
                     type="text"
                     label="Nombre"
-                    variant="bordered"
                     value={nombreUsuario}
                     isInvalid={errors.nombreUsuario}
                     color={errors.nombreUsuario ? "danger" : "default"}
@@ -444,7 +462,6 @@ export default function EditarUsuarioPage() {
                     isRequired
                     type="email"
                     label="Email"
-                    variant="bordered"
                     value={correoUsuario}
                     isInvalid={errors.correoUsuario}
                     color={errors.correoUsuario ? "danger" : "default"}
@@ -455,7 +472,6 @@ export default function EditarUsuarioPage() {
                     isRequired
                     type="number"
                     label="Teléfono"
-                    variant="bordered"
                     value={telefonoUsuario}
                     isInvalid={errors.telefonoUsuario}
                     color={errors.telefonoUsuario ? "danger" : "default"}
@@ -466,7 +482,6 @@ export default function EditarUsuarioPage() {
                     <Input
                       type="text"
                       label="Instagram (Opcional)"
-                      variant="bordered"
                       value={instagram}
                       isInvalid={errors.instagram}
                       color={errors.instagram ? "danger" : "default"}
@@ -499,11 +514,11 @@ export default function EditarUsuarioPage() {
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleHelp color="#fef08a" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
-                <h1 className=" text-3xl">¿Desea editar el usuario?</h1>
+                <h1 className="text-3xl ">¿Desea editar el usuario?</h1>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
@@ -528,29 +543,27 @@ export default function EditarUsuarioPage() {
         <ModalContent>
           {(onCloseContrasena) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <PencilLine color="#fef08a" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
-                <h1 className=" text-3xl">Cambia tu Contraseña</h1>
+                <h1 className="text-3xl ">Cambia tu Contraseña</h1>
                 <Input
-                    isRequired
-                    type="password"
-                    label="Contraseña Actual"
-                    variant="bordered"
-                    value={contrasenaActual}
-                    isInvalid={errors.contrasenaActual}
-                    color={errors.contrasenaActual ? "danger" : "default"}
-                    errorMessage="La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un caracter especial (@$!%*?&)"
-                    onValueChange={setContrasenaActual}
-                  />
-                  <Divider></Divider>
+                  isRequired
+                  type="password"
+                  label="Contraseña Actual"
+                  value={contrasenaActual}
+                  isInvalid={errors.contrasenaActual}
+                  color={errors.contrasenaActual ? "danger" : "default"}
+                  errorMessage="La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un caracter especial (@$!%*?&)"
+                  onValueChange={setContrasenaActual}
+                />
+                <Divider></Divider>
                 <div className="grid gap-3 sm:grid-cols-2">
-                   <Input
+                  <Input
                     isRequired
                     type="password"
                     label="Nueva Contraseña"
-                    variant="bordered"
                     value={contrasenaUsuario}
                     isInvalid={errors.contrasenaUsuario}
                     color={errors.contrasenaUsuario ? "danger" : "default"}
@@ -561,7 +574,6 @@ export default function EditarUsuarioPage() {
                     isRequired
                     type="password"
                     label="Confirmar Contraseña"
-                    variant="bordered"
                     value={repetirContrasena}
                     color={"default"}
                     onValueChange={setRepetirContrasena}
@@ -596,11 +608,11 @@ export default function EditarUsuarioPage() {
         <ModalContent>
           {(onCloseError) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleX color="#894242" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
-                <h1 className=" text-3xl">Error</h1>
+                <h1 className="text-3xl ">Error</h1>
                 <p>{mensajeError}</p>
               </ModalBody>
               <ModalFooter>
@@ -618,11 +630,11 @@ export default function EditarUsuarioPage() {
         <ModalContent>
           {(onCloseExito) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleCheckBig color="#77C159" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
-                <h1 className=" text-3xl">¡Perfecto!</h1>
+                <h1 className="text-3xl ">¡Perfecto!</h1>
                 <p>{mensajeError}</p>
               </ModalBody>
               <ModalFooter>

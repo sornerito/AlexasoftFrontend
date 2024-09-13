@@ -11,7 +11,7 @@ import {
   ModalFooter,
   useDisclosure,
   Link,
-  Image
+  Image,
 } from "@nextui-org/react";
 import { CircleX, TriangleAlert } from "lucide-react";
 import {
@@ -38,22 +38,18 @@ export default function RegistroPage() {
     onOpen: onOpenError,
     onOpenChange: onOpenChangeError,
   } = useDisclosure(); //Hook de modal error
-  const {
-    isOpen,
-    onOpen,
-    onOpenChange
-  } = useDisclosure(); //Hook de modal error
+  const { isOpen, onOpen, onOpenChange } = useDisclosure(); //Hook de modal error
   const {
     isOpen: isOpenAdvertencia,
     onOpen: onOpenAdvertencia,
     onOpenChange: onOpenChangeAdvertencia,
   } = useDisclosure(); //Hook de modal advertencia
 
-  const reestablecerValidar= ()=>{
-    setEnviando(false)
-    setValidandoCodigo(false)
-    setCodigo("")
-  }
+  const reestablecerValidar = () => {
+    setEnviando(false);
+    setValidandoCodigo(false);
+    setCodigo("");
+  };
 
   const [nombreCliente, setNombreCliente] = React.useState("");
   const [correoCliente, setCorreoCliente] = React.useState("");
@@ -67,8 +63,8 @@ export default function RegistroPage() {
   //Metodo para validar registro y crear codigo
   const [enviando, setEnviando] = React.useState(false);
   const validarRegistro = async () => {
-    setValidandoCodigo(false)
-    setEnviando(true)
+    setValidandoCodigo(false);
+    setEnviando(true);
     const errorNombre = validarCampoString(nombreCliente, "El nombre ");
     const errorEmail = validarEmailModal(correoCliente);
     const errorTelefono = validarTelefonoModal(telefonoCliente);
@@ -78,27 +74,27 @@ export default function RegistroPage() {
     if (errorNombre != "") {
       setMensajeError(errorNombre);
       onOpenError();
-      setEnviando(false)
+      setEnviando(false);
       return;
     } else if (!/^[A-Za-z]+(?: [A-Za-z]+)+$/.test(nombreCliente)) {
       setMensajeError(
         "Debe registrar el nombre completo (Nombres y apellidos)."
       );
       onOpenError();
-      setEnviando(false)
+      setEnviando(false);
       return;
     }
     if (errorEmail != "") {
       setMensajeError(errorEmail);
       onOpenError();
-      setEnviando(false)
+      setEnviando(false);
       return;
     }
     if (instagram != "" && instagram != "@") {
       if (errorInstagram != "") {
         setMensajeError(errorInstagram);
         onOpenError();
-        setEnviando(false)
+        setEnviando(false);
         return;
       }
     }
@@ -109,38 +105,39 @@ export default function RegistroPage() {
     if (errorTelefono != "") {
       setMensajeError(errorTelefono);
       onOpenError();
-      setEnviando(false)
+      setEnviando(false);
       return;
     }
     if (errorContrasena != "") {
       setMensajeError(errorContrasena);
       onOpenError();
-      setEnviando(false)
+      setEnviando(false);
       return;
     }
 
     if (contrasenaCliente != repetirContrasena) {
       setMensajeError("Las contraseñas no coinciden");
       onOpenError();
-      setEnviando(false)
+      setEnviando(false);
       return;
     }
 
     let url =
       "http://localhost:8080/acceso/solicitarCambioContrasenaCorreo?correo=" +
-      correoCliente + "&registro=true"
+      correoCliente +
+      "&registro=true";
     try {
       const response = await getWithAuth(url);
       const responseText = await response.text();
       setMensajeError(responseText);
       if (!response.ok) {
         onOpenError();
-        setEnviando(false)
+        setEnviando(false);
         throw new Error("Error al solicitar el codigo");
       }
-      onOpen()
+      onOpen();
     } catch (error) {
-      setEnviando(false)
+      setEnviando(false);
       console.error("Error al enviar los datos:", error);
     }
   };
@@ -150,32 +147,35 @@ export default function RegistroPage() {
   const validarCodigo = async () => {
     setValidandoCodigo(true);
     if (!codigo?.match(/^[0-9]{4}$/) || codigo.length == 0) {
-      setMensajeError("El codigo debe tener 4 dígitos")
-      onOpenError()
-      setValidandoCodigo(false)
+      setMensajeError("El codigo debe tener 4 dígitos");
+      onOpenError();
+      setValidandoCodigo(false);
       return;
     }
 
     let url =
-      "http://localhost:8080/acceso/validarCodigo?correo=" + correoCliente + "&codigo=" + codigo
+      "http://localhost:8080/acceso/validarCodigo?correo=" +
+      correoCliente +
+      "&codigo=" +
+      codigo;
     try {
       const response = await getWithAuth(url);
       const responseText = await response.text();
       setMensajeError(responseText);
       if (!response.ok) {
         onOpenError();
-        setValidandoCodigo(false)
-        setEnviando(false)
+        setValidandoCodigo(false);
+        setEnviando(false);
         throw new Error("Error al solicitar el codigo");
       }
-      guardarCliente()
+      guardarCliente();
     } catch (error) {
-      setValidandoCodigo(false)
+      setValidandoCodigo(false);
       console.error("Error al enviar los datos:", error);
     }
-  };//FIN VALIDAR CODIGO
-  
-  const guardarCliente = async ()=>{
+  }; //FIN VALIDAR CODIGO
+
+  const guardarCliente = async () => {
     const data = {
       nombre: nombreCliente,
       correo: correoCliente,
@@ -198,18 +198,18 @@ export default function RegistroPage() {
         const errorResponse = await response.text();
         setMensajeError(errorResponse);
         onOpenError();
-        setEnviando(false)
-        setValidandoCodigo(false)
+        setEnviando(false);
+        setValidandoCodigo(false);
         throw new Error("Error al intentar el usuario");
       }
       window.location.href = "/acceso/iniciarsesion";
-      setEnviando(false)
+      setEnviando(false);
     } catch (error) {
-      setEnviando(false)
-      setValidandoCodigo(false)
+      setEnviando(false);
+      setValidandoCodigo(false);
       console.error("Error al enviar los datos:", error);
     }
-  }
+  };
 
   //Validación en tiempo real
   const validarCorreo = (correo: any) => {
@@ -230,7 +230,7 @@ export default function RegistroPage() {
     return nombre.length >= 5;
   };
   const validarInstagram = (instagram: any) => {
-    if(instagram == null){
+    if (instagram == null) {
       return true;
     }
     return /^@[a-zA-Z0-9._]{0,30}$/.test(instagram);
@@ -258,22 +258,22 @@ export default function RegistroPage() {
     onOpenAdvertencia();
   }, [onOpenAdvertencia]);
   return (
-    <div className="mb-10">  
+    <div className="mb-10">
       {token == null ? (
         <>
           <div className="flex h-screen">
-            <div className=" w-1/2 hidden md:flex  items-center justify-center">
+            <div className="items-center justify-center hidden w-1/2  md:flex">
               <Image
                 removeWrapper
                 radius="lg"
                 src="https://cdn.pixabay.com/photo/2023/05/08/11/18/hair-7978357_1280.jpg"
                 alt="Imagen de registro"
-                className="rounded-tr-none rounded-br-none w-full h-full object-cover "
+                className="object-cover w-full h-full rounded-tr-none rounded-br-none "
               />
             </div>
 
-            <div className=" border-amber-600 w-full md:w-1/2 flex flex-col items-center justify-center p-8 sm:border-3 md:border-l-0">
-              <div className="text-center mb-6">
+            <div className="flex flex-col items-center justify-center w-full p-8  border-amber-600 md:w-1/2 sm:border-3 md:border-l-0">
+              <div className="mb-6 text-center">
                 <h1 className={title({ color: "yellow" })}>¡Regístrate!</h1>
               </div>
 
@@ -305,7 +305,7 @@ export default function RegistroPage() {
                   />
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-2">
+                <div className="grid gap-2 sm:grid-cols-2">
                   <div className="mb-4">
                     <Input
                       isRequired
@@ -357,9 +357,12 @@ export default function RegistroPage() {
                   </div>
 
                   <div className="mb-6">
-                    <Button isLoading={enviando ? true : false} className="bg-[#609448]" onPress={validarRegistro}>
+                    <Button
+                      isLoading={enviando ? true : false}
+                      className="bg-[#609448]"
+                      onPress={validarRegistro}
+                    >
                       Registrarse
-                      
                     </Button>
                   </div>
 
@@ -373,114 +376,129 @@ export default function RegistroPage() {
               </div>
             </div>
           </div>
-        
 
-      {/*Modal de error*/}
-      <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleX color="#894242" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className=" text-3xl">Error</h1>
-                <p>{mensajeError}</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-      {/*Modal de advertencia*/}
-      <Modal isOpen={isOpenAdvertencia} onOpenChange={onOpenChangeAdvertencia} backdrop="blur">
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <TriangleAlert color="#E9C913" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className=" text-3xl">Ten en cuenta...</h1>
-                <p>Por políticas de la empresa se recomienda utilizar una contraseña diferente a las que uses comunmente, para proteger sus datos personales.</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+          {/*Modal de error*/}
+          <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center gap-1">
+                    <CircleX color="#894242" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl ">Error</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+          {/*Modal de advertencia*/}
+          <Modal
+            isOpen={isOpenAdvertencia}
+            onOpenChange={onOpenChangeAdvertencia}
+            backdrop="blur"
+          >
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center gap-1">
+                    <TriangleAlert color="#E9C913" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl ">Ten en cuenta...</h1>
+                    <p>
+                      Por políticas de la empresa se recomienda utilizar una
+                      contraseña diferente a las que uses comunmente, para
+                      proteger sus datos personales.
+                    </p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
           {/*Modal recuperar Contraseña*/}
-      <Modal
-        backdrop="blur"
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        isDismissable={false}
-        hideCloseButton={true}
-        motionProps={{
-          variants: {
-            enter: {
-              y: 0,
-              opacity: 1,
-              transition: {
-                duration: 0.3,
-                ease: "easeOut",
+          <Modal
+            backdrop="blur"
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+            isDismissable={false}
+            hideCloseButton={true}
+            motionProps={{
+              variants: {
+                enter: {
+                  y: 0,
+                  opacity: 1,
+                  transition: {
+                    duration: 0.3,
+                    ease: "easeOut",
+                  },
+                },
+                exit: {
+                  y: -20,
+                  opacity: 0,
+                  transition: {
+                    duration: 0.2,
+                    ease: "easeIn",
+                  },
+                },
               },
-            },
-            exit: {
-              y: -20,
-              opacity: 0,
-              transition: {
-                duration: 0.2,
-                ease: "easeIn",
-              },
-            },
-          }
-        }}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">Ingresa el código enviado al correo <b>{correoCliente}</b></ModalHeader>
-        <ModalBody>
-          <p>Es necesario para validar tu correo.</p>
-          <Input
-            isRequired
-            type="number"
-            label="Código"
-            variant="bordered"
-            value={codigo}
-            color={"default"}
-            onValueChange={setCodigo}
-          />
-
-        </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose} onClick={reestablecerValidar}>
-                  Cancelar
-                </Button>
-                <Button className="bg-[#609448]" isLoading={validandoCodigo ? true : false} onPress={validarCodigo}>
-        Siguiente
-      </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
-      </>
+            }}
+          >
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1">
+                    Ingresa el código enviado al correo <b>{correoCliente}</b>
+                  </ModalHeader>
+                  <ModalBody>
+                    <p>Es necesario para validar tu correo.</p>
+                    <Input
+                      isRequired
+                      type="number"
+                      label="Código"
+                      variant="bordered"
+                      value={codigo}
+                      color={"default"}
+                      onValueChange={setCodigo}
+                    />
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      color="danger"
+                      variant="light"
+                      onPress={onClose}
+                      onClick={reestablecerValidar}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="bg-[#609448]"
+                      isLoading={validandoCodigo ? true : false}
+                      onPress={validarCodigo}
+                    >
+                      Siguiente
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+        </>
       ) : (
         ""
       )}
     </div>
-    
   );
 }

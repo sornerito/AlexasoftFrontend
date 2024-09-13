@@ -24,7 +24,11 @@ import {
 } from "@nextui-org/react";
 import { PlusIcon, CircleHelp, CircleX } from "lucide-react";
 import { validarCampoString } from "@/config/validaciones";
-import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 //Encabezado de la tabla, el uid debe coincidir con la forma en la que procesamos la data en el fetch
 const columns = [
@@ -48,12 +52,12 @@ export default function CrearPaquetePage() {
   //Valida permiso
   const [acceso, setAcceso] = React.useState<boolean>(false);
   React.useEffect(() => {
-    if(typeof window !== "undefined"){
-    if(verificarAccesoPorPermiso("Gestionar Paquetes") == false){
-      window.location.href = "../../../acceso/noAcceso"
+    if (typeof window !== "undefined") {
+      if (verificarAccesoPorPermiso("Gestionar Paquetes") == false) {
+        window.location.href = "../../../acceso/noAcceso";
+      }
+      setAcceso(verificarAccesoPorPermiso("Gestionar Paquetes"));
     }
-    setAcceso(verificarAccesoPorPermiso("Gestionar Paquetes"));
-  }
   }, []);
   const [servicios, setServicios] = React.useState<Servicio[]>([]); // Hook permisos procesados
   const [searchTerm, setSearchTerm] = React.useState(""); // Hook buscar
@@ -73,9 +77,25 @@ export default function CrearPaquetePage() {
         // Procesar los datos para que coincidan con la estructura de columnas
         const processedData: Servicio[] = data.map(
           (item: {
-            servicios:{ idServicio: any; nombre: any; descripcion: any; tiempoMinutos: any; estado: any}, 
-            productos:[{idProducto: any; nombre: any; marca: any; precio: any; unidades: any; estado: any; idCategoriaProducto: any}]
-        }) => ({
+            servicios: {
+              idServicio: any;
+              nombre: any;
+              descripcion: any;
+              tiempoMinutos: any;
+              estado: any;
+            };
+            productos: [
+              {
+                idProducto: any;
+                nombre: any;
+                marca: any;
+                precio: any;
+                unidades: any;
+                estado: any;
+                idCategoriaProducto: any;
+              }
+            ];
+          }) => ({
             idServicio: item.servicios.idServicio,
             nombre: item.servicios.nombre,
             descripcion: item.servicios.descripcion,
@@ -122,10 +142,13 @@ export default function CrearPaquetePage() {
   //Metodo para guardar y validar registro
   const guardarPaquete = async () => {
     const errorNombre = validarCampoString(nombrePaquete, "Nombre de paquete");
-    const errorDescripcion = validarCampoString(descripcionPaquete, "descripcion de paquete");
+    const errorDescripcion = validarCampoString(
+      descripcionPaquete,
+      "descripcion de paquete"
+    );
 
     let arrayfinal;
-    if (errorNombre!= "" || errorDescripcion != "") {
+    if (errorNombre != "" || errorDescripcion != "") {
       setMensajeError(errorNombre && errorDescripcion);
       onOpenError();
       return;
@@ -161,12 +184,12 @@ export default function CrearPaquetePage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        const errorMessage = errorData.error || 'Error al crear el paquete';
+        const errorMessage = errorData.error || "Error al crear el paquete";
         setMensajeError(errorMessage);
         onOpenError();
       } else {
-       //router.push("/admin/paquetes");
-       window.location.href = "/admin/paquetes"
+        //router.push("/admin/paquetes");
+        window.location.href = "/admin/paquetes";
       }
     } catch (error) {
       console.error("Error al enviar los datos:", error);
@@ -193,175 +216,185 @@ export default function CrearPaquetePage() {
   const errors = React.useMemo(() => {
     return {
       nombrePaquete: nombrePaquete !== "" && !validarNombre(nombrePaquete),
-      descripcionPaquete: descripcionPaquete !== "" && !validarDescripcion(descripcionPaquete),
+      descripcionPaquete:
+        descripcionPaquete !== "" && !validarDescripcion(descripcionPaquete),
     };
-  }, [nombrePaquete,descripcionPaquete]);
+  }, [nombrePaquete, descripcionPaquete]);
 
   return (
-    
-<>
-{acceso ? (
-    <div>
-      <h1 className={title()}>Crear Paquete</h1>
+    <>
+      {acceso ? (
+        <div>
+          <h1 className={title()}>Crear Paquete</h1>
 
-      <Input
-        isRequired
-        type="text"
-        label="Nombre"
-        variant="bordered"
-        value={nombrePaquete}
-        className="max-w-xs mt-4"
-        isInvalid={errors.nombrePaquete}
-        color={errors.nombrePaquete ? "danger" : "default"}
-        errorMessage="El nombre debe tener al menos 5 caracteres, no puede contener números ni caracteres especiales"
-        onValueChange={setNombrePaquete}
-      />
-
-      <Input
-        isRequired
-        type="text"
-        label="Descripcion"
-        variant="bordered"
-        value={descripcionPaquete}
-        className="max-w-xs mt-4"
-        isInvalid={errors.descripcionPaquete}
-        color={errors.descripcionPaquete ? "danger" : "default"}
-        errorMessage="La descripcion debe tener al menos 5 caracteres, no puede contener números ni caracteres especiales"
-        onValueChange={setDescripcionPaquete}
-      />
-
-      <div className="flex flex-col items-start sm:flex-row sm:items-center">
-        <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
           <Input
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "shadow-xl",
-                "rounded-lg",
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focus=true]:bg-default-200/50",
-                "dark:group-data-[focus=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
-            placeholder="Buscar Servicios..."
-            onChange={(e: any) => setSearchTerm(e.target.value)}
+            isRequired
+            type="text"
+            label="Nombre"
+            value={nombrePaquete}
+            className="max-w-xs mt-4"
+            isInvalid={errors.nombrePaquete}
+            color={errors.nombrePaquete ? "danger" : "default"}
+            errorMessage="El nombre debe tener al menos 5 caracteres, no puede contener números ni caracteres especiales"
+            onValueChange={setNombrePaquete}
           />
-        </div>
-      </div>
 
-      <Table
-        aria-label="Tabla de roles"
-        selectionMode="multiple"
-        selectedKeys={selectedKeys}
-        onSelectionChange={setSelectedKeys as any}
-        isStriped
-        bottomContent={
-          <div className="flex w-full justify-center">
-            <Pagination
-              showControls
-              color="warning"
-              page={page}
-              total={Math.ceil(serviciosFiltrados.length / rowsPerPage)}
-              onChange={(page) => setPage(page)}
-            />
+          <Input
+            isRequired
+            type="text"
+            label="Descripcion"
+            value={descripcionPaquete}
+            className="max-w-xs mt-4"
+            isInvalid={errors.descripcionPaquete}
+            color={errors.descripcionPaquete ? "danger" : "default"}
+            errorMessage="La descripcion debe tener al menos 5 caracteres, no puede contener números ni caracteres especiales"
+            onValueChange={setDescripcionPaquete}
+          />
+
+          <div className="flex flex-col items-start sm:flex-row sm:items-center">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+              <Input
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  input: [
+                    "bg-transparent",
+                    "text-black/90 dark:text-white/90",
+                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                  ],
+                  innerWrapper: "bg-transparent",
+                  inputWrapper: [
+                    "shadow-xl",
+                    "rounded-lg",
+                    "bg-default-200/50",
+                    "dark:bg-default/60",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-default-200/70",
+                    "dark:hover:bg-default/70",
+                    "group-data-[focus=true]:bg-default-200/50",
+                    "dark:group-data-[focus=true]:bg-default/60",
+                    "!cursor-text",
+                  ],
+                }}
+                placeholder="Buscar Servicios..."
+                onChange={(e: any) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
-        }
-      >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn className="text-base" key={column.uid}>
-              {column.name}
-            </TableColumn>
-          )}
-        </TableHeader>
-        <TableBody items={items}>
-          {(item: Servicio) => (
-            <TableRow key={item.idServicio}>
-              {(columnKey) => (
-                <TableCell>{getKeyValue(item, columnKey)}</TableCell>
-              )}
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
 
-      <div className="my-4 flex justify-end">
-      <Link href="/admin/paquetes">
-              <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
+          <Table
+            aria-label="Tabla de roles"
+            selectionMode="multiple"
+            selectedKeys={selectedKeys}
+            onSelectionChange={setSelectedKeys as any}
+            isStriped
+            bottomContent={
+              <div className="flex justify-center w-full">
+                <Pagination
+                  showControls
+                  color="warning"
+                  page={page}
+                  total={Math.ceil(serviciosFiltrados.length / rowsPerPage)}
+                  onChange={(page) => setPage(page)}
+                />
+              </div>
+            }
+          >
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn className="text-base" key={column.uid}>
+                  {column.name}
+                </TableColumn>
+              )}
+            </TableHeader>
+            <TableBody items={items}>
+              {(item: Servicio) => (
+                <TableRow key={item.idServicio}>
+                  {(columnKey) => (
+                    <TableCell>{getKeyValue(item, columnKey)}</TableCell>
+                  )}
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+
+          <div className="flex justify-end my-4">
+            <Link href="/admin/paquetes">
+              <Button
+                className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                type="button"
+              >
                 Cancelar
               </Button>
             </Link>
-        <Button className="bg-gradient-to-tr from-yellow-600 to-yellow-300" onPress={onOpen}>
-          <PlusIcon />
-          Crear Paquete
-        </Button>
-      </div>
+            <Button
+              className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+              onPress={onOpen}
+            >
+              <PlusIcon />
+              Crear Paquete
+            </Button>
+          </div>
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleHelp color="#fef08a" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className=" text-3xl">¿Desea crear el paquete?</h1>
-                <p>El paquete no podrá eliminarse, pero si podrá desactivarse.</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button
-                  className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-                  onPress={onClose}
-                  onClick={guardarPaquete}
-                >
-                  Crear
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+          <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center gap-1">
+                    <CircleHelp color="#fef08a" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl ">¿Desea crear el paquete?</h1>
+                    <p>
+                      El paquete no podrá eliminarse, pero si podrá
+                      desactivarse.
+                    </p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                      onPress={onClose}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                      onPress={onClose}
+                      onClick={guardarPaquete}
+                    >
+                      Crear
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
-      {/*Modal de error*/}
-      <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
-                <CircleX color="#894242" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className=" text-3xl">Error</h1>
-                <p>{mensajeError}</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-    </div>
-    ) :(
-      <CircularProgress color="warning" aria-label="Cargando..." />
-    )}
-</>
+          {/*Modal de error*/}
+          <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center gap-1">
+                    <CircleX color="#894242" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl ">Error</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+        </div>
+      ) : (
+        <CircularProgress color="warning" aria-label="Cargando..." />
+      )}
+    </>
   );
 }
