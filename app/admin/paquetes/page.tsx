@@ -40,7 +40,8 @@ import {
 const columns = [
   { name: "ID", uid: "idPaquete" },
   { name: "Nombre", uid: "nombre" },
-  { name: "Descripcion", uid: "descripcion" },
+  { name: "Descripción", uid: "descripcion" },
+  { name: "Tiempo", uid: "tiempoTotalServicio" },
   { name: "Servicios", uid: "servicios" },
   { name: "Estado", uid: "estado" },
   { name: "Acciones", uid: "acciones" },
@@ -51,6 +52,7 @@ interface Paquete {
   idPaquete: string;
   nombre: string;
   descripcion: string;
+  tiempoTotalServicio: string;
   estado: string;
   servicios: string;
 }
@@ -92,6 +94,7 @@ export default function PaquetesPage() {
               nombre: any;
               descripcion: any;
               estado: any;
+              tiempoTotalServicio: any;
             };
             servicios: [
               {
@@ -106,6 +109,7 @@ export default function PaquetesPage() {
             idPaquete: item.paquete.idPaquete,
             nombre: item.paquete.nombre,
             descripcion: item.paquete.descripcion,
+            tiempoTotalServicio: item.paquete.tiempoTotalServicio + "m",
             estado: item.paquete.estado,
             servicios: item.servicios
               .map((servicio) => servicio.nombre)
@@ -133,6 +137,7 @@ export default function PaquetesPage() {
         paquete.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         paquete.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
         paquete.estado.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        paquete.tiempoTotalServicio.toLowerCase().includes(searchTerm.toLowerCase()) ||
         paquete.idPaquete.toString().includes(searchTerm.toLowerCase()) ||
         paquete.servicios.toLowerCase().includes(searchTerm.toLowerCase())
     );
