@@ -12,14 +12,7 @@ import React, {
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import { Toaster, toast } from "sonner";
-import {
-  CircleHelp,
-  CircleX,
-  Ellipsis,
-  PlusIcon,
-  MinusIcon,
-  X,
-} from "lucide-react";
+import { CircleHelp, CircleX, Ellipsis, X } from "lucide-react";
 import {
   Input,
   Button,
@@ -106,7 +99,7 @@ export default function VentasPageCrear() {
   });
 
   const [mostrarProductos, setMostrarProductos] = useState(true);
-  const [citasCliente, setCitasCliente] = useState([]);
+  const [citasCliente, setCitasCliente] = useState<any[]>([]);
   const [ventaProductos, setVentaProductos] = useState({
     total: 0,
   });
@@ -330,8 +323,6 @@ export default function VentasPageCrear() {
           errorData.error || "Error al crear los detalles de la venta"
         );
       }
-
-      const responseData = await response.json();
     } catch (error) {
       setMensajeError(
         "Error al crear los detalles de la venta. Inténtalo de nuevo."
@@ -360,7 +351,6 @@ export default function VentasPageCrear() {
             "Error al crear los detalles de la venta de la cita"
         );
       }
-      const responseData = await response.json();
     } catch (error) {
       setMensajeError(
         "Error al crear los detalles de la venta de la cita. Inténtalo de nuevo."
@@ -404,12 +394,39 @@ export default function VentasPageCrear() {
       const nuevaVenta = await crearVenta(ventaData);
       // Luego, crear el detalle de la venta de la cita
       await crearDetallesVentaCita(nuevaVenta);
-      toast.success("Venta de cita creada con éxito!");
-      setTimeout(() => {
-        router.push("/admin/ventas");
-      }, 1000);
+
+      const response = await postWithAuth(
+        `http://localhost:8080/cita/${citaSeleccionada.idCita}/estado`,
+        {
+          estado: "Finalizado",
+        }
+      );
+
+      if (response.ok) {
+        const updatedCita = await response.json();
+        console.log("Cita después de cambiar estado:", updatedCita);
+
+        // Actualiza el estado en el estado local (si es necesario)
+        setCitasCliente(
+          citasCliente.map((cita) =>
+            cita.idCita === citaSeleccionada.idCita
+              ? { ...cita, estado: "Finalizado" }
+              : cita
+          )
+        );
+
+        toast.success("Venta de cita creada con éxito y cita finalizada!");
+        setTimeout(() => {
+          router.push("/admin/ventas");
+        }, 1000);
+      } else {
+        setMensajeError("Error al cambiar el estado de la cita");
+        onOpenError();
+      }
     } catch (error) {
-      setMensajeError("Error al crear la venta de cita. Inténtalo de nuevo.");
+      setMensajeError(
+        "Error al crear la venta de cita o al finalizarla. Inténtalo de nuevo."
+      );
       onOpenError();
     }
   };
@@ -539,6 +556,34 @@ export default function VentasPageCrear() {
     }));
   };
 
+  // Función para actualizar la cantidad de un producto en la lista de productos seleccionados
+  const actualizarCantidadProducto = (id: string, nuevaCantidad: number) => {
+    const productoIndex = productosSeleccionados.findIndex((p) => p.id === id);
+
+    if (productoIndex !== -1) {
+      const nuevosProductosSeleccionados = [...productosSeleccionados];
+      nuevosProductosSeleccionados[productoIndex].cantidad = nuevaCantidad;
+      setProductosSeleccionados(nuevosProductosSeleccionados);
+
+      const nuevoTotal = nuevosProductosSeleccionados.reduce(
+        (sum, item) => sum + item.producto.precio * item.cantidad,
+        0
+      );
+      const nuevoTotalConIVA = calcularTotalProductoConIVA(nuevoTotal);
+
+      setVentaProductos((prevVenta) => ({
+        ...prevVenta,
+        total: nuevoTotal,
+        totalConIVA: nuevoTotalConIVA,
+      }));
+
+      setVenta((prevVenta) => ({
+        ...prevVenta,
+        total: nuevoTotal,
+      }));
+    }
+  };
+
   // Manejador del evento "keydown" en el input de búsqueda
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (
@@ -625,6 +670,28 @@ export default function VentasPageCrear() {
       default:
         return "";
     }
+  };
+
+  // Función formatear el total de string a número con formato de moneda
+  const formatCurrency = (
+    valor: string | number,
+    currencyCode: string = "COP"
+  ) => {
+    let valorString = valor.toString();
+    const valorNumerico = parseFloat(
+      valorString.replace(/[^\d.,]/g, "").replace(",", ".")
+    );
+
+    if (isNaN(valorNumerico)) {
+      console.error("Error al convertir el valor a número:", valorString);
+      return "N/A";
+    }
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: currencyCode,
+      minimumFractionDigits: 2,
+      notation: "standard",
+    }).format(valorNumerico);
   };
 
   // Renderizar el componente
@@ -739,12 +806,7 @@ export default function VentasPageCrear() {
                       )
                         .slice(0, 4)
                         .map((item) => (
-                          <Chip
-                            key={item.id}
-                            
-                            color="default"
-                            className="mr-2"
-                          >
+                          <Chip key={item.id} color="default" className="mr-2">
                             {item.producto.nombre} x {item.cantidad}
                           </Chip>
                         ))
@@ -814,8 +876,8 @@ export default function VentasPageCrear() {
                   isRequired
                   name="total"
                   label="Total"
-                  type="number"
-                  value={ventaProductos?.total.toFixed(2) || ""}
+                  type="text"
+                  value={formatCurrency(ventaProductos?.total.toFixed(2))}
                   required
                 />
 
@@ -825,10 +887,10 @@ export default function VentasPageCrear() {
                   isRequired
                   name="totalConIVA"
                   label="Total con IVA"
-                  type="number"
-                  value={calcularTotalProductoConIVA(
-                    ventaProductos.total
-                  ).toFixed(2)}
+                  type="text"
+                  value={formatCurrency(
+                    calcularTotalProductoConIVA(ventaProductos.total).toFixed(2)
+                  )}
                   required
                 />
 
@@ -954,10 +1016,16 @@ export default function VentasPageCrear() {
                   type="number"
                   value={ventaCitas?.total.toFixed(2) || ""}
                   onChange={(e) => {
-                    setVentaCitas({
-                      ...ventaCitas,
-                      total: parseInt(e.target.value),
-                    });
+                    const valorNumerico = parseFloat(
+                      e.target.value.replace(/[^\d.,]/g, "").replace(",", ".")
+                    );
+
+                    if (!isNaN(valorNumerico)) {
+                      setVentaCitas({
+                        ...ventaCitas,
+                        total: valorNumerico,
+                      });
+                    }
                   }}
                   required
                   onError={errores.total}
@@ -970,8 +1038,8 @@ export default function VentasPageCrear() {
                   isRequired
                   name="totalConIVA"
                   label="Total con IVA"
-                  type="number"
-                  value={calcularTotalCitaConIVA().toFixed(2)}
+                  type="text" // Cambiado a tipo "text" para mostrar el formato
+                  value={formatCurrency(calcularTotalCitaConIVA().toFixed(2))}
                   required
                 />{" "}
               </div>
@@ -1102,27 +1170,20 @@ export default function VentasPageCrear() {
                               {item.producto.nombre} x {item.cantidad}
                             </span>
                             <div className="flex">
-                              <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                color="success"
-                                onClick={() =>
-                                  handleAgregarProducto(item.producto)
-                                }
-                                className="mr-2"
-                              >
-                                <PlusIcon size={16} />
-                              </Button>
-                              <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                color="danger"
-                                onClick={() => handleEliminarProducto(item.id)}
-                              >
-                                <MinusIcon size={16} />
-                              </Button>
+                              <Input // Input para la cantidad
+                                type="number"
+                                min="1"
+                                className="w-20 mx-auto"
+                                value={item.cantidad.toString()}
+                                onChange={(e) => {
+                                  const nuevaCantidad =
+                                    parseInt(e.target.value) || 0;
+                                  actualizarCantidadProducto(
+                                    item.id,
+                                    nuevaCantidad
+                                  );
+                                }}
+                              />
                             </div>
                           </li>
                         ))}

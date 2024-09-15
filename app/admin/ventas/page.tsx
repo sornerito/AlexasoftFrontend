@@ -1228,7 +1228,7 @@ export default function VentasPage() {
                         onClose();
                       }}
                     >
-                      Confirmar
+                      Cambiar Estado
                     </Button>
                   </ModalFooter>
                 </>

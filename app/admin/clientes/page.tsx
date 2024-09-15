@@ -218,7 +218,7 @@ export default function ClientesPage() {
       {acceso ? (
         <div>
           <h1 className={title()}>Clientes</h1>
-          <Toaster position="top-left" />
+          <Toaster position="bottom-right" />
 
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
             {/* Input de búsqueda */}
@@ -450,7 +450,8 @@ export default function ClientesPage() {
                       Cancelar
                     </Button>
                     <Button
-                      className="bg-[#609448]"
+                      color="warning"
+                      variant="light"
                       onPress={() => {
                         if (selectedClienteId) {
                           handleToggleEstado(selectedClienteId);

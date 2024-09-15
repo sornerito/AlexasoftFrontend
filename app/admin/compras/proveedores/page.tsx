@@ -221,7 +221,7 @@ export default function ProveedoresPage() {
       .then((response) => {
         if (!response.ok) {
           throw new Error(
-            "Error al eliminar el proveedor, Tiene un relación con una compra"
+            "Error al eliminar el proveedor. Tiene un relación con una compra"
           );
         }
         toast.success("Proveedor eliminado con éxito!");
