@@ -1,8 +1,15 @@
 "use client";
-import { title } from "@/components/primitives"
+import { title } from "@/components/primitives";
 import React, { useState, useEffect } from "react";
 import { useMediaQuery } from "react-responsive";
-import { PlusIcon, Ellipsis, Edit, CircleHelp, CircleX, Delete } from "lucide-react";
+import {
+  PlusIcon,
+  Ellipsis,
+  Edit,
+  CircleHelp,
+  CircleX,
+  Delete,
+} from "lucide-react";
 import { Toaster, toast } from "sonner";
 import {
   Table,
@@ -30,19 +37,24 @@ import {
   CardBody,
   CircularProgress,
 } from "@nextui-org/react";
-import { deleteWithAuth, getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
+import {
+  deleteWithAuth,
+  getWithAuth,
+  postWithAuth,
+  verificarAccesoPorPermiso,
+} from "@/config/peticionesConfig";
 
 const columns = [
   { name: "Id", uid: "idProveedor" },
   { name: "Tipo Empresa", uid: "tipoEmpresa" },
-  { name: "Numero Identificacion", uid: "numeroIdentificacion" },
+  { name: "N° NIT", uid: "numeroIdentificacion" },
   { name: "Nombre Empresa", uid: "nombre" },
   { name: "Contacto", uid: "contacto" },
-  { name: "Telefono", uid: "telefono" },
+  { name: "Teléfono", uid: "telefono" },
   { name: "Correo", uid: "correo" },
-  { name: "Descripcion", uid: "descripcion" },
+  { name: "Descripción", uid: "descripcion" },
   { name: "Estado", uid: "estado" },
-  { name: "Acciones", uid: "acciones" }
+  { name: "Acciones", uid: "acciones" },
 ];
 
 interface Proveedor {
@@ -60,7 +72,7 @@ export default function ProveedoresPage() {
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       if (verificarAccesoPorPermiso("Gestionar Proveedores") == false) {
-        window.location.href = "../../../../acceso/noAcceso"
+        window.location.href = "../../../../acceso/noAcceso";
       }
       setAcceso(verificarAccesoPorPermiso("Gestionar Proveedores"));
     }
@@ -68,57 +80,71 @@ export default function ProveedoresPage() {
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
-  const [selectedProveedorId, setSelectedProveedorId] = useState<string | null>(null);
+  const [selectedProveedorId, setSelectedProveedorId] = useState<string | null>(
+    null
+  );
   const [mensajeError, setMensajeError] = useState("");
   const [isOpenEliminar, setIsOpenEliminar] = useState(false);
   const onCloseEliminar = () => setIsOpenEliminar(false);
 
-
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
-  const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
+  const {
+    isOpen: isOpenError,
+    onOpen: onOpenError,
+    onOpenChange: onOpenChangeError,
+  } = useDisclosure();
+  const {
+    isOpen: isOpenWarning,
+    onOpen: onOpenWarning,
+    onOpenChange: onOpenChangeWarning,
+  } = useDisclosure();
   const rowsPerPage = 6;
   const tamanoMovil = useMediaQuery({ maxWidth: 768 });
 
   useEffect(() => {
     const fetchProveedores = async () => {
       try {
-        const response = await getWithAuth("http://localhost:8080/compras/proveedores");
+        const response = await getWithAuth(
+          "http://localhost:8080/compras/proveedores"
+        );
         const data = await response.json();
-        setProveedores(data.map((item: any) => ({
-          idProveedor: item.idProveedor,
-          nombre: item.nombre,
-          correo: item.correo,
-          tipoEmpresa: item.tipoEmpresa,
-          numeroIdentificacion: item.numeroIdentificacion,
-          descripcion: item.descripcion,
-          contacto: item.contacto,
-          telefono: item.telefono,
-          estado: item.estado,
-        })));
+        setProveedores(
+          data.map((item: any) => ({
+            idProveedor: item.idProveedor,
+            nombre: item.nombre,
+            correo: item.correo,
+            tipoEmpresa: item.tipoEmpresa,
+            numeroIdentificacion: item.numeroIdentificacion,
+            descripcion: item.descripcion,
+            contacto: item.contacto,
+            telefono: item.telefono,
+            estado: item.estado,
+          }))
+        );
       } catch (err: any) {
         if (err.message === "Unexpected end of JSON input") {
           setMensajeError("No hay Categoria Proveedores registradas aún.");
           onOpenWarning();
         } else {
           console.error("Error al obtener categorías de producto:", err);
-          setMensajeError("Error al obtener categorías de producto. Por favor, inténtalo de nuevo.");
+          setMensajeError(
+            "Error al obtener categorías de producto. Por favor, inténtalo de nuevo."
+          );
           onOpenError();
         }
-
       }
-
     };
 
     fetchProveedores();
   }, []);
 
-  const proveedoresFiltrados = React.useMemo(() =>
-    proveedores.filter((proveedor) =>
-      Object.values(proveedor).some((value) =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    ),
+  const proveedoresFiltrados = React.useMemo(
+    () =>
+      proveedores.filter((proveedor) =>
+        Object.values(proveedor).some((value) =>
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      ),
     [proveedores, searchTerm]
   );
 
@@ -128,42 +154,55 @@ export default function ProveedoresPage() {
     return proveedoresFiltrados.slice(start, end);
   }, [page, proveedoresFiltrados]);
 
-  const handleToggleEstado = React.useCallback((idProveedor: string) => {
-    const proveedor = proveedores.find(proveedor => proveedor.idProveedor === idProveedor);
-    if (!proveedor) return;
+  const handleToggleEstado = React.useCallback(
+    (idProveedor: string) => {
+      const proveedor = proveedores.find(
+        (proveedor) => proveedor.idProveedor === idProveedor
+      );
+      if (!proveedor) return;
 
-    const updatedEstado = proveedor.estado === "Activo" ? "Desactivado" : "Activo";
-    const updatedProveedor = { ...proveedor, estado: updatedEstado };
+      const updatedEstado =
+        proveedor.estado === "Activo" ? "Desactivado" : "Activo";
+      const updatedProveedor = { ...proveedor, estado: updatedEstado };
 
-    const promise = new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        postWithAuth(`http://localhost:8080/compras/proveedores/editar/${idProveedor}`,
+      const promise = new Promise<void>((resolve, reject) => {
+        setTimeout(() => {
+          postWithAuth(
+            `http://localhost:8080/compras/proveedores/editar/${idProveedor}`,
 
-          updatedProveedor
-        )
-          .then(response => {
-            if (response.ok) {
-              setProveedores(prevProveedores => prevProveedores.map(p => p.idProveedor === idProveedor ? updatedProveedor : p));
-              resolve();
-              console.log('El estado ha sido cambiado con éxito');
-            } else {
-              reject(new Error('Error al cambiar el estado'));
-            }
-          })
-          .catch(error => {
-            console.error("Error al cambiar el estado:", error);
-            setMensajeError("Error al cambiar el estado del proveedor. Por favor, inténtalo de nuevo.");
-            onOpenError();
-            reject();
-          })
-      }, 1000);
-    });
-    toast.promise(promise, {
-      loading: 'Editando...',
-      success: 'El estado ha sido cambiado con éxito',
-      error: (err) => err.message,
-    });
-  }, [proveedores]);
+            updatedProveedor
+          )
+            .then((response) => {
+              if (response.ok) {
+                setProveedores((prevProveedores) =>
+                  prevProveedores.map((p) =>
+                    p.idProveedor === idProveedor ? updatedProveedor : p
+                  )
+                );
+                resolve();
+                console.log("El estado ha sido cambiado con éxito");
+              } else {
+                reject(new Error("Error al cambiar el estado"));
+              }
+            })
+            .catch((error) => {
+              console.error("Error al cambiar el estado:", error);
+              setMensajeError(
+                "Error al cambiar el estado del proveedor. Por favor, inténtalo de nuevo."
+              );
+              onOpenError();
+              reject();
+            });
+        }, 1000);
+      });
+      toast.promise(promise, {
+        loading: "Editando...",
+        success: "El estado ha sido cambiado con éxito",
+        error: (err) => err.message,
+      });
+    },
+    [proveedores]
+  );
 
   const handleOpenModal = (idProveedor: string) => {
     setSelectedProveedorId(idProveedor);
@@ -175,17 +214,21 @@ export default function ProveedoresPage() {
     setIsOpenEliminar(true);
   };
 
-
   const handleDeleteProveedorModalConfirm = () => {
-    deleteWithAuth(`http://localhost:8080/compras/proveedores/eliminar/${selectedProveedorId}`
+    deleteWithAuth(
+      `http://localhost:8080/compras/proveedores/eliminar/${selectedProveedorId}`
     )
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Error al eliminar el proveedor, Tiene un relación con una compra');
+          throw new Error(
+            "Error al eliminar el proveedor, Tiene un relación con una compra"
+          );
         }
         toast.success("Proveedor eliminado con éxito!");
         setProveedores((prevProveedores) =>
-          prevProveedores.filter((proveedor) => proveedor.idProveedor !== selectedProveedorId)
+          prevProveedores.filter(
+            (proveedor) => proveedor.idProveedor !== selectedProveedorId
+          )
         );
         onCloseEliminar();
       })
@@ -197,20 +240,16 @@ export default function ProveedoresPage() {
       });
   };
 
-
-
   // Retorno del componente
   return (
     <>
       {acceso ? (
-
-
         <div>
           <h1 className={title()}>Proveedores</h1>
           {/* Toaster para notificaciones */}
           <Toaster position="bottom-right" />
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
-            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -239,9 +278,12 @@ export default function ProveedoresPage() {
               />
             </div>
             <div className="basis-1/2"></div>
-            <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
+            <div className="flex items-center justify-end mb-4 space-x-2 basis-1/4 sm:my-4 text-end">
               <Link href="/admin/compras/proveedores/crear">
-                <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Proveedor">
+                <Button
+                  className="bg-gradient-to-tr from-red-600 to-orange-300"
+                  aria-label="Crear Proveedor"
+                >
                   <PlusIcon /> Crear Proveedor
                 </Button>
               </Link>
@@ -257,7 +299,7 @@ export default function ProveedoresPage() {
                         <strong>{column.name}: </strong>
                         {column.uid === "acciones" ? (
                           <Dropdown>
-                            <DropdownTrigger className="bg-transparent w-auto my-2">
+                            <DropdownTrigger className="w-auto my-2 bg-transparent">
                               <Button
                                 isIconOnly
                                 className="border"
@@ -270,18 +312,26 @@ export default function ProveedoresPage() {
                             <DropdownMenu
                               onAction={(action) => console.log(action)}
                             >
-                               <DropdownItem
+                              <DropdownItem
                                 key="editar"
                                 href={`proveedores/editar/${item.idProveedor}`}
                                 isDisabled={item.estado === "Desactivado"}
                               >
-                                <Button className="bg-transparent w-full" disabled={item.estado === "Desactivado"}>
+                                <Button
+                                  className="w-full bg-transparent"
+                                  disabled={item.estado === "Desactivado"}
+                                >
                                   <Edit />
                                   Editar
                                 </Button>
                               </DropdownItem>
                               <DropdownItem>
-                                <Button className="bg-transparent w-full" onClick={() => handleEliminarProveedor(item.idProveedor)}>
+                                <Button
+                                  className="w-full bg-transparent"
+                                  onClick={() =>
+                                    handleEliminarProveedor(item.idProveedor)
+                                  }
+                                >
                                   <Delete />
                                   Eliminar
                                 </Button>
@@ -290,17 +340,17 @@ export default function ProveedoresPage() {
                           </Dropdown>
                         ) : column.uid === "estado" ? (
                           <Chip
-                            color={item.estado === "Activo" ? "success" : "danger"}
-                            variant="bordered"
-                            className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
-                            onClick={() =>
-                              handleOpenModal(item.idProveedor)
+                            color={
+                              item.estado === "Activo" ? "success" : "danger"
                             }
+                            variant="bordered"
+                            className="align-middle transition-transform duration-100 ease-in-out cursor-pointer hover:scale-90"
+                            onClick={() => handleOpenModal(item.idProveedor)}
                           >
                             {item.estado}
                           </Chip>
                         ) : (
-                          <span>{item[column.uid as keyof Proveedor]}</span>
+                          <span>{item[column.uid as keyof Proveedor] || "N/A"}</span>
                         )}
                       </div>
                     ))}
@@ -325,7 +375,10 @@ export default function ProveedoresPage() {
                         {column.uid === "acciones" ? (
                           <Dropdown>
                             <DropdownTrigger>
-                              <Button aria-label="Acciones" className="bg-transparent" isDisabled={item.estado === "Desactivado"}
+                              <Button
+                                aria-label="Acciones"
+                                className="bg-transparent"
+                                isDisabled={item.estado === "Desactivado"}
                               >
                                 <Ellipsis />
                               </Button>
@@ -338,34 +391,40 @@ export default function ProveedoresPage() {
                                 href={`proveedores/editar/${item.idProveedor}`}
                                 isDisabled={item.estado === "Desactivado"}
                               >
-                                <Button className="bg-transparent w-full" disabled={item.estado === "Desactivado"}>
+                                <Button
+                                  className="w-full bg-transparent"
+                                  disabled={item.estado === "Desactivado"}
+                                >
                                   <Edit />
                                   Editar
                                 </Button>
                               </DropdownItem>
                               <DropdownItem>
-                                <Button className="bg-transparent w-full" onClick={() => handleEliminarProveedor(item.idProveedor)}>
+                                <Button
+                                  className="w-full bg-transparent"
+                                  onClick={() =>
+                                    handleEliminarProveedor(item.idProveedor)
+                                  }
+                                >
                                   <Delete />
                                   Eliminar
                                 </Button>
                               </DropdownItem>
                             </DropdownMenu>
                           </Dropdown>
-
-
                         ) : column.uid === "estado" ? (
                           <Chip
-                            color={item.estado === "Activo" ? "success" : "danger"}
-                            variant="bordered"
-                            className="hover:scale-110 cursor-pointer transition-transform duration-100 ease-in-out"
-                            onClick={() =>
-                              handleOpenModal(item.idProveedor)
+                            color={
+                              item.estado === "Activo" ? "success" : "danger"
                             }
+                            variant="bordered"
+                            className="transition-transform duration-100 ease-in-out cursor-pointer hover:scale-110"
+                            onClick={() => handleOpenModal(item.idProveedor)}
                           >
                             {item.estado}
                           </Chip>
                         ) : (
-                          item[column.uid as keyof Proveedor]
+                          item[column.uid as keyof Proveedor] || "N/A"
                         )}
                       </TableCell>
                     ))}
@@ -375,7 +434,7 @@ export default function ProveedoresPage() {
             </Table>
           )}
 
-          <div className="flex w-full justify-center mb-4">
+          <div className="flex justify-center w-full mb-4">
             <Pagination
               showControls
               color="warning"
@@ -390,11 +449,13 @@ export default function ProveedoresPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className="text-3xl">¿Desea cambiar el estado del proveedor?</h1>
+                    <h1 className="text-3xl">
+                      ¿Desea cambiar el estado del proveedor?
+                    </h1>
                   </ModalBody>
                   <ModalFooter>
                     <Button color="danger" variant="light" onPress={onClose}>
@@ -421,18 +482,21 @@ export default function ProveedoresPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className="text-3xl">¿Desea cambiar el estado al proveedor?</h1>
+                    <h1 className="text-3xl">
+                      ¿Desea cambiar el estado al proveedor?
+                    </h1>
                   </ModalBody>
                   <ModalFooter>
                     <Button color="danger" variant="light" onPress={onClose}>
                       Cancelar
                     </Button>
                     <Button
-                      className="bg-[#609448]"
+                      color="warning"
+                      variant="light"
                       onPress={() => {
                         if (selectedProveedorId) {
                           handleToggleEstado(selectedProveedorId);
@@ -449,15 +513,27 @@ export default function ProveedoresPage() {
           </Modal>
           <Modal isOpen={isOpenEliminar} onClose={onCloseEliminar}>
             <ModalContent>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleHelp color="#fef08a" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
                 <h1 className="text-3xl">¿Desea eliminar el proveedor?</h1>
               </ModalBody>
               <ModalFooter>
-                <Button color="warning" variant="light" onClick={onCloseEliminar}>Cancelar</Button>
-                <Button color="danger" variant="light" onClick={handleDeleteProveedorModalConfirm}>Eliminar</Button>
+                <Button
+                  color="warning"
+                  variant="light"
+                  onClick={onCloseEliminar}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  color="danger"
+                  variant="light"
+                  onClick={handleDeleteProveedorModalConfirm}
+                >
+                  Eliminar
+                </Button>
               </ModalFooter>
             </ModalContent>
           </Modal>
@@ -467,7 +543,7 @@ export default function ProveedoresPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="gold" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -489,7 +565,7 @@ export default function ProveedoresPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">

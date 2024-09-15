@@ -317,23 +317,22 @@ export default function EditarProveedorPage({
                 color={errores.correo ? "danger" : "default"}
                 errorMessage={errores.correo}
               />
-
-              <div className="flex justify-end mt-4">
-                <Link href="/admin/compras/proveedores">
-                  <Button
-                    className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
-                    type="button"
-                  >
-                    Cancelar
-                  </Button>
-                </Link>
+            </div>
+            <div className="flex justify-end mt-4">
+              <Link href="/admin/compras/proveedores">
                 <Button
-                  className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-                  type="submit"
+                  className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                  type="button"
                 >
-                  Enviar
+                  Cancelar
                 </Button>
-              </div>
+              </Link>
+              <Button
+                className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                type="submit"
+              >
+                Enviar
+              </Button>
             </div>
           </form>
 

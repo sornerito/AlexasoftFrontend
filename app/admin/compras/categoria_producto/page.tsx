@@ -194,7 +194,7 @@ export default function CategoriasProductoPage() {
            <Toaster position="bottom-right" />
 
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
-            <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -223,7 +223,7 @@ export default function CategoriasProductoPage() {
               />
             </div>
             <div className="basis-1/2"></div>
-            <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
+            <div className="flex items-center justify-end mb-4 space-x-2 basis-1/4 sm:my-4 text-end">
               <Link href="/admin/compras/categoria_producto/crear">
                 <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Categoría">
                   <PlusIcon /> Crear Categoría
@@ -241,7 +241,7 @@ export default function CategoriasProductoPage() {
                         <strong>{column.name}: </strong>
                         {column.uid === "acciones" ? (
                           <Dropdown>
-                            <DropdownTrigger className="bg-transparent w-auto my-2">
+                            <DropdownTrigger className="w-auto my-2 bg-transparent">
                               <Button
                                 isIconOnly
                                 className="border"
@@ -254,13 +254,13 @@ export default function CategoriasProductoPage() {
                               onAction={(action) => console.log(action)}
                             >
                               <DropdownItem href={`categoria_producto/editar/${item.idCategoriaProducto}`}>
-                                <Button className="bg-transparent w-full">
+                                <Button className="w-full bg-transparent">
                                   <Edit />
                                   Editar
                                 </Button>
                               </DropdownItem>
                               <DropdownItem>
-                                <Button className="bg-transparent w-full" onClick={() => handleEliminarCategoriaProducto(item.idCategoriaProducto)}>
+                                <Button className="w-full bg-transparent" onClick={() => handleEliminarCategoriaProducto(item.idCategoriaProducto)}>
                                   <Delete />
                                   Eliminar
                                 </Button>
@@ -271,7 +271,7 @@ export default function CategoriasProductoPage() {
                           <Chip
                             color={item.estado === "Activo" ? "success" : "danger"}
                             variant="bordered"
-                            className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
+                            className="align-middle transition-transform duration-100 ease-in-out cursor-pointer hover:scale-90"
                             onClick={() =>
                               handleOpenModal(item.idCategoriaProducto)
                             }
@@ -312,13 +312,13 @@ export default function CategoriasProductoPage() {
                               onAction={(action) => console.log(action)}
                             >
                               <DropdownItem href={`categoria_producto/editar/${item.idCategoriaProducto}`}>
-                                <Button className="bg-transparent w-full">
+                                <Button className="w-full bg-transparent">
                                   <Edit />
                                   Editar
                                 </Button>
                               </DropdownItem>
                               <DropdownItem>
-                                <Button className="bg-transparent w-full" onClick={() => handleEliminarCategoriaProducto(item.idCategoriaProducto)}>
+                                <Button className="w-full bg-transparent" onClick={() => handleEliminarCategoriaProducto(item.idCategoriaProducto)}>
                                   <Delete />
                                   Eliminar
                                 </Button>
@@ -329,7 +329,7 @@ export default function CategoriasProductoPage() {
                           <Chip
                             color={item.estado === "Activo" ? "success" : "danger"}
                             variant="bordered"
-                            className="hover:scale-90 cursor-pointer transition-transform duration-100 ease-in-out align-middle"
+                            className="align-middle transition-transform duration-100 ease-in-out cursor-pointer hover:scale-90"
                             onClick={() =>
                               handleOpenModal(item.idCategoriaProducto)
                             }
@@ -347,7 +347,7 @@ export default function CategoriasProductoPage() {
             </Table>
           )}
 
-          <div className="flex w-full justify-center mb-4">
+          <div className="flex justify-center w-full mb-4">
             <Pagination
               showControls
               color="warning"
@@ -361,7 +361,7 @@ export default function CategoriasProductoPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -372,7 +372,8 @@ export default function CategoriasProductoPage() {
                       Cancelar
                     </Button>
                     <Button
-                      className="bg-[#609448]"
+                      color="warning"
+                      variant="light"
                       onPress={() => {
                         if (selectedProveedorId) {
                           handleToggleEstado(selectedProveedorId);
@@ -391,7 +392,7 @@ export default function CategoriasProductoPage() {
           {/* Modal Eliminar */}
           <Modal isOpen={isOpenEliminar} onClose={onCloseEliminar}>
             <ModalContent>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleHelp color="#fef08a" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
@@ -409,7 +410,7 @@ export default function CategoriasProductoPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="gold" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -431,7 +432,7 @@ export default function CategoriasProductoPage() {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleX color="#894242" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">

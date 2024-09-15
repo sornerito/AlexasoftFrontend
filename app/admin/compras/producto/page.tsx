@@ -2,14 +2,7 @@
 import { title } from "@/components/primitives";
 import React, { useState, useEffect } from "react";
 import { useMediaQuery } from "react-responsive";
-import {
-  PlusIcon,
-  Ellipsis,
-  Edit,
-  CircleHelp,
-  CircleX,
-  Delete,
-} from "lucide-react";
+import { PlusIcon, Ellipsis, Edit, CircleHelp, CircleX } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import {
   Table,
@@ -52,7 +45,7 @@ const columns = [
   { name: "Unidades", uid: "unidades" },
   { name: "Estado", uid: "estado" },
   { name: "Categoria", uid: "categoria" },
-  { name: "Unidad Medidas", uid: "unidadMedida" },
+  { name: "Unidad Medida", uid: "unidadMedida" },
   { name: "Acciones", uid: "acciones" },
 ];
 
@@ -94,8 +87,7 @@ export default function ProductosPage() {
     null
   );
   const [mensajeError, setMensajeError] = useState("");
-  const [isOpenEliminar, setIsOpenEliminar] = useState(false);
-  const onCloseEliminar = () => setIsOpenEliminar(false);
+  const [] = useState(false);
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
@@ -497,7 +489,8 @@ export default function ProductosPage() {
                       Cancelar
                     </Button>
                     <Button
-                      className="bg-[#609448]"
+                      color="warning"
+                      variant="light"
                       onPress={() => {
                         if (selectedProductoId) {
                           handleToggleEstado(selectedProductoId);

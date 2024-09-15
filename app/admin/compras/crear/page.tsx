@@ -763,7 +763,8 @@ export default function VentasPageCrear() {
                       Cancelar
                     </Button>
                     <Button
-                      className="bg-[#609448]"
+                      color="warning"
+                      variant="light"
                       onPress={() => {
                         handleConfirmSubmit();
                         onClose();
