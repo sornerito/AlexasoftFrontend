@@ -21,18 +21,12 @@ import {
   CircularProgress,
   Divider,
 } from "@nextui-org/react";
-import { CircleHelp, CircleX, Link, PlusIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, CircleHelp, CircleX, EditIcon, Link, PlusIcon } from "lucide-react";
 import {
   getWithAuth,
   postWithAuth,
   verificarAccesoPorPermiso,
 } from "@/config/peticionesConfig";
-import {
-  validarCampoString,
-  validarDescripcionModal,
-  validarTiempoModal,
-  validarCantidadModal,
-} from "@/config/validaciones2";
 import React from "react";
 
 // Interfaces de datos
@@ -101,6 +95,38 @@ export default function EditarServicioPage() {
   const [descripcionError, setDescripcionError] = useState("");
   const [tiempoMinutosError, setTiempoMinutosError] = useState("");
   const [cantidadError, setCantidadError] = useState("");
+  const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
+
+  // Estado para rastrear cuál producto está siendo editado
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [editCantidad, setEditCantidad] = useState<number | null>(null);
+  const [editCantidadError, setEditCantidadError] = useState<string>("");
+
+  const validarCantidadEditada = (cantidad: number, unidadMedida: string) => {
+    const error = validarCantidad(cantidad, unidadMedida);
+    setEditCantidadError(error);
+    return error;
+  };
+
+  // Función para actualizar la cantidad en el estado
+  const guardarCantidadEditada = (index: number) => {
+    if (editCantidad !== null && validarCantidadEditada(editCantidad, productosSeleccionados[index].unidadMedida) === "") {
+      // Actualiza la cantidad del producto en el estado
+      setProductosSeleccionados(prev => prev.slice());
+      setProductosSeleccionados((prevProductosSeleccionados) =>
+        prevProductosSeleccionados.map((producto, i) =>
+          i === index ? { ...producto, cantidad: editCantidad } : producto
+        )
+      );
+
+      // Limpiar el modo de edición
+      setEditIndex(null); // Salir del modo de edición
+      setEditCantidad(null); // Limpiar la cantidad editada
+      setEditCantidadError(""); // Limpiar cualquier error previo
+    } else {
+      setEditCantidadError("La cantidad no es válida o está vacía."); // Asegúrate de mostrar un mensaje de error si la cantidad es inválida
+    }
+  };
 
   const [isFormValid, setIsFormValid] = useState(false);
 
@@ -112,6 +138,10 @@ export default function EditarServicioPage() {
     { key: "ml", label: "ml" },
     { key: "g", label: "g" },
   ];
+
+  useEffect(() => {
+    validarTiempo(tiempoMinutos);
+  }, [tiempoMinutos]);
 
   const router = useRouter();
   const { idServicio } = useParams();
@@ -153,7 +183,7 @@ export default function EditarServicioPage() {
         const data = await response.json();
         setNombre(data.servicios.nombre);
         setDescripcion(data.servicios.descripcion);
-        setTiempoMinutos(data.servicios.tiempoMinutos);
+        setTiempoMinutos(String(data.servicios.tiempoMinutos));
         setImagen(data.servicios.imagen);
         setEstado(data.estado);
         console.log(data);
@@ -162,7 +192,7 @@ export default function EditarServicioPage() {
           data.productos.map((producto: any) => ({
             idProducto: producto.idProducto,
             nombre: producto.nombre,
-            cantidad: producto.cantidad,
+            cantidad: producto.cantidad || 0, // Asegurarse de que cantidad no sea null,
             unidadMedida: producto.unidadMedida,
           }))
         );
@@ -233,13 +263,12 @@ export default function EditarServicioPage() {
 
     if (productoSeleccionado && cantidad > 0 && unidadMedida) {
       // Asegurarse de no duplicar productos seleccionados
-      const productoExiste = productosSeleccionados.find(
+      const cantidadDeProductosIguales = productosSeleccionados.filter(
         (p) => p.idProducto === productoSeleccionado.idProducto
-      );
-
-      if (productoExiste) {
-        setMensajeError("El producto ya ha sido agregado.");
-        onOpenError();
+      ).length;
+  
+      if (cantidadDeProductosIguales > 0) { 
+        setIsDuplicateModalOpen(true);
         return;
       }
 
@@ -282,15 +311,13 @@ export default function EditarServicioPage() {
           imagen,
         };
 
-        const productosId = productosSeleccionados.map(
-          (producto) => producto.idProducto
-        );
-        const cantidad = productosSeleccionados.map(
-          (producto) => producto.cantidad
-        );
-        const unidadMedida = productosSeleccionados.map(
-          (producto) => producto.unidadMedida
-        );
+        // Utilizar los valores actualizados de productosSeleccionados
+        const productosId = productosSeleccionados.map(p => p.idProducto);
+        const cantidad = productosSeleccionados.map(p => p.cantidad || 0); // Valor por defecto si es null
+        const unidadMedida = productosSeleccionados.map(p => p.unidadMedida);
+
+        console.log("Productos seleccionados antes de enviar:", productosSeleccionados);
+
 
         const response = await postWithAuth(
           `http://localhost:8080/servicio/${idServicio}`,
@@ -302,9 +329,16 @@ export default function EditarServicioPage() {
           }
         );
 
+        console.log("Productos seleccionados antes de enviar:", servicioActualizado, cantidad);
+
+
         if (response.ok) {
           setIsConfirmModalOpen(false); // Cerrar el modal
           router.push("/admin/servicios");
+          console.log("Productos seleccionados:", productosSeleccionados);
+          console.log("ID de productos:", productosId);
+          console.log("Cantidades:", cantidad);
+          console.log("Unidades de medida:", unidadMedida);
         } else {
           const errorData = await response.json();
           setMensajeError(
@@ -318,6 +352,10 @@ export default function EditarServicioPage() {
       }
     }
   };
+
+  console.log("Productos seleccionados:", productosSeleccionados);
+  console.log("Cantidades:", cantidad);
+
 
   const cerrarConfirmacion = () => {
     setIsConfirmModalOpen(false); // Cerrar el modal de confirmación
@@ -370,14 +408,14 @@ export default function EditarServicioPage() {
     }
 
     if (unidadMedida === "g") {
-      if (cantidad < 100) {
-        return "La cantidad mínima en gramos es 100g.";
+      if (cantidad < 10) {
+        return "La cantidad mínima en gramos es 10g.";
       } else if (cantidad > 10000) {
         return "La cantidad máxima en gramos es 10000g.";
       }
     } else if (unidadMedida === "ml") {
-      if (cantidad < 1000) {
-        return "La cantidad mínima en mililitros es 1000ml.";
+      if (cantidad < 10) {
+        return "La cantidad mínima en mililitros es 10ml.";
       } else if (cantidad > 10000) {
         return "La cantidad máxima en mililitros es 10000ml.";
       }
@@ -403,278 +441,399 @@ export default function EditarServicioPage() {
     window.location.href = "/admin/servicios";
   };
 
+
+  const opcionesTiempo = ["30", "60", "90"];
+  const tiempoMinutosStr = String(tiempoMinutos); // Asegurar que es string
+
+  const itemsTiempo = opcionesTiempo.map((opcion) => (
+    <SelectItem value={opcion} key={opcion}>
+      {`${opcion} minutos`}
+    </SelectItem>
+  ));
+
+  if (!opcionesTiempo.includes(tiempoMinutosStr)) {
+    itemsTiempo.push(
+      <SelectItem value={tiempoMinutosStr} key={tiempoMinutosStr}>
+        {` ${tiempoMinutosStr} minutos`}
+      </SelectItem>
+    );
+  }
+
   return (
-    <>
-      {acceso ? (
-        <div className="w-full mx-auto space-y-8 lg:w-3/5">
-          {/* Sección de Campos de Servicio */}
-          <div className="p-6 rounded-lg shadow-md">
-            <h1 className="mb-6 text-2xl font-bold">Editar Servicio</h1>
-            <div className="grid gap-6">
-              <div>
-                <Input
-                  isRequired
-                  type="text"
-                  label="Nombre"
-                  value={nombre}
-                  errorMessage={nombreError}
-                  onValueChange={(value) => {
-                    setNombre(value);
-                    validarNombre(value); // Validar mientras el usuario escribe
-                  }}
-                  className="w-full"
-                />
-                {nombreError && (
-                  <span className="text-red-500">{nombreError}</span>
-                )}
-              </div>
-              <div>
-                <Input
-                  isRequired
-                  type="number"
-                  label="Tiempo en minutos"
-                  value={tiempoMinutos}
-                  errorMessage={tiempoMinutosError}
-                  onValueChange={(value) => {
-                    setTiempoMinutos(value);
-                    validarTiempo(value); // Validar mientras el usuario escribe
-                  }}
-                  className="w-full"
-                />
-                {tiempoMinutosError && (
-                  <span className="text-red-500">{tiempoMinutosError}</span>
-                )}
-              </div>
-              <div>
-                <Input
-                  isRequired
-                  type="text"
-                  label="Descripción"
-                  value={descripcion}
-                  errorMessage={descripcionError}
-                  onValueChange={(value) => {
-                    setDescripcion(value);
-                    validarDescripcion(value); // Validar mientras el usuario escribe
-                  }}
-                  className="w-full"
-                />
-                {descripcionError && (
-                  <span className="text-red-500">{descripcionError}</span>
-                )}
-              </div>
-              <div className="col-span-2">
-                <Input
-                  isRequired
-                  type="text"
-                  label="Imagenes"
-                  value={imagen}
-                  onValueChange={setImagen}
-                />
+    <div className="container mx-auto p-4">
+      <>
+        {acceso ? (
+          <div className="flex gap-4">
+            {/* Sección de Campos de Servicio (Izquierda) */}
+            <div className="flex-1 p-4 rounded-lg shadow-md">
+              <h1 className="text-xl font-semibold mb-4">Editar Servicio</h1>
+              <Divider className="h-1 my-4" /> {/* Añade el divisor */}
+              <div className="mt-4">
+                {/* Campo Nombre */}
+                <div>
+                  <Input
+                    isRequired
+                    type="text"
+                    label="Nombre"
+                    value={nombre}
+                    errorMessage={nombreError}
+                    onValueChange={(value) => {
+                      setNombre(value);
+                      validarNombre(value); // Validar mientras el usuario escribe
+                    }}
+                    className="w-full mb-4"
+                  />
+                  {nombreError && (
+                    <span className="text-red-500">{nombreError}</span>
+                  )}
+                </div>
+
+                {/* Campo Tiempo en Minutos */}
+                <div>
+                  <span>Tiempo En Minutos: {tiempoMinutos} minutos</span>
+                  <Select
+                    isRequired
+                    value={String(tiempoMinutos)} // Asegúrate de que sea un string
+                    onChange={(event) => setTiempoMinutos(event.target.value)}
+                    className="w-full mb-4"
+                  >
+                    {itemsTiempo}
+                  </Select>
+                  {tiempoMinutosError && (
+                    <span className="text-red-500">{tiempoMinutosError}</span>
+                  )}
+
+                </div>
+
+                {/* Campo Descripción */}
+                <div>
+                  <Input
+                    isRequired
+                    type="text"
+                    label="Descripción"
+                    value={descripcion}
+                    errorMessage={descripcionError}
+                    onValueChange={(value) => {
+                      setDescripcion(value);
+                      validarDescripcion(value); // Validar mientras el usuario escribe
+                    }}
+                    className="w-full mb-4"
+                  />
+                  {descripcionError && (
+                    <span className="text-red-500">{descripcionError}</span>
+                  )}
+                </div>
+
+                {/* Campo Imágenes */}
+                <div className="col-span-2">
+                  <Input
+                    isRequired
+                    type="text"
+                    label="Imágenes"
+                    value={imagen}
+                    onValueChange={setImagen}
+                    className="w-full mb-4"
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          <Divider className="h-1 my-4" />
-          {/* Sección de Productos Seleccionados */}
-          <div className="p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold">Productos Seleccionados</h2>
-              <Button
-                size="sm"
-                className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-                startContent={<PlusIcon className="text-white" />}
-                onClick={() => {
-                  onOpen();
-                  fetchProductos();
-                }}
-              >
-                Agregar Producto
-              </Button>
-            </div>
-            <Table aria-label="Productos seleccionados">
-              <TableHeader>
-                <TableColumn>Producto</TableColumn>
-                <TableColumn>Cantidad</TableColumn>
-                <TableColumn>Unidad de Medida</TableColumn>
-                <TableColumn>Acciones</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {productosSeleccionados.map((producto, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{producto.nombre}</TableCell>
-                    <TableCell>{producto.cantidad}</TableCell>
-                    <TableCell>{producto.unidadMedida}</TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        color="danger"
-                        variant="light"
-                        onClick={() => eliminarProducto(index)}
-                      >
-                        <CircleX />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            <div className="flex justify-center my-4">
-              <Button
-                disabled={currentPage === 1}
-                onPress={() => handlePageChange(currentPage - 1)}
-              >
-                Anterior
-              </Button>
-              <span className="mx-2">
-                Página {currentPage} de {totalPages}
-              </span>
-              <Button
-                disabled={currentPage === totalPages}
-                onPress={() => handlePageChange(currentPage + 1)}
-              >
-                Siguiente
-              </Button>
-            </div>
-          </div>
+            {/* Sección de Productos Seleccionados (Derecha) */}
+            <div className="flex-1 p-4 rounded-lg shadow-md">
+              <div className="flex flex-col items-start mb-4"> {/* Cambia a flex-col */}
+                <h2 className="text-lg font-bold">Productos Seleccionados</h2>
+              </div>
 
-          {/* Botones Guardar y Cancelar */}
-          <div className="flex justify-end space-x-4">
-            <Button
-              className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
-              onClick={cancelarEdicion}
-            >
-              Cancelar
-            </Button>
-            <Button
-              className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-              onClick={confirmarActualizacion}
-            >
-              Actualizar Servicio
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <CircularProgress color="primary" size="lg" />
-      )}
+              <Divider className="h-1 my-4" /> {/* Añade el divisor */}
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          <ModalHeader>Seleccionar Producto</ModalHeader>
-          <div>
-            <span className="block font-semibold">Producto Seleccionado:</span>
-            <span>{productoSeleccionado?.nombre}</span>
-          </div>
-          <ModalBody>
-            <Select
-              placeholder="Selecciona un producto"
-              onChange={(event) => {
-                const value = event.target.value;
-                const producto = productos.find(
-                  (producto) => producto.idProducto.toString() === value
-                );
-                if (producto) {
-                  setProductoSeleccionado(producto);
-                }
-              }}
-            >
-              {productos.map((producto) => (
-                <SelectItem
-                  key={producto.idProducto}
-                  value={producto.idProducto.toString()}
+              <div className="flex justify-end mb-4"> {/* Contenedor para el botón */}
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                  startContent={<PlusIcon className="text-white" />}
+                  onClick={() => {
+                    onOpen();
+                    fetchProductos();
+                  }}
                 >
-                  {producto.nombre}
-                </SelectItem>
-              ))}
-            </Select>
-            <Input
-              type="number"
-              label="Cantidad"
-              value={cantidad.toString()}
-              errorMessage={cantidadError}
-              onValueChange={(value) => {
-                setCantidad(Number(value));
-                setCantidadError(validarCantidad(Number(value), unidadMedida));
-              }}
-              className="mt-4"
-            />
-            {cantidadError && (
-              <span className="text-red-500">{cantidadError}</span>
-            )}
-            <Select
-              label="Unidad de Medida"
-              placeholder="Selecciona la unidad de medida"
-              value={unidadMedida}
-              onChange={(e) => setUnidadMedida(e.target.value)}
-              className="mt-4"
-            >
-              {unidadesMedida.map((unidad) => (
-                <SelectItem key={unidad.key} value={unidad.key}>
-                  {unidad.label}
-                </SelectItem>
-              ))}
-            </Select>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
-              onClick={() => onOpenChange()}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={() => {
-                agregarProducto();
-                onOpenChange();
-              }}
-            >
-              Agregar Producto
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+                  Agregar Producto
+                </Button>
+              </div>
 
-      {/* Modal de Confirmación */}
-      <Modal isOpen={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col items-center gap-1">
-                <CircleHelp color="#fef08a" size={100} />
-              </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className="text-3xl ">¿Desea actualizar el servicio?</h1>
-                <p>Esta acción actualizará la información del servicio.</p>
-              </ModalBody>
-              <ModalFooter>
+
+              {/* Tabla de productos seleccionados */}
+              <Table aria-label="Productos seleccionados">
+                <TableHeader>
+                  <TableColumn>Producto</TableColumn>
+                  <TableColumn>Cantidad</TableColumn>
+                  <TableColumn>Unidad de Medida</TableColumn>
+                  <TableColumn>Acciones</TableColumn>
+                </TableHeader>
+                <TableBody>
+                  {productosSeleccionados.map((producto, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{producto.nombre}</TableCell>
+
+                      {/* Si estamos en modo edición para esta fila, mostramos un campo de entrada */}
+                      <TableCell>
+                        {editIndex === index ? (
+                          <div>
+                            <Input
+                              type="number"
+                              value={editCantidad?.toString() || producto.cantidad.toString()}
+                              onChange={(e) => {
+                                const nuevaCantidad = Number(e.target.value);
+                                setEditCantidad(nuevaCantidad);
+                                validarCantidadEditada(nuevaCantidad, producto.unidadMedida); // Validar mientras el usuario escribe
+                              }}
+                              className="w-full"
+                            />
+                            {editCantidadError && (
+                              <span className="text-red-500">{editCantidadError}</span>
+                            )}
+                          </div>
+                        ) : (
+                          producto.cantidad
+                        )}
+                      </TableCell>
+
+                      <TableCell>{producto.unidadMedida}</TableCell>
+
+                      <TableCell>
+                        {editIndex === index ? (
+                          <>
+                            {/* Botón Guardar para la cantidad editada */}
+                            <Button
+                              size="sm"
+                              color="success"
+                              variant="light"
+                              onClick={() => guardarCantidadEditada(index)}
+                            >
+                              Guardar
+                            </Button>
+                            {/* Botón Cancelar edición */}
+                            <Button
+                              size="sm"
+                              color="danger"
+                              variant="light"
+                              onClick={() => {
+                                setEditIndex(null);
+                                setEditCantidad(null);
+                                setEditCantidadError("");
+                              }}
+                            >
+                              Cancelar
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            {/* Botón Editar */}
+                            <Button
+                              size="sm"
+                              color="primary"
+                              variant="light"
+                              onClick={() => {
+                                setEditIndex(index);
+                                setEditCantidad(producto.cantidad);
+                              }}
+                              startContent={<EditIcon />}
+                            >
+                            </Button>
+                            {/* Botón Eliminar */}
+                            <Button
+                              size="sm"
+                              color="danger"
+                              variant="light"
+                              onClick={() => eliminarProducto(index)}
+                            >
+                              <CircleX />
+                            </Button>
+                          </>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              <div className="flex items-center justify-between mt-4">
+                <Button
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  color="warning"
+                  className="p-2 text-black"
+                >
+                  <ChevronLeftIcon className="h-4 w-4" />
+                </Button>
+
+                <span className="text-base">
+                  Página {currentPage} de {totalPages}
+                </span>
+
+                <Button
+                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  color="warning"
+                  className="p-2 text-black"
+                >
+                  <ChevronRightIcon className="h-4 w-4" />
+                </Button>
+              </div>
+
+
+
+              {/* Botones Actualizar y Cancelar */}
+              <div className="flex justify-end space-x-4 mt-10">
                 <Button
                   className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
-                  onClick={cerrarConfirmacion}
+                  onClick={cancelarEdicion}
                 >
                   Cancelar
                 </Button>
                 <Button
                   className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-                  onClick={actualizarServicio}
+                  onClick={confirmarActualizacion}
                 >
                   Actualizar Servicio
                 </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <CircularProgress color="primary" size="lg" />
+        )}
 
-      <Modal isOpen={isOpenError} onClose={onCloseError}>
-        <ModalContent>
-          <ModalHeader>Error</ModalHeader>
-          <ModalBody>
-            <p>{mensajeError}</p>
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={onCloseError}>Cerrar</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </>
+        {/* Modales */}
+        {/* Modal para seleccionar productos */}
+        <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+          <ModalContent>
+            <ModalHeader>Seleccionar Producto</ModalHeader>
+            <div className="text-center mx-auto">
+              <span className="block font-semibold">Producto Seleccionado:</span>
+              <span>{productoSeleccionado?.nombre}</span>
+            </div>
+            <ModalBody>
+              <Select
+                placeholder="Selecciona un producto"
+                onChange={(event) => {
+                  const value = event.target.value;
+                  const producto = productos.find(
+                    (producto) => producto.idProducto.toString() === value
+                  );
+                  if (producto) {
+                    setProductoSeleccionado(producto);
+                  }
+                }}
+              >
+                {productos.map((producto) => (
+                  <SelectItem
+                    key={producto.idProducto}
+                    value={producto.idProducto.toString()}
+                  >
+                    {producto.nombre}
+                  </SelectItem>
+                ))}
+              </Select>
+
+              <Input
+                type="number"
+                label="Cantidad"
+                value={cantidad.toString()}
+                errorMessage={cantidadError}
+                onValueChange={(value) => {
+                  setCantidad(Number(value));
+                  setCantidadError(validarCantidad(Number(value), productoSeleccionado?.unidadMedida || ""));
+                }}
+                className="mt-4"
+              />
+              {cantidadError && <span className="text-red-500">{cantidadError}</span>}
+
+              <Input
+                label="Unidad de Medida"
+                value={productoSeleccionado?.unidadMedida || ""}
+                isReadOnly // Hacer que sea solo lectura
+                className="mt-4"
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                onClick={() => onOpenChange()}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  agregarProducto();
+                  onOpenChange();
+                }}
+              >
+                Agregar Producto
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Modal de Confirmación */}
+        <Modal isOpen={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
+          <ModalContent>
+            {(onClose) => (
+              <>
+                <ModalHeader className="flex flex-col items-center gap-1">
+                  <CircleHelp color="#fef08a" size={100} />
+                </ModalHeader>
+                <ModalBody className="text-center">
+                  <h1 className="text-3xl ">¿Desea actualizar el servicio?</h1>
+                  <p>Esta acción actualizará la información del servicio.</p>
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                    onClick={cerrarConfirmacion}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                    onClick={actualizarServicio}
+                  >
+                    Actualizar Servicio
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
+
+        {/* Modal de producto duplicado */}
+        <Modal isOpen={isDuplicateModalOpen} onClose={() => setIsDuplicateModalOpen(false)}>
+          <ModalContent>
+            <ModalHeader>Error</ModalHeader>
+            <ModalBody>El producto ya ha sido agregado a la lista.</ModalBody>
+            <ModalFooter>
+              <Button
+                color="danger"
+                variant="light"
+                onClick={() => setIsDuplicateModalOpen(false)}
+              >
+                Cerrar
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        <Modal isOpen={isOpenError} onClose={onCloseError}>
+          <ModalContent>
+            <ModalHeader>Error</ModalHeader>
+            <ModalBody>
+              <p>{mensajeError}</p>
+            </ModalBody>
+            <ModalFooter>
+              <Button onClick={onCloseError}>Cerrar</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </>
+    </div >
   );
 }

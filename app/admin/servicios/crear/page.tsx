@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Input,
@@ -21,7 +21,7 @@ import {
   CircularProgress,
   Divider,
 } from "@nextui-org/react";
-import { CircleHelp, CircleX, Link, PlusIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, CircleHelp, CircleX, Link, PlusIcon } from "lucide-react";
 import {
   getWithAuth,
   postWithAuth,
@@ -170,6 +170,15 @@ export default function CrearServicioPage() {
   const agregarProducto = () => {
     const error = validarCantidad(cantidad);
     if (productoSeleccionado && cantidad > 0 && error === "") {
+      const productoExiste = productosSeleccionados.find(
+        (p) => p.idProducto === productoSeleccionado.idProducto
+      );
+
+      if (productoExiste) {
+        setMensajeError("El producto ya ha sido agregado.");
+        onOpenError();
+        return;
+      }
       setProductosSeleccionados((prevProductosSeleccionados) => [
         ...prevProductosSeleccionados,
         {
@@ -184,7 +193,7 @@ export default function CrearServicioPage() {
     } else {
       setCantidadError(
         error ||
-          "Seleccione un producto y complete todos los campos necesarios."
+        "Seleccione un producto y complete todos los campos necesarios."
       );
       onOpenError();
     }
@@ -370,136 +379,213 @@ export default function CrearServicioPage() {
   };
 
   return (
-    <>
+    <div className="container mx-auto p-4">
       {acceso ? (
-        <div className="w-full mx-auto space-y-8 lg:w-3/5">
-          {/* Sección de Campos de Servicio */}
-          <div className="p-6 rounded-lg shadow-md">
-            <h1 className="mb-6 text-2xl font-bold">Crear Servicio</h1>
-            <div className="grid gap-6">
-              <Input
-                isRequired
-                type="text"
-                label="Nombre"
-                pattern="[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+"
-                value={nombre}
-                isInvalid={errors.nombre}
-                color={errors.nombre ? "danger" : "default"}
-                errorMessage="El nombre debe tener al menos 5 caracteres, no puede contener números ni caracteres especiales"
-                onValueChange={setNombre}
-                className="w-full"
-              />
-              <Input
-                isRequired
-                type="number"
-                label="Tiempo en minutos"
-                value={tiempoMinutos}
-                isInvalid={errors.tiempoMinutos}
-                color={errors.tiempoMinutos ? "danger" : "default"}
-                errorMessage={
-                  errors.tiempoMinutos
-                    ? "El tiempo en minutos debe ser positivo y no superar 300 minutos (5 horas)"
-                    : ""
-                }
-                onValueChange={(value) => setTiempoMinutos(value)}
-                className="w-full"
-              />
-              <div className="col-span-2">
-                <Input
-                  isRequired
-                  type="text"
-                  label="Descripción"
-                  pattern="[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+"
-                  value={descripcion}
-                  isInvalid={errors.descripcion}
-                  color={errors.descripcion ? "danger" : "default"}
-                  errorMessage="La descripcion debe tener al menos 10 caracteres, no puede contener números ni caracteres especiales"
-                  onValueChange={setDescripcion}
-                  className="w-full h-32" // Aumenta la altura del campo
-                />
-              </div>
-              <div className="col-span-2">
-                <Input
-                  isRequired
-                  type="text"
-                  label="Imagenes"
-                  value={imagen}
-                  isInvalid={!!errors.imagenes}
-                  color={errors.imagenes ? "danger" : "default"}
-                  errorMessage={errors.imagenes}
-                  onValueChange={setImagen}
-                />
+        <>
+          <div className="flex gap-4">
+            {/* Servicios a la izquierda */}
+            <div className="flex-1">
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold">Crear Servicio</h2>
+                <Divider />
+                <div className="mt-4">
+                  <Input
+                    isRequired
+                    type="text"
+                    label="Nombre"
+                    pattern="[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+"
+                    value={nombre}
+                    isInvalid={errors.nombre}
+                    color={errors.nombre ? "danger" : "default"}
+                    errorMessage="El nombre debe tener al menos 5 caracteres, no puede contener números ni caracteres especiales"
+                    onValueChange={setNombre}
+                    className="w-full mb-4" // Añadido margen inferior
+                  />
+                  <Input
+                    isRequired
+                    type="text"
+                    label="Descripción"
+                    pattern="[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+"
+                    value={descripcion}
+                    isInvalid={errors.descripcion}
+                    color={errors.descripcion ? "danger" : "default"}
+                    errorMessage="La descripcion debe tener al menos 10 caracteres, no puede contener números ni caracteres especiales"
+                    onValueChange={setDescripcion}
+                    className="w-full mb-4" // Añadido margen inferior
+                  />
+                  <Select
+                    isRequired
+                    label="Tiempo en minutos"
+                    value={tiempoMinutos}
+                    isInvalid={errors.tiempoMinutos}
+                    color={errors.tiempoMinutos ? "danger" : "default"}
+                    errorMessage={
+                      errors.tiempoMinutos
+                        ? "El tiempo en minutos debe ser positivo y no superar 300 minutos (5 horas)"
+                        : ""
+                    }
+                    onChange={(event) => setTiempoMinutos(event.target.value)}
+                    className="w-full mb-4" // Añadido margen inferior
+                  >
+                    <SelectItem key="30">30 minutos</SelectItem>
+                    <SelectItem key="60">60 minutos</SelectItem>
+                    <SelectItem key="90">90 minutos</SelectItem>
+                  </Select>
+                  <Input
+                    isRequired
+                    type="text"
+                    label="Imagenes"
+                    value={imagen}
+                    isInvalid={!!errors.imagenes}
+                    color={errors.imagenes ? "danger" : "default"}
+                    errorMessage={errors.imagenes}
+                    onValueChange={setImagen}
+                    className="w-full mb-6" // Añadido margen inferior
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          <Divider className="h-1 my-4" />
-          {/* Sección de Productos Seleccionados */}
-          <div className="p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold">Productos Seleccionados</h2>
-              <Button
-                size="sm"
-                className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-                startContent={<PlusIcon className="text-white" />}
-                onClick={() => {
-                  onOpen();
-                  fetchProductos();
-                }}
-              >
-                Agregar Producto
-              </Button>
-            </div>
-            <Table aria-label="Productos seleccionados">
-              <TableHeader>
-                <TableColumn>Producto</TableColumn>
-                <TableColumn>Cantidad</TableColumn>
-                <TableColumn>Unidad de Medida</TableColumn>
-                <TableColumn>Acciones</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {productosSeleccionados.map((producto, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{producto.nombre}</TableCell>
-                    <TableCell>{producto.cantidad}</TableCell>
-                    <TableCell>{producto.unidadMedida}</TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        color="danger"
-                        variant="light"
-                        onClick={() => eliminarProducto(index)}
-                      >
-                        <CircleX />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            <div className="flex justify-center my-4 ">
-              <Button
-                disabled={currentPage === 1}
-                onPress={() => handlePageChange(currentPage - 1)}
-                color="primary"
-              >
-                Anterior
-              </Button>
-              <span className="mx-2">
-                Página {currentPage} de {totalPages}
-              </span>
-              <Button
-                disabled={currentPage === totalPages}
-                onPress={() => handlePageChange(currentPage + 1)}
-                color="primary"
-              >
-                Siguiente
-              </Button>
+            {/* Productos seleccionados a la derecha */}
+            <div className="flex-1">
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold">Productos Seleccionados</h2>
+                <Divider />
+                <div className="mt-4 flex items-center">
+                  <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+                    <ModalContent>
+                      <ModalHeader>Seleccionar Producto</ModalHeader>
+                      <div className="text-center mx-auto"> 
+                        <span className="block font-semibold">Producto Seleccionado:</span>
+                        <span>{productoSeleccionado?.nombre}</span>
+                      </div>
+                      <ModalBody>
+                        <Select
+                          placeholder="Selecciona un producto"
+                          onChange={(event) => handleSelectProduct(event.target.value)}
+                        >
+                          {productos.map((producto) => (
+                            <SelectItem
+                              key={producto.idProducto}
+                              value={producto.idProducto.toString()}
+                            >
+                              {producto.nombre}
+                            </SelectItem>
+                          ))}
+                        </Select>
+                        <Input
+                          type="number"
+                          label="Cantidad"
+                          value={cantidad.toString()}
+                          errorMessage={cantidadError}
+                          onValueChange={(value) => {
+                            setCantidad(Number(value)); // Dejar que la cantidad sea modificable
+                            setCantidadError(validarCantidad(Number(value)));
+                          }}
+                          className="mt-4"
+                        />
+                        {cantidadError && (
+                          <span className="text-red-500">{cantidadError}</span>
+                        )}
+                        <Input
+                          label="Unidad de Medida"
+                          value={unidadMedida} // Mostrar la unidad de medida fija
+                          isReadOnly // Hacer que sea solo lectura
+                          className="mt-4"
+                        />
+                      </ModalBody>
+                      <ModalFooter>
+                        <Button
+                          className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                          onClick={() => onOpenChange()}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            agregarProducto();
+                            onOpenChange();
+                          }}
+                        >
+                          Agregar Producto
+                        </Button>
+                      </ModalFooter>
+                    </ModalContent>
+                  </Modal>
+                </div>
+
+                {/* Sección de Productos Seleccionados */}
+                <div className="p-6 rounded-lg shadow-md">
+                  <div className="flex justify-end mb-4"> {/* Alineado a la derecha */}
+                    <Button
+                      size="sm"
+                      className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                      startContent={<PlusIcon className="text-white" />}
+                      onClick={() => {
+                        onOpen();
+                        fetchProductos();
+                      }}
+                    >
+                      Agregar Producto
+                    </Button>
+                  </div>
+                  <Table aria-label="Productos seleccionados">
+                    <TableHeader>
+                      <TableColumn>Producto</TableColumn>
+                      <TableColumn>Cantidad</TableColumn>
+                      <TableColumn>Unidad de Medida</TableColumn>
+                      <TableColumn>Acciones</TableColumn>
+                    </TableHeader>
+                    <TableBody>
+                      {productosSeleccionados.map((producto, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{producto.nombre}</TableCell>
+                          <TableCell>{producto.cantidad}</TableCell>
+                          <TableCell>{producto.unidadMedida}</TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              color="danger"
+                              variant="light"
+                              onClick={() => eliminarProducto(index)}
+                            >
+                              <CircleX />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <div className="flex items-center justify-between mt-4">
+                    <Button
+                      disabled={currentPage === 1}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      color="warning"
+                      className="p-2 text-black"
+                    >
+                      <ChevronLeftIcon className="h-4 w-4" />
+                    </Button>
+
+                    <span className="text-base">
+                      Página {currentPage} de {totalPages}
+                    </span>
+
+                    <Button
+                      disabled={currentPage === totalPages}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      color="warning"
+                      className="p-2 text-black"
+                    >
+                      <ChevronRightIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Botones Guardar y Cancelar */}
-          <div className="flex justify-end space-x-4">
+          <div className="flex justify-end space-x-4 mt-8"> {/* Añadido margen superior */}
             <Button
               className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
               onClick={cancelarEdicion}
@@ -513,119 +599,64 @@ export default function CrearServicioPage() {
               Crear Servicio
             </Button>
           </div>
-        </div>
-      ) : (
-        <CircularProgress color="primary" size="lg" />
-      )}
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          <ModalHeader>Seleccionar Producto</ModalHeader>
-          <div>
-            <span className="block font-semibold">Producto Seleccionado:</span>
-            <span>{productoSeleccionado?.nombre}</span>
-          </div>
-          <ModalBody>
-            <Select
-              placeholder="Selecciona un producto"
-              onChange={(event) => handleSelectProduct(event.target.value)}
-            >
-              {productos.map((producto) => (
-                <SelectItem
-                  key={producto.idProducto}
-                  value={producto.idProducto.toString()}
-                >
-                  {producto.nombre}
-                </SelectItem>
-              ))}
-            </Select>
-            <Input
-              type="number"
-              label="Cantidad"
-              value={cantidad.toString()}
-              errorMessage={cantidadError}
-              onValueChange={(value) => {
-                setCantidad(Number(value)); // Dejar que la cantidad sea modificable
-                setCantidadError(validarCantidad(Number(value)));
-              }}
-              className="mt-4"
-            />
-            {cantidadError && (
-              <span className="text-red-500">{cantidadError}</span>
-            )}
-            <Input
-              label="Unidad de Medida"
-              value={unidadMedida} // Mostrar la unidad de medida fija
-              isReadOnly // Hacer que sea solo lectura
-              className="mt-4"
-            />
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
-              onClick={() => onOpenChange()}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={() => {
-                agregarProducto();
-                onOpenChange();
-              }}
-            >
-              Agregar Producto
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      <Modal isOpen={isOpenError} onClose={onCloseError}>
-        <ModalContent>
-          <ModalHeader>Error</ModalHeader>
-          <ModalBody>
-            <p>{mensajeError}</p>{" "}
-            {/* Mostrar el mensaje de error personalizado */}
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={onCloseError}>Cerrar</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      {/* Modal de confirmación */}
-      <Modal isOpen={isOpenConfirm} onOpenChange={onCloseConfirm}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col items-center gap-1">
-                <CircleHelp color="#fef08a" size={100} />
+          <Modal isOpen={isOpenConfirm} onOpenChange={onCloseConfirm} className="bg-white shadow-lg rounded-lg">
+            <ModalContent>
+              <ModalHeader className="flex flex-col items-center gap-4 p-6 bg-yellow-100 rounded-t-lg">
+                <CircleHelp color="#fef08a" size={80} />
+                <h2 className="text-2xl font-semibold text-gray-800">Confirmación</h2>
               </ModalHeader>
-              <ModalBody className="text-center">
-                <h1 className="text-3xl">¿Desea crear el servicio?</h1>
-                <p>El servicio no podrá eliminarse, pero podrá desactivarse.</p>
+              <ModalBody className="p-6 text-center">
+                <p className="text-lg text-gray-700">¿Desea crear el servicio?</p>
+                <p className="text-sm text-gray-500 mt-2">El servicio no podrá eliminarse, pero podrá desactivarse.</p>
               </ModalBody>
-              <ModalFooter>
+              <ModalFooter className="flex justify-center gap-4 p-6 bg-gray-100 rounded-b-lg">
                 <Button
-                  className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
-                  onPress={onClose}
+                  className="bg-red-600 text-white hover:bg-red-700 transition duration-200"
+                  onClick={onCloseConfirm}
                 >
                   Cancelar
                 </Button>
                 <Button
-                  className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-                  onPress={onClose}
+                  className="bg-yellow-600 text-white hover:bg-yellow-700 transition duration-200"
                   onClick={() => {
                     guardarServicio();
-                    onClose();
+                    onCloseConfirm();
                   }}
                 >
                   Crear
                 </Button>
               </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-    </>
+            </ModalContent>
+          </Modal>
+
+          {/*Modal de error*/}
+          <Modal isOpen={isOpenError} onOpenChange={onCloseError}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center gap-1">
+                    <CircleX color="#894242" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl ">Error</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+        </>
+      ) : (
+        <div className="text-center mt-4">
+          <p>No tienes permiso para acceder a esta sección.</p>
+        </div>
+      )}
+    </div>
   );
 }

@@ -47,10 +47,10 @@ import { useMediaQuery } from "react-responsive";
 // Definición de columnas
 const columns = [
   { name: "ID", uid: "idServicio" },
-  { name: "NOMBRE ", uid: "nombre" },
-  { name: "DESCRIPCION", uid: "descripcion" },
-  { name: "TIEMPOMINUTOS", uid: "tiempoMinutos" },
-  { name: "ESTADO", uid: "estado" },
+  { name: "Nombre ", uid: "nombre" },
+  { name: "Descripcion", uid: "descripcion" },
+  { name: "TiempoMinutos", uid: "tiempoMinutos" },
+  { name: "Estado", uid: "estado" },
   { name: "Acciones", uid: "acciones" },
 ];
 
