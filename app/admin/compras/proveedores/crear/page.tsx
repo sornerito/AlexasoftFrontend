@@ -158,24 +158,34 @@ export default function CrearProveedorPage() {
   };
   const handleConfirmSubmit = async () => {
     try {
-      const response = await postWithAuth(
-        "http://localhost:8080/compras/proveedores/",
-        proveedor
-      );
-      if (!response.ok) {
-        const errorResponse = await response.text();
-        setMensajeError(
-          "No se puede crear el proveedor ya que hay un Nombre o Telefono o numero de identificaicon estan Repetido"
+      const proveedorData = { ...proveedor };
+
+      if (proveedorData.tipoEmpresa === "Natural") {
+        proveedorData.contacto = '';
+
+        const response = await postWithAuth(
+          "http://localhost:8080/compras/proveedores/",
+          proveedorData
         );
-        onOpenError();
-        throw new Error("Error al intentar guardar el proveedor");
-      }
-      router.push("/admin/compras/proveedores");
-    } catch (error) {
+
+        if (!response.ok) {
+          const errorResponse = await response.text();
+          setMensajeError(
+            "No se puede crear el proveedor ya que hay un Nombre o Telefono o numero de identificación repetido."
+          );
+          onOpenError();
+          throw new Error("Error al intentar guardar el proveedor");
+        }
+
+        router.push("/admin/compras/proveedores");
+      } 
+
+      onOpenChange();
+    }catch (error) {
       console.error("Error al enviar los datos:", error);
-    }
-    onOpenChange();
-  };
+    };
+  }
+
   const TipoEmpresa = [
     { key: "Natural", label: "Natural" },
     { key: "Juridica", label: "Juridica" },
