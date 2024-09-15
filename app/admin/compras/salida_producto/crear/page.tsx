@@ -11,7 +11,7 @@ import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/p
 
 // Interfaz para el producto
 interface SalidaInusmos {
-    idInsumos: number;
+    idSalidaProductos: number;
     idProducto: number;
     fechaRetiro: Date;
     cantidad: string;
@@ -49,16 +49,16 @@ export default function CrearProductoPage() {
   const [acceso, setAcceso] = React.useState<boolean>(false);
   React.useEffect(() => {
     if(typeof window !== "undefined"){
-    if(verificarAccesoPorPermiso("Gestionar Insumos") == false){
+    if(verificarAccesoPorPermiso("Gestionar Salida Producto") == false){
       window.location.href = "../../../../acceso/noAcceso"
     }
-    setAcceso(verificarAccesoPorPermiso("Gestionar Insumos"));
+    setAcceso(verificarAccesoPorPermiso("Gestionar Salida Producto"));
   }
   }, []);
-    const [salidaInsumos, setSalidaInusmos] = useState<SalidaInusmos>({
+    const [salidaSalidaProductos, setSalidaInusmos] = useState<SalidaInusmos>({
      
 
-        idInsumos: 0,
+        idSalidaProductos: 0,
         idProducto: 0,
         fechaRetiro: fechaActual,
         cantidad: "",
@@ -81,7 +81,7 @@ export default function CrearProductoPage() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setSalidaInusmos({ ...salidaInsumos, [name]: value });
+        setSalidaInusmos({ ...salidaSalidaProductos, [name]: value });
 
         let error = "";
         switch (name) {
@@ -96,7 +96,7 @@ export default function CrearProductoPage() {
     const handleFormSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
 
-        const errorCantidad = validarCantidad(salidaInsumos.cantidad);
+        const errorCantidad = validarCantidad(salidaSalidaProductos.cantidad);
 
         if (errorCantidad) {
             setErrores({
@@ -107,7 +107,7 @@ export default function CrearProductoPage() {
             return;
         }
 
-        if (!salidaInsumos.idProducto) {
+        if (!salidaSalidaProductos.idProducto) {
             setMensajeError("Por favor seleccione un producto.");
             onOpenError();
             return;
@@ -118,20 +118,20 @@ export default function CrearProductoPage() {
 
     const handleConfirmSubmit = async () => {
         try {
-            const response = await postWithAuth("http://localhost:8080/compras/salidas-insumo", {
-                    ...salidaInsumos,
-                    precio: Number(salidaInsumos.cantidad),
-                    idProducto: Number(salidaInsumos.idProducto),
+            const response = await postWithAuth("http://localhost:8080/compras/salidas-producto", {
+                    ...salidaSalidaProductos,
+                    precio: Number(salidaSalidaProductos.cantidad),
+                    idProducto: Number(salidaSalidaProductos.idProducto),
             });
 
             if (!response.ok) {
                 const errorResponse = await response.text();
                 setMensajeError("No hay producto disponibles!!");
                 onOpenError();
-                throw new Error("Error al intentar guardar la salida insumos");
+                throw new Error("Error al intentar guardar la salida SalidaProductos");
             }
 
-            router.push("/admin/compras/salida_insumos");
+            router.push("/admin/compras/salida_producto");
         } catch (error) {
             console.error("Error al enviar los datos:", error);
         }
@@ -148,8 +148,8 @@ export default function CrearProductoPage() {
     }, []);
 
     const handleChangeCategoria = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        console.log(salidaInsumos.idProducto)
-        setSalidaInusmos({ ...salidaInsumos, idProducto: Number(e.target.value) });
+        console.log(salidaSalidaProductos.idProducto)
+        setSalidaInusmos({ ...salidaSalidaProductos, idProducto: Number(e.target.value) });
     };
 
     return (
@@ -167,7 +167,7 @@ export default function CrearProductoPage() {
                         name="idProducto"
                         label="Producto"
                         variant="bordered"
-                        value={salidaInsumos.idProducto}
+                        value={salidaSalidaProductos.idProducto}
                         onChange={handleChangeCategoria}
                     >
                         {productos.map((producto) => (
@@ -185,7 +185,7 @@ export default function CrearProductoPage() {
                         type="text"
                         label="Cantidad"
                         variant="bordered"
-                        value={salidaInsumos.cantidad}
+                        value={salidaSalidaProductos.cantidad}
                         isInvalid={!!errores.cantidad}
                         color={errores.cantidad ? "danger" : "default"}
                         errorMessage={errores.cantidad}
@@ -195,8 +195,8 @@ export default function CrearProductoPage() {
                    
                 </div>
                 <div className="my-4 text-end">
-                    <Link href="/admin/compras/salida_insumos">
-                        <Button className="bg-gradient-to-tr from-red-600 to-red-300 mr-2" type="button">
+                    <Link href="/admin/compras/salida_producto">
+                        <Button className="mr-2 bg-gradient-to-tr from-red-600 to-red-300" type="button">
                             Cancelar
                         </Button>
                     </Link>
@@ -210,12 +210,12 @@ export default function CrearProductoPage() {
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <ModalHeader className="flex flex-col gap-1 items-center">
+                            <ModalHeader className="flex flex-col items-center gap-1">
                                 <CircleHelp color="#fef08a" size={100} />
                             </ModalHeader>
                             <ModalBody className="text-center">
-                                <h1 className="text-3xl">¿Desea crear la salida insumos?</h1>
-                                <p>La salida de insumo se creará con la información proporcionada.</p>
+                                <h1 className="text-3xl">¿Desea crear la salida SalidaProductos?</h1>
+                                <p>La salida de SalidaProducto se creará con la información proporcionada.</p>
                             </ModalBody>
                             <ModalFooter>
                                 <Button color="danger" variant="light" onPress={onClose}>
@@ -240,7 +240,7 @@ export default function CrearProductoPage() {
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <ModalHeader className="flex flex-col gap-1 items-center">
+                            <ModalHeader className="flex flex-col items-center gap-1">
                                 <CircleX color="#894242" size={100} />
                             </ModalHeader>
                             <ModalBody className="text-center">

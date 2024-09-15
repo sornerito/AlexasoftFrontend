@@ -21,7 +21,7 @@ export const siteConfig = {
       categoryLabel: "Compras",
       items: [
         { label: "Proveedores", href: "/admin/compras/proveedores", permiso: "Gestionar Proveedores" },
-        { label: "Salida Insumos", href: "/admin/compras/salida_insumos", permiso: "Gestionar Insumos" },
+        { label: "Salida Producto", href: "/admin/compras/salida_producto", permiso: "Gestionar Salida Producto" },
         { label: "Categoría Producto", href: "/admin/compras/categoria_producto", permiso: "Gestionar Categoria de Productos" },
         { label: "Producto", href: "/admin/compras/producto", permiso: "Gestionar Producto" },
         { label: "Compra", href: "/admin/compras", permiso: "Gestionar Compras" }
@@ -70,7 +70,7 @@ export const siteConfig = {
       categoryLabel: "Compras",
       items: [
         { label: "Proveedores", href: "/admin/compras/proveedores", permiso: "Gestionar Proveedores" },
-        { label: "Salida Insumos", href: "/admin/compras/salida_insumos", permiso: "Gestionar Insumos" },
+        { label: "Salida Producto", href: "/admin/compras/salida_producto", permiso: "Gestionar Salida Producto" },
         { label: "Categoría Producto", href: "/admin/compras/categoria_producto", permiso: "Gestionar Categoria de Productos" },
         { label: "Producto", href: "/admin/compras/producto", permiso: "Gestionar Producto" },
         { label: "Compra", href: "/admin/compras", permiso: "Gestionar Compras" }
