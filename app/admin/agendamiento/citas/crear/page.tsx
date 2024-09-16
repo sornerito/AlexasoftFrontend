@@ -46,10 +46,10 @@ interface Horario {
 }
 
 interface Paquete {
+  nombrePaquete: string;
   idPaquete: number;
-  nombre: string;
   estado: string;
-  tiempoTotalServicio: number;
+  servicios: string[];
 }
 
 export default function CrearCitaPage() {
@@ -66,7 +66,8 @@ export default function CrearCitaPage() {
 
   const [clientes, setClientes] = useState<{ [key: number]: string }>({});
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
-  const [paquetes, setPaquetes] = useState<{ [key: number]: Paquete }>({});
+  const [paquetes, setPaquetes] = useState<Paquete[]>([]);
+  const [servicios, setServicios] = useState<string[]>([]);
   const [formData, setFormData] = useState<Cita>({
     idCliente: 0,
     idColaborador: 0,
@@ -123,23 +124,16 @@ export default function CrearCitaPage() {
     getWithAuth("http://localhost:8080/servicio/paquetes")
       .then((response) => response.json())
       .then((data) => {
-        const fetchedPaquetes: { [key: number]: Paquete } = {};
-        data
-          .filter(
-            (item: { paquete: { estado: string } }) =>
-              item.paquete.estado === "Activo"
-          ) // Filtra paquetes activos
-          .forEach(
-            (item: {
-              paquete: { idPaquete: number; nombre: string; estado: string; tiempoTotalServicio: number; };
-            }) => {
-              const { idPaquete, nombre, estado, tiempoTotalServicio } = item.paquete;
-              fetchedPaquetes[idPaquete] = { idPaquete, nombre, estado, tiempoTotalServicio };
-            }
-          );
-        setPaquetes(fetchedPaquetes);
+        const paquetesActivos = data
+          .filter((item: { paquete: { estado: string } }) => item.paquete.estado === "Activo")
+          .map((item: { paquete: { idPaquete: number; nombre: string }; servicios: { nombre: string }[] }) => ({
+            idPaquete: item.paquete.idPaquete,
+            nombrePaquete: item.paquete.nombre,
+            servicios: item.servicios.map((servicio) => servicio.nombre), // Esto es opcional, solo muestra los nombres
+          }));
+        setPaquetes(paquetesActivos); // Ahora es un array, así que puedes usar .map()
       })
-      .catch((err) => console.log(err.message));
+      .catch((err) => console.error("Error fetching paquetes:", err.message));
 
     getWithAuth("http://localhost:8080/horario")
       .then((response) => response.json())
@@ -242,9 +236,21 @@ export default function CrearCitaPage() {
     onOpenConfirm(); // Abre el modal de confirmación
   };
 
-  const [creandoCita, setCreandoCita] = useState(false);
+  const handlePaqueteChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedPaqueteId = parseInt(e.target.value, 10);
+    handleInputChange(e);
+
+    // Suponiendo que tienes una forma de obtener los servicios del paquete seleccionado
+    const paqueteSeleccionado = paquetes.find(paquete => paquete.idPaquete === selectedPaqueteId);
+
+    if (paqueteSeleccionado) {
+      setServicios(paqueteSeleccionado.servicios);
+    } else {
+      setServicios([]);
+    }
+  };
+
   const handleConfirmSubmit = async () => {
-    setCreandoCita(true);
     const horaConSegundos = `${formData.hora}:00`;
 
     const datosParaEnviar = {
@@ -256,24 +262,20 @@ export default function CrearCitaPage() {
       detalle: formData.detalle,
       estado: formData.estado,
     };
-    const duracion = paquetes[formData.idPaquete].tiempoTotalServicio;
-    let mensajeE = "";
+
     try {
       const response = await postWithAuth(
-        `http://localhost:8080/cita?duracion=${duracion}`,
+        "http://localhost:8080/cita",
         datosParaEnviar
       );
-      mensajeE = await response.text();
       if (response.ok) {
         window.location.href = "/admin/agendamiento/citas";
       } else {
-        setCreandoCita(false);
-        setMensajeError(await response.text());
+        setMensajeError("Error al crear la cita");
         onOpenError();
       }
     } catch (error) {
-      setCreandoCita(false);
-      setMensajeError(mensajeE);
+      setMensajeError("Error al enviar la solicitud");
       onOpenError();
     }
     onCloseConfirm();
@@ -371,22 +373,19 @@ export default function CrearCitaPage() {
                 label="Paquete"
                 name="idPaquete"
                 placeholder="Seleccione un paquete"
-                onChange={handleInputChange}
+                onChange={handlePaqueteChange} // Cambiar a handlePaqueteChange
                 size="lg"
                 className="block w-full"
                 isInvalid={!validarPaquete(formData.idPaquete)}
                 errorMessage={
-                  !validarPaquete(formData.idPaquete)
-                    ? "Debe seleccionar un paquete"
-                    : ""
+                  !validarPaquete(formData.idPaquete) ? "Debe seleccionar un paquete" : ""
                 }
               >
-                {Object.entries(paquetes)
-                  .map(([idPaquete, paquete]) => (
-                    <SelectItem key={idPaquete} value={idPaquete}>
-                      {paquete.nombre}
-                    </SelectItem>
-                  ))}
+                {paquetes.map((paquete) => (
+                  <SelectItem key={paquete.idPaquete} value={paquete.idPaquete}>
+                    {paquete.nombrePaquete}
+                  </SelectItem>
+                ))}
               </Select>
               <Input
                 name="detalle"
@@ -396,11 +395,18 @@ export default function CrearCitaPage() {
                 value={formData.detalle || ""}
                 onChange={handleInputChange}
               />
+              <Input
+                name="servicios"
+                type="text"
+                label="Servicios vinculado al paquete seleccionado"
+                value={servicios.join(", ")} // Mostrar los servicios como una lista separada por comas
+                className="block w-full"
+                isReadOnly // Hacer el campo solo lectura si solo deseas mostrar los servicios
+              />
             </div>
 
             <div className="flex justify-end mt-6">
               <Button
-                isLoading={creandoCita ? true : false}
                 type="submit"
                 className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
                 disabled={!formIsValid}
@@ -422,7 +428,7 @@ export default function CrearCitaPage() {
                 <Button color="danger" onClick={onCloseConfirm}>
                   Cancelar
                 </Button>
-                <Button isLoading={creandoCita ? true : false} color="warning" onClick={handleConfirmSubmit}>
+                <Button color="warning" onClick={handleConfirmSubmit}>
                   Crear
                 </Button>
               </ModalFooter>
@@ -446,7 +452,9 @@ export default function CrearCitaPage() {
           </Modal>
         </div>
       ) : (
-        <CircularProgress aria-label="Loading..." />
+        <div className="flex items-center justify-center h-screen">
+          <CircularProgress size="lg" />
+        </div>
       )}
     </>
   );
