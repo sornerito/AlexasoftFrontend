@@ -86,7 +86,7 @@ export default function CrearServicioPage() {
     ProductoSeleccionado[]
   >([]);
 
-  // Modal de confirmación
+
   const {
     isOpen: isOpenConfirm,
     onOpen: onOpenConfirm,
@@ -122,7 +122,7 @@ export default function CrearServicioPage() {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  // Unidades de medida disponibles
+
   const unidadesMedida = [
     { key: "ml", label: "ml" },
     { key: "g", label: "g" },
@@ -134,7 +134,7 @@ export default function CrearServicioPage() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        await fetchProductos(); // No need for Promise.all if you're just calling one function
+        await fetchProductos();
       } catch (error) {
         console.error("Error al obtener datos:", error);
       } finally {
@@ -169,6 +169,24 @@ export default function CrearServicioPage() {
   // Función para agregar un producto
   const agregarProducto = () => {
     const error = validarCantidad(cantidad);
+    if (!productoSeleccionado) {
+      setMensajeError("Seleccione un producto.");
+      onOpenError();
+      return;
+    }
+
+    if (cantidad === null || cantidad === undefined || cantidad.toString().trim() === "") {
+      setMensajeError("La cantidad no puede estar vacía.");
+      onOpenError();
+      return;
+    }
+
+    if (cantidad <= 0) {
+      setMensajeError("La cantidad debe ser mayor que cero.");
+      onOpenError();
+      return;
+    }
+    
     if (productoSeleccionado && cantidad > 0 && error === "") {
       const productoExiste = productosSeleccionados.find(
         (p) => p.idProducto === productoSeleccionado.idProducto
@@ -207,7 +225,7 @@ export default function CrearServicioPage() {
 
   const confirmarGuardarServicio = () => {
     const errorNombre = validarCampoString(nombre, "Nombre del servicio");
-    const errorDescripcion = validarDescripcionModal(descripcion);
+    const errorDescripcion = validarDescripcionModal(descripcion, "Descripcion del servicio");
     const errorTiempoMinutos = validarTiempoModal(tiempoMinutos);
 
     if (errorNombre != "") {
@@ -230,11 +248,11 @@ export default function CrearServicioPage() {
       setMensajeError(
         "Debe seleccionar al menos un producto para crear el servicio."
       );
-      onOpenError(); // Mostrar el modal de error si no hay productos seleccionados
+      onOpenError();
       return;
     }
 
-    onOpenConfirm(); // Abrir modal de confirmación
+    onOpenConfirm();
   };
 
   // Función de validación y envío del formulario
@@ -272,8 +290,14 @@ export default function CrearServicioPage() {
         router.push("/admin/servicios");
       } else {
         const errorData = await response.json();
-        setMensajeError(errorData.message || "Error al crear el servicio");
-        onOpenError();
+        if (errorData.message && errorData.message.includes("Ya existe un servicio con el nombre")) {
+          setMensajeError(errorData.message);
+          onOpenError();
+        } else {
+          const errorData = await response.json();
+          setMensajeError(errorData.message || "Error al crear el servicio");
+          onOpenError();
+        }
       }
     } catch (error) {
       setMensajeError("Error en la comunicación con el servidor");
@@ -281,12 +305,11 @@ export default function CrearServicioPage() {
     }
   };
 
-  // Expresión regular para validar caracteres permitidos (alfanuméricos y espacios)
+
   const caracteresValidos = /^[a-zA-Z0-9\s]*$/;
 
   // Validación en tiempo real para el nombre
   const validarNombre = (nombre: any) => {
-    // Verificar si hay caracteres especiales
     if (!caracteresValidos.test(nombre)) {
       return "El nombre no puede contener caracteres especiales.";
     }
@@ -298,11 +321,10 @@ export default function CrearServicioPage() {
 
   // Validación en tiempo real para la descripción
   const validarDescripcion = (descripcion: any) => {
-    // Verificar si hay caracteres especiales
     if (!caracteresValidos.test(descripcion)) {
       return "La descripción no puede contener caracteres especiales.";
     }
-    if (validarDescripcionModal(descripcion) != "") {
+    if (validarDescripcionModal(descripcion, "Descripcion") != "") {
       return false;
     }
     return descripcion.length >= 10;
@@ -310,21 +332,20 @@ export default function CrearServicioPage() {
 
   const validarTiempo = (valor: string): boolean => {
     if (valor.trim() === "") {
-      return true; // Permitir campo vacío
+      return true;
     }
 
     const tiempoNumerico = parseInt(valor, 10);
 
     return (
       !isNaN(tiempoNumerico) && tiempoNumerico > 0 && tiempoNumerico <= 300
-    ); // Max 5 hours (300 minutes)
+    );
   };
 
   const validarCantidad = (cantidad: number) => {
-    if (!cantidad) {
+    if (cantidad === null || cantidad === undefined || cantidad.toString().trim() === "") {
       return "La cantidad no puede estar vacía.";
     }
-
     if (productoSeleccionado?.unidadMedida === "g") {
       if (cantidad < 10) {
         return "La cantidad mínima en gramos es 10g.";
@@ -367,9 +388,9 @@ export default function CrearServicioPage() {
     );
     if (producto) {
       setProductoSeleccionado(producto);
-      setCantidadInicial(0); // Reiniciar la cantidad inicial
-      setCantidad(0); // Reiniciar la cantidad editable
-      setUnidadMedida(producto.unidadMedida); // Unidad de medida fija del producto
+      setCantidadInicial(0);
+      setCantidad(0);
+      setUnidadMedida(producto.unidadMedida);
     }
   };
 
@@ -399,7 +420,7 @@ export default function CrearServicioPage() {
                     color={errors.nombre ? "danger" : "default"}
                     errorMessage="El nombre debe tener al menos 5 caracteres, no puede contener números ni caracteres especiales"
                     onValueChange={setNombre}
-                    className="w-full mb-4" // Añadido margen inferior
+                    className="w-full mb-4"
                   />
                   <Input
                     isRequired
@@ -411,7 +432,7 @@ export default function CrearServicioPage() {
                     color={errors.descripcion ? "danger" : "default"}
                     errorMessage="La descripcion debe tener al menos 10 caracteres, no puede contener números ni caracteres especiales"
                     onValueChange={setDescripcion}
-                    className="w-full mb-4" // Añadido margen inferior
+                    className="w-full mb-4"
                   />
                   <Select
                     isRequired
@@ -425,7 +446,7 @@ export default function CrearServicioPage() {
                         : ""
                     }
                     onChange={(event) => setTiempoMinutos(event.target.value)}
-                    className="w-full mb-4" // Añadido margen inferior
+                    className="w-full mb-4"
                   >
                     <SelectItem key="30">30 minutos</SelectItem>
                     <SelectItem key="60">60 minutos</SelectItem>
@@ -440,7 +461,7 @@ export default function CrearServicioPage() {
                     color={errors.imagenes ? "danger" : "default"}
                     errorMessage={errors.imagenes}
                     onValueChange={setImagen}
-                    className="w-full mb-6" // Añadido margen inferior
+                    className="w-full mb-6"
                   />
                 </div>
               </div>
@@ -455,7 +476,7 @@ export default function CrearServicioPage() {
                   <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
                     <ModalContent>
                       <ModalHeader>Seleccionar Producto</ModalHeader>
-                      <div className="text-center mx-auto"> 
+                      <div className="text-center mx-auto">
                         <span className="block font-semibold">Producto Seleccionado:</span>
                         <span>{productoSeleccionado?.nombre}</span>
                       </div>
@@ -479,8 +500,9 @@ export default function CrearServicioPage() {
                           value={cantidad.toString()}
                           errorMessage={cantidadError}
                           onValueChange={(value) => {
-                            setCantidad(Number(value)); // Dejar que la cantidad sea modificable
-                            setCantidadError(validarCantidad(Number(value)));
+                            const nuevaCantidad = Number(value);
+                            setCantidad(nuevaCantidad);
+                            setCantidadError(validarCantidad(nuevaCantidad));
                           }}
                           className="mt-4"
                         />
@@ -489,8 +511,8 @@ export default function CrearServicioPage() {
                         )}
                         <Input
                           label="Unidad de Medida"
-                          value={unidadMedida} // Mostrar la unidad de medida fija
-                          isReadOnly // Hacer que sea solo lectura
+                          value={unidadMedida}
+                          isReadOnly
                           className="mt-4"
                         />
                       </ModalBody>

@@ -103,6 +103,7 @@ export default function CrearPaquetePage() {
             estado: item.servicios.estado,
           })
         );
+        
         setServicios(processedData);
       })
       .catch((err) => {
@@ -117,10 +118,10 @@ export default function CrearPaquetePage() {
   const serviciosFiltrados = React.useMemo(() => {
     return servicios.filter(
       (servicio) =>
-        servicio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        servicio.estado.toLowerCase() === "activo" && // Filtra solo los servicios activos
+        (servicio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         servicio.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        servicio.estado.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        servicio.idServicio.toString().includes(searchTerm.toLowerCase())
+        servicio.idServicio.toString().includes(searchTerm.toLowerCase()))
     );
   }, [servicios, searchTerm]);
   // Distribuye los registros segun los permisos filtrados (si no hay filtro muestra todos)

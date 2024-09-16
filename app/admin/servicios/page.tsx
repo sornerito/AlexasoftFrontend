@@ -1,6 +1,6 @@
 "use client";
 import { title } from "@/components/primitives";
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   PlusIcon,
@@ -9,6 +9,7 @@ import {
   Edit,
   CircleHelp,
   CircleX,
+  Eye,
 } from "lucide-react";
 import {
   getWithAuth,
@@ -41,6 +42,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  Spinner,
 } from "@nextui-org/react";
 import { useMediaQuery } from "react-responsive";
 
@@ -61,6 +63,7 @@ interface Servicio {
   descripcion: string;
   tiempoMinutos: string;
   estado: string;
+
 }
 
 export default function ServiciosPage() {
@@ -100,6 +103,8 @@ export default function ServiciosPage() {
     onOpenChange: onOpenChangeDetalles,
   } = useDisclosure(); //Hook de modal error
 
+  const [isLoading, setIsLoading] = useState(true);
+
   const router = useRouter(); // Hook para manejar la navegación
 
   // Hacer Fetch para obtener ventas y procesar datos
@@ -136,6 +141,7 @@ export default function ServiciosPage() {
             descripcion: item.servicios.descripcion,
             tiempoMinutos: item.servicios.tiempoMinutos,
             estado: item.servicios.estado,
+            productos: item.productos,
           })
         );
         setServicios(processedData);
@@ -299,7 +305,7 @@ export default function ServiciosPage() {
                             {column.uid === "acciones" ? "" : column.name + ":"}{" "}
                           </strong>
                           {column.uid === "acciones" &&
-                          item.estado == "Activo" ? (
+                            item.estado == "Activo" ? (
                             <Dropdown>
                               <DropdownTrigger className="w-auto my-2 bg-transparent">
                                 <Button
@@ -323,11 +329,13 @@ export default function ServiciosPage() {
                                 </DropdownItem>
                                 <DropdownItem>
                                   <Button
+                                  className="w-full bg-transparent"
                                     onClick={() =>
                                       mostrarDetalleServicio(item.idServicio)
                                     }
                                   >
-                                    Ver Detalles
+                                    <Eye />
+                                    Detalles
                                   </Button>
                                 </DropdownItem>
                               </DropdownMenu>
@@ -370,7 +378,7 @@ export default function ServiciosPage() {
                     {columns.map((column) => (
                       <TableCell key={column.uid}>
                         {column.uid === "acciones" &&
-                        item.estado == "Activo" ? (
+                          item.estado == "Activo" ? (
                           <Dropdown>
                             <DropdownTrigger>
                               <Button
@@ -393,10 +401,12 @@ export default function ServiciosPage() {
                               </DropdownItem>
                               <DropdownItem>
                                 <Button
+                                className="w-full bg-transparent"
                                   onClick={() =>
                                     mostrarDetalleServicio(item.idServicio)
                                   }
                                 >
+                                  <Eye />
                                   Ver Detalles
                                 </Button>
                               </DropdownItem>
@@ -436,44 +446,92 @@ export default function ServiciosPage() {
             />
           </div>
 
-          <Modal isOpen={isOpenDetalles} onOpenChange={onOpenChangeDetalles}>
+          <Modal
+            isOpen={isOpenDetalles}
+            onOpenChange={onOpenChangeDetalles}
+            className="max-w-5xl"
+          >
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col items-center gap-1">
-                    <CircleHelp color="#fef08a" size={100} />
+                  <ModalHeader className="flex flex-col items-center pb-4 border-b border-gray-200">
+                    <Eye color="#FFD700" size={100} />
+                    <h1 className="mt-2 text-3xl font-semibold">
+                      Detalle Servicios
+                    </h1>
                   </ModalHeader>
-                  <ModalBody className="text-center">
+                  <ModalBody className="p-6 overflow-y-auto max-h-96">
                     {servicioSeleccionado ? (
-                      <div>
-                        <h1 className="mb-4 text-2xl">Detalles del Servicio</h1>
-                        <p>
-                          <strong>ID:</strong> {servicioSeleccionado.idServicio}
-                        </p>
-                        <p>
-                          <strong>Nombre:</strong> {servicioSeleccionado.nombre}
-                        </p>
-                        <p>
-                          <strong>Descripción:</strong>{" "}
-                          {servicioSeleccionado.descripcion}
-                        </p>
-                        <p>
-                          <strong>Tiempo (minutos):</strong>{" "}
-                          {servicioSeleccionado.tiempoMinutos}
-                        </p>
-                        <p>
-                          <strong>Estado:</strong> {servicioSeleccionado.estado}
-                        </p>
+                      <div className="flex flex-col gap-6 lg:flex-row">
+                        <Table
+                          aria-label="Detalles de la Venta"
+                          className="flex-1"
+                        >
+                          <TableHeader>
+                            <TableColumn>Informacion Servicios</TableColumn>
+                            <TableColumn>Información</TableColumn>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>Nombre</TableCell>
+                              <TableCell>
+                                {servicioSeleccionado.nombre}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Descripcion</TableCell>
+                              <TableCell>
+                                {servicioSeleccionado.descripcion}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Tiempo (minutos)</TableCell>
+                              <TableCell>
+                                {servicioSeleccionado.tiempoMinutos}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Estado</TableCell>
+                              <TableCell>
+                               {servicioSeleccionado.estado}
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+
+                        <div style={{ width: "50%" }}>
+                          {servicioSeleccionado.productos.length > 0 ? (
+                            <Table aria-label="Productos" className="flex-1">
+                              <TableHeader>
+                                <TableColumn>Producto</TableColumn>
+                                <TableColumn>Cantidad</TableColumn>
+                                <TableColumn>Unidad</TableColumn>
+                              </TableHeader>
+                              <TableBody>
+                                {servicioSeleccionado.productos.map((producto: any, index: number) => (
+                                  <TableRow key={index}>
+                                    <TableCell>{producto.nombre}</TableCell>
+                                    <TableCell>{producto.cantidad}</TableCell>
+                                    <TableCell>{producto.unidadMedida}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          ) : (
+                            <p>No hay productos asociados a este servicio.</p>
+                          )}
+                        </div>
+                      </div>
+                    ) : isLoading ? (
+                      <div className="flex items-center justify-center">
+                        <Spinner color="warning" size="lg" />
                       </div>
                     ) : (
-                      <p>No se encontró el servicio.</p>
+                      <p>No hay detalles para mostrar</p>
                     )}
                   </ModalBody>
-                  <ModalFooter>
-                    <Button
-                      className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
-                      onPress={onClose}
-                    >
+                  <ModalFooter className="pt-4 border-t border-gray-200">
+                    <Button color="danger" variant="light" onPress={onClose}>
                       Cerrar
                     </Button>
                   </ModalFooter>
@@ -481,6 +539,7 @@ export default function ServiciosPage() {
               )}
             </ModalContent>
           </Modal>
+
 
           {/*Modal Cambiar Estado*/}
           <Modal isOpen={isOpen} onOpenChange={onOpenChange}>

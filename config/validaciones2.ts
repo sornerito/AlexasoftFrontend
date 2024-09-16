@@ -11,11 +11,12 @@ export function validarCampoString(valor: string | undefined, campo: string): st
 
 export function validarDescripcionModal(
   descripcion: string,
+  campo: string
 ): string {
   if (!descripcion?.match(/^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]*$/)) {
     return "La descripcion solo debe contener letras";
-  } else if (!descripcion) {
-    return " no puede estar vacio.";
+  } else if (descripcion === "" || descripcion === null) {
+    return `${campo} no puede estar vacio.`;
   } else if (descripcion.length <= 10) {
     return "La descripcion como minimo debe contener 10 caracteres"
   }

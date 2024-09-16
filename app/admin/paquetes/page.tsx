@@ -1,8 +1,8 @@
 "use client";
 import { title } from "@/components/primitives";
-import React from "react";
+import React, { useState } from "react";
 import { useMediaQuery } from "react-responsive";
-import { PlusIcon, Ellipsis, Edit, CircleHelp, CircleX } from "lucide-react";
+import { PlusIcon, Ellipsis, Edit, CircleHelp, CircleX, Eye } from "lucide-react";
 
 import {
   Table,
@@ -29,6 +29,7 @@ import {
   CardBody,
   Card,
   CircularProgress,
+  Spinner,
 } from "@nextui-org/react";
 import {
   getWithAuth,
@@ -79,7 +80,16 @@ export default function PaquetesPage() {
     onOpen: onOpenError,
     onOpenChange: onOpenChangeError,
   } = useDisclosure(); //Hook de modal error
-  const [mensajeError, setMensajeError] = React.useState(""); //Mensaje de error
+  const [mensajeError, setMensajeError] = React.useState("");
+  const [paquetesSeleccionado, setPaquetesSeleccionado] = React.useState<
+    any | null
+  >(null);
+  const {
+    isOpen: isOpenDetalles,
+    onOpen: onOpenDetalles,
+    onOpenChange: onOpenChangeDetalles,
+  } = useDisclosure(); //Hook de modal error
+  const [isLoading, setIsLoading] = useState(true);
 
   // Hacer Fetch para obtener roles y acomodarlos a conveniencia
   React.useEffect(() => {
@@ -103,6 +113,7 @@ export default function PaquetesPage() {
                 descripcion: any;
                 tiempoMinutos: any;
                 estado: any;
+                imagen: any;
               }
             ];
           }) => ({
@@ -200,6 +211,15 @@ export default function PaquetesPage() {
     return null;
   }
 
+
+  const mostrarDetallePaquete = (idPaquete: string) => {
+    const paquete = paquetes.find(
+      (paquete) => paquete.idPaquete === idPaquete
+    );
+    setPaquetesSeleccionado(paquete || null);
+    onOpenDetalles(); // Abre el modal
+  };
+
   return (
     <>
       {acceso ? (
@@ -262,7 +282,7 @@ export default function PaquetesPage() {
                             {column.uid === "acciones" ? "" : column.name + ":"}{" "}
                           </strong>
                           {column.uid === "acciones" &&
-                          item.estado == "Activo" ? (
+                            item.estado == "Activo" ? (
                             <Dropdown>
                               <DropdownTrigger className="w-auto my-2 bg-transparent">
                                 <Button
@@ -282,6 +302,17 @@ export default function PaquetesPage() {
                                   <Button className="w-full bg-transparent">
                                     <Edit />
                                     Editar Paquete
+                                  </Button>
+                                </DropdownItem>
+                                <DropdownItem>
+                                  <Button
+                                    className="w-full bg-transparent"
+                                    onClick={() =>
+                                      mostrarDetallePaquete(item.idPaquete)
+                                    }
+                                  >
+                                    <Eye />
+                                    Detalles
                                   </Button>
                                 </DropdownItem>
                               </DropdownMenu>
@@ -324,7 +355,7 @@ export default function PaquetesPage() {
                     {columns.map((column) => (
                       <TableCell key={column.uid}>
                         {column.uid === "acciones" &&
-                        item.estado == "Activo" ? (
+                          item.estado == "Activo" ? (
                           <Dropdown>
                             <DropdownTrigger>
                               <Button
@@ -343,6 +374,17 @@ export default function PaquetesPage() {
                                 <Button className="w-full bg-transparent">
                                   <Edit />
                                   Editar Paquete
+                                </Button>
+                              </DropdownItem>
+                              <DropdownItem>
+                                <Button
+                                  className="w-full bg-transparent"
+                                  onClick={() =>
+                                    mostrarDetallePaquete(item.idPaquete)
+                                  }
+                                >
+                                  <Eye />
+                                  Ver Detalles
                                 </Button>
                               </DropdownItem>
                             </DropdownMenu>
@@ -379,6 +421,81 @@ export default function PaquetesPage() {
               onChange={(page) => setPage(page)}
             />
           </div>
+
+          <Modal
+            isOpen={isOpenDetalles}
+            onOpenChange={onOpenChangeDetalles}
+            className="max-w-5xl"
+          >
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center pb-4 border-b border-gray-200">
+                    <Eye color="#FFD700" size={100} />
+                    <h1 className="mt-2 text-3xl font-semibold">
+                      Detalle Paquetes
+                    </h1>
+                  </ModalHeader>
+                  <ModalBody className="p-6 overflow-y-auto max-h-96">
+                    {paquetesSeleccionado ? (
+                      <div className="flex flex-col gap-6 lg:flex-row">
+                        <Table
+                          aria-label="Detalles de la Venta"
+                          className="flex-1"
+                        >
+                          <TableHeader>
+                            <TableColumn>Informacion Paquetes</TableColumn>
+                            <TableColumn>Información</TableColumn>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell>Nombre</TableCell>
+                              <TableCell>
+                                {paquetesSeleccionado.nombre}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Descripcion</TableCell>
+                              <TableCell>
+                                {paquetesSeleccionado.descripcion}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>TiempoTotalServicios</TableCell>
+                              <TableCell>
+                                {paquetesSeleccionado.tiempoTotalServicio}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>Estado</TableCell>
+                              <TableCell>
+                                {paquetesSeleccionado.estado}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                            <TableCell>Servicios</TableCell>
+                            <TableCell>{paquetesSeleccionado.servicios}</TableCell>
+                          </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ) : isLoading ? (
+                      <div className="flex items-center justify-center">
+                        <Spinner color="warning" size="lg" />
+                      </div>
+                    ) : (
+                      <p>No hay detalles para mostrar</p>
+                    )}
+                  </ModalBody>
+                  <ModalFooter className="pt-4 border-t border-gray-200">
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
           {/*Modal Cambiar Estado*/}
           <Modal isOpen={isOpen} onOpenChange={onOpenChange}>

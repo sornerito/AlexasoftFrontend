@@ -82,7 +82,7 @@ export default function EditarServicioPage() {
   const [unidadMedida, setUnidadMedida] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Número de productos por página
+  const itemsPerPage = 5; 
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -95,9 +95,8 @@ export default function EditarServicioPage() {
   const [descripcionError, setDescripcionError] = useState("");
   const [tiempoMinutosError, setTiempoMinutosError] = useState("");
   const [cantidadError, setCantidadError] = useState("");
-  const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
 
-  // Estado para rastrear cuál producto está siendo editado
+
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editCantidad, setEditCantidad] = useState<number | null>(null);
   const [editCantidadError, setEditCantidadError] = useState<string>("");
@@ -108,10 +107,9 @@ export default function EditarServicioPage() {
     return error;
   };
 
-  // Función para actualizar la cantidad en el estado
+
   const guardarCantidadEditada = (index: number) => {
     if (editCantidad !== null && validarCantidadEditada(editCantidad, productosSeleccionados[index].unidadMedida) === "") {
-      // Actualiza la cantidad del producto en el estado
       setProductosSeleccionados(prev => prev.slice());
       setProductosSeleccionados((prevProductosSeleccionados) =>
         prevProductosSeleccionados.map((producto, i) =>
@@ -119,12 +117,12 @@ export default function EditarServicioPage() {
         )
       );
 
-      // Limpiar el modo de edición
-      setEditIndex(null); // Salir del modo de edición
-      setEditCantidad(null); // Limpiar la cantidad editada
-      setEditCantidadError(""); // Limpiar cualquier error previo
+
+      setEditIndex(null); 
+      setEditCantidad(null); 
+      setEditCantidadError(""); 
     } else {
-      setEditCantidadError("La cantidad no es válida o está vacía."); // Asegúrate de mostrar un mensaje de error si la cantidad es inválida
+      setEditCantidadError("La cantidad no es válida o está vacía.");
     }
   };
 
@@ -187,12 +185,11 @@ export default function EditarServicioPage() {
         setImagen(data.servicios.imagen);
         setEstado(data.estado);
         console.log(data);
-        // Precargar los productos seleccionados
         setProductosSeleccionados(
           data.productos.map((producto: any) => ({
             idProducto: producto.idProducto,
             nombre: producto.nombre,
-            cantidad: producto.cantidad || 0, // Asegurarse de que cantidad no sea null,
+            cantidad: producto.cantidad || 0,
             unidadMedida: producto.unidadMedida,
           }))
         );
@@ -256,19 +253,32 @@ export default function EditarServicioPage() {
   const agregarProducto = () => {
     const error = validarCantidad(cantidad, unidadMedida);
 
-    if (error) {
-      setCantidadError(error); // Show the validation error message
-      return; // Stop execution if there is an error
+    if (!productoSeleccionado) {
+      setMensajeError("Seleccione un producto.");
+      onOpenError();
+      return;
     }
 
-    if (productoSeleccionado && cantidad > 0 && unidadMedida) {
-      // Asegurarse de no duplicar productos seleccionados
-      const cantidadDeProductosIguales = productosSeleccionados.filter(
+    if (cantidad === null || cantidad === undefined || cantidad.toString().trim() === "") {
+      setMensajeError("La cantidad no puede estar vacía.");
+      onOpenError();
+      return;
+    }
+
+    if (cantidad <= 0) {
+      setMensajeError("La cantidad debe ser mayor que cero.");
+      onOpenError();
+      return;
+    }
+    
+    if (productoSeleccionado && cantidad > 0 && error === "") {
+      const productoExiste = productosSeleccionados.find(
         (p) => p.idProducto === productoSeleccionado.idProducto
-      ).length;
-  
-      if (cantidadDeProductosIguales > 0) { 
-        setIsDuplicateModalOpen(true);
+      );
+
+      if (productoExiste) {
+        setMensajeError("El producto ya ha sido agregado.");
+        onOpenError();
         return;
       }
 
@@ -296,7 +306,7 @@ export default function EditarServicioPage() {
   };
 
   const confirmarActualizacion = () => {
-    setIsConfirmModalOpen(true); // Abrir el modal de confirmación
+    setIsConfirmModalOpen(true); 
   };
 
   const actualizarServicio = async () => {
@@ -313,10 +323,8 @@ export default function EditarServicioPage() {
 
         // Utilizar los valores actualizados de productosSeleccionados
         const productosId = productosSeleccionados.map(p => p.idProducto);
-        const cantidad = productosSeleccionados.map(p => p.cantidad || 0); // Valor por defecto si es null
+        const cantidad = productosSeleccionados.map(p => p.cantidad || 0); 
         const unidadMedida = productosSeleccionados.map(p => p.unidadMedida);
-
-        console.log("Productos seleccionados antes de enviar:", productosSeleccionados);
 
 
         const response = await postWithAuth(
@@ -329,16 +337,9 @@ export default function EditarServicioPage() {
           }
         );
 
-        console.log("Productos seleccionados antes de enviar:", servicioActualizado, cantidad);
-
 
         if (response.ok) {
-          setIsConfirmModalOpen(false); // Cerrar el modal
-          router.push("/admin/servicios");
-          console.log("Productos seleccionados:", productosSeleccionados);
-          console.log("ID de productos:", productosId);
-          console.log("Cantidades:", cantidad);
-          console.log("Unidades de medida:", unidadMedida);
+          setIsConfirmModalOpen(false); 
         } else {
           const errorData = await response.json();
           setMensajeError(
@@ -352,9 +353,6 @@ export default function EditarServicioPage() {
       }
     }
   };
-
-  console.log("Productos seleccionados:", productosSeleccionados);
-  console.log("Cantidades:", cantidad);
 
 
   const cerrarConfirmacion = () => {
@@ -805,34 +803,27 @@ export default function EditarServicioPage() {
           </ModalContent>
         </Modal>
 
-        {/* Modal de producto duplicado */}
-        <Modal isOpen={isDuplicateModalOpen} onClose={() => setIsDuplicateModalOpen(false)}>
-          <ModalContent>
-            <ModalHeader>Error</ModalHeader>
-            <ModalBody>El producto ya ha sido agregado a la lista.</ModalBody>
-            <ModalFooter>
-              <Button
-                color="danger"
-                variant="light"
-                onClick={() => setIsDuplicateModalOpen(false)}
-              >
-                Cerrar
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-
-        <Modal isOpen={isOpenError} onClose={onCloseError}>
-          <ModalContent>
-            <ModalHeader>Error</ModalHeader>
-            <ModalBody>
-              <p>{mensajeError}</p>
-            </ModalBody>
-            <ModalFooter>
-              <Button onClick={onCloseError}>Cerrar</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+         {/*Modal de error*/}
+         <Modal isOpen={isOpenError} onOpenChange={onCloseError}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center gap-1">
+                    <CircleX color="#894242" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <h1 className="text-3xl ">Error</h1>
+                    <p>{mensajeError}</p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
       </>
     </div >
   );
