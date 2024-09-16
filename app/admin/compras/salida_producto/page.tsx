@@ -35,7 +35,7 @@ import {
 import { getWithAuth, postWithAuth, verificarAccesoPorPermiso } from "@/config/peticionesConfig";
 
 const columns = [
-  { name: "Id", uid: "idInsumo" },
+  { name: "Id", uid: "idSalidaProducto" },
   { name: "Producto", uid: "idProducto" },
   { name: "Fecha Retiro", uid: "fechaRetiro" },
   { name: "Cantidad", uid: "cantidad" },
@@ -43,8 +43,8 @@ const columns = [
   { name: "Acciones", uid: "acciones" }
 ];
 
-interface Insumo {
-  idInsumo: string;
+interface SalidaProducto {
+  idSalidaProducto: string;
   idProducto: number;
   fechaRetiro: string;
   cantidad: number;
@@ -56,25 +56,25 @@ interface Producto {
   nombre: string;
 }
 
-export default function InsumosPage() {
+export default function SalidaProductosPage() {
   //Valida permiso
   const [acceso, setAcceso] = React.useState<boolean>(false);
   React.useEffect(() => {
     if(typeof window !== "undefined"){
-    if(verificarAccesoPorPermiso("Gestionar Insumos") == false){
+    if(verificarAccesoPorPermiso("Gestionar Salida Producto") == false){
       window.location.href = "../../../../acceso/noAcceso"
     }
-    setAcceso(verificarAccesoPorPermiso("Gestionar Insumos"));
+    setAcceso(verificarAccesoPorPermiso("Gestionar Salida Producto"));
   }
   }, []);
-  const [insumos, setInsumos] = useState<Insumo[]>([]);
+  const [SalidaProductos, setSalidaProductos] = useState<SalidaProducto[]>([]);
   const [productos, setProductos] = useState<Map<number, string>>(new Map());
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [mensajeError, setMensajeError] = useState("");
   const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
   const { isOpen: isOpenEdit, onOpen: onOpenEdit, onOpenChange: onOpenChangeEdit } = useDisclosure();
-  const [selectedInsumo, setSelectedInsumo] = useState<Insumo | null>(null);
+  const [selectedSalidaProducto, setSelectedSalidaProducto] = useState<SalidaProducto | null>(null);
   const [motivoAnular, setMotivoAnular] = useState("");
   const { isOpen: isOpenWarning, onOpen: onOpenWarning, onOpenChange: onOpenChangeWarning } = useDisclosure();
   const [errores, setErrores] = useState<any>({});
@@ -85,38 +85,39 @@ export default function InsumosPage() {
   const tamanoMovil = useMediaQuery({ maxWidth: 768 });
 
   useEffect(() => {
-    const fetchInsumos = async () => {
+    
+
+    const fetchSalidaProductos = async () => {
       try {
-        const response = await getWithAuth("http://localhost:8080/compras/salidas-insumo");
+        const response = await getWithAuth("http://localhost:8080/compras/salidas-producto", );
         const data = await response.json();
-        setInsumos(data.map((item: any) => ({
-          idInsumo: item.idInsumo,
+        setSalidaProductos(data.map((item: any) => ({
+          idSalidaProducto: item.idSalidaProducto,
           idProducto: item.idProducto,
           fechaRetiro: item.fechaRetiro,
           cantidad: item.cantidad,
           motivoAnular: item.motivoAnular,
         })));
       } catch (err:any) {
+        if (err.name === 'AbortError') {
+          // La petición fue cancelada, no se hace nada
+          return;
+        }
+
         if (err.message === "Unexpected end of JSON input") {
-          setMensajeError("No hay Categoria Salida insumos registradas aún.");
+          setMensajeError("No hay Categoria Salida SalidaProductos registradas aún.");
           onOpenWarning();
         }else{
-          console.error("Error al obtener Salida insumos:", err);
-        setMensajeError("Error al obtener Salida insumos. Por favor, inténtalo de nuevo.");
-        onOpenError();
+          console.error("Error al obtener Salida SalidaProductos:", err);
+          setMensajeError("Error al obtener Salida SalidaProductos. Por favor, inténtalo de nuevo.");
+          onOpenError();
         }
-       
       }
-
     };
 
-    fetchInsumos();
-  }, []);
-
-  useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const response = await getWithAuth("http://localhost:8080/compras/productos");
+        const response = await getWithAuth("http://localhost:8080/compras/productos", );
         const data = await response.json();
         const productosMap = new Map<number, string>();
         data.forEach((producto: Producto) => {
@@ -128,50 +129,54 @@ export default function InsumosPage() {
       }
     };
 
+    fetchSalidaProductos();
     fetchProductos();
-  }, []);
 
-  const insumosFiltrados = React.useMemo(() =>
-    insumos.filter((insumo) =>
-      Object.values(insumo).some((value) =>
+  // Cancelar la petición si el componente se desmonta o el efecto se vuelve a ejecutar
+  }, [onOpenError, onOpenWarning]); 
+
+
+  const SalidaProductosFiltrados = React.useMemo(() =>
+    SalidaProductos.filter((SalidaProducto) =>
+      Object.values(SalidaProducto).some((value) =>
         String(value).toLowerCase().includes(searchTerm.toLowerCase())
       ) ||
-      productos.get(insumo.idProducto)?.toLowerCase().includes(searchTerm.toLowerCase())
+      productos.get(SalidaProducto.idProducto)?.toLowerCase().includes(searchTerm.toLowerCase())
     ),
-    [insumos, searchTerm, productos]
+    [SalidaProductos, searchTerm, productos]
   );
 
   const items = React.useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-    return insumosFiltrados.slice(start, end);
-  }, [page, insumosFiltrados]);
+    return SalidaProductosFiltrados.slice(start, end);
+  }, [page, SalidaProductosFiltrados]);
 
-  const handleEditClick = (insumo: Insumo) => {
-    setSelectedInsumo(insumo);
-    setMotivoAnular(insumo.motivoAnular || "");
+  const handleEditClick = (SalidaProducto: SalidaProducto) => {
+    setSelectedSalidaProducto(SalidaProducto);
+    setMotivoAnular(SalidaProducto.motivoAnular || "");
     onOpenEdit();
   };
 
   const handleSave = async () => {
-    if (selectedInsumo && validarMotivoAnular()) {
-      const updatedInsumo = { ...selectedInsumo, motivoAnular };
+    if (selectedSalidaProducto && validarMotivoAnular()) {
+      const updatedSalidaProducto = { ...selectedSalidaProducto, motivoAnular };
 
       try {
-        const response = await postWithAuth(`http://localhost:8080/compras/salidas-insumo/${selectedInsumo.idInsumo}`, 
-          updatedInsumo
+        const response = await postWithAuth(`http://localhost:8080/compras/salidas-SalidaProducto/${selectedSalidaProducto.idSalidaProducto}`, 
+          updatedSalidaProducto
         );
 
         if (response.ok) {
-          setInsumos((prevInsumos) =>
-            prevInsumos.map((insumo) =>
-              insumo.idInsumo === selectedInsumo.idInsumo ? updatedInsumo : insumo
+          setSalidaProductos((prevSalidaProductos) =>
+            prevSalidaProductos.map((SalidaProducto) =>
+              SalidaProducto.idSalidaProducto === selectedSalidaProducto.idSalidaProducto ? updatedSalidaProducto : SalidaProducto
             )
           );
-          toast.success("Insumo actualizado con éxito!");
+          toast.success("SalidaProducto actualizado con éxito!");
         } else {
-          console.error("Error al actualizar el insumo:", response.statusText);
-          setMensajeError("Error al actualizar el insumo. Por favor, inténtalo de nuevo.");
+          console.error("Error al actualizar el SalidaProducto:", response.statusText);
+          setMensajeError("Error al actualizar el SalidaProducto. Por favor, inténtalo de nuevo.");
           onOpenError();
         }
       } catch (err) {
@@ -209,7 +214,7 @@ const validarMotivoAnular = () => {
        <Toaster position="bottom-right" />
 
       <div className="flex flex-col items-start sm:flex-row sm:items-center">
-        <div className="rounded-lg p-0 my-4 basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+        <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
           <Input
             classNames={{
               label: "text-black/50 dark:text-white/90",
@@ -238,10 +243,10 @@ const validarMotivoAnular = () => {
           />
         </div>
         <div className="basis-1/2"></div>
-        <div className="flex items-center basis-1/4 mb-4 sm:my-4 text-end space-x-2 justify-end">
-          <Link href="/admin/compras/salida_insumos/crear">
-            <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear Insumo">
-              <PlusIcon /> Crear Insumo
+        <div className="flex items-center justify-end mb-4 space-x-2 basis-1/4 sm:my-4 text-end">
+          <Link href="/admin/compras/salida_producto/crear">
+            <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear SalidaProducto">
+              <PlusIcon /> Crear SalidaProducto
             </Button>
           </Link>
         </div>
@@ -249,14 +254,14 @@ const validarMotivoAnular = () => {
       {tamanoMovil ? (
         <div>
           {items.map((item) => (
-            <Card key={item.idInsumo} className="mb-4">
+            <Card key={item.idSalidaProducto} className="mb-4">
               <CardBody>
                 {columns.map((column) => (
                   <div key={column.uid}>
                     <strong>{column.name}: </strong>
                     {column.uid === "acciones" ? (
                       <Dropdown>
-                        <DropdownTrigger className="bg-transparent w-auto my-2">
+                        <DropdownTrigger className="w-auto my-2 bg-transparent">
                           <Button
                             isIconOnly
                             className="border"
@@ -267,7 +272,7 @@ const validarMotivoAnular = () => {
                         </DropdownTrigger>
                         <DropdownMenu>
                           <DropdownItem key="editar" isDisabled={item.motivoAnular != null}>
-                            <Button className="bg-transparent w-full" onClick={() => handleEditClick(item)}>
+                            <Button className="w-full bg-transparent" onClick={() => handleEditClick(item)}>
                               <Edit />
                               Anular
                             </Button>
@@ -277,7 +282,7 @@ const validarMotivoAnular = () => {
                     ) : column.uid === "idProducto" ? (
                       <span>{productos.get(item.idProducto) || "Desconocido"}</span>
                     ) : (
-                      item[column.uid as keyof Insumo]
+                      item[column.uid as keyof SalidaProducto]
                     )}
                   </div>
                 ))}
@@ -297,7 +302,7 @@ const validarMotivoAnular = () => {
           </TableHeader>
           <TableBody items={items}>
             {(item) => (
-              <TableRow key={item.idInsumo}>
+              <TableRow key={item.idSalidaProducto}>
                 {columns.map((column) => (
                   <TableCell key={column.uid}>
                     {column.uid === "acciones" ? (
@@ -309,7 +314,7 @@ const validarMotivoAnular = () => {
                         </DropdownTrigger>
                         <DropdownMenu>
                           <DropdownItem key="editar" isDisabled={item.motivoAnular != null}>
-                            <Button className="bg-transparent w-full" onClick={() => handleEditClick(item)}>
+                            <Button className="w-full bg-transparent" onClick={() => handleEditClick(item)}>
                               <Edit />
                               Anular
                             </Button>
@@ -319,7 +324,7 @@ const validarMotivoAnular = () => {
                     ) : column.uid === "idProducto" ? (
                       <span>{productos.get(item.idProducto) || "Desconocido"}</span>
                     ) : (
-                      item[column.uid as keyof Insumo]
+                      item[column.uid as keyof SalidaProducto]
                     )}
                   </TableCell>
                 ))}
@@ -329,12 +334,12 @@ const validarMotivoAnular = () => {
         </Table>
       )}
 
-      <div className="flex w-full justify-center mb-4">
+      <div className="flex justify-center w-full mb-4">
         <Pagination
           showControls
           color="warning"
           page={page}
-          total={Math.ceil(insumosFiltrados.length / rowsPerPage)}
+          total={Math.ceil(SalidaProductosFiltrados.length / rowsPerPage)}
           onChange={(page) => setPage(page)}
         />
       </div>
@@ -344,7 +349,7 @@ const validarMotivoAnular = () => {
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleX color="#894242" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
@@ -366,7 +371,7 @@ const validarMotivoAnular = () => {
             <ModalContent>
               {(onClose) => (
                 <>
-                  <ModalHeader className="flex flex-col gap-1 items-center">
+                  <ModalHeader className="flex flex-col items-center gap-1">
                     <CircleHelp color="gold" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
@@ -388,11 +393,11 @@ const validarMotivoAnular = () => {
   <ModalContent>
     {(onClose) => (
       <>
-        <ModalHeader className="flex flex-col gap-1 items-center">
+        <ModalHeader className="flex flex-col items-center gap-1">
           <CircleHelp color="#fef08a" size={100} />
         </ModalHeader>
         <ModalBody className="text-center">
-          <h1 className="text-3xl">Anular Insumo</h1>
+          <h1 className="text-3xl">Anular SalidaProducto</h1>
           <br />
           <Select
             isRequired

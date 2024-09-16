@@ -122,7 +122,10 @@ export default function EditarProveedorPage({
 
     const errorTelefono = validarTelefono(telefono);
     if (errorTelefono) erroresTemp.telefono = errorTelefono;
-
+    
+    if (tipoEmpresa === "Juridica" && !contacto) {
+      erroresTemp.contacto = "El contacto es requerido para empresas jurídicas.";
+    }
     return erroresTemp;
   };
 

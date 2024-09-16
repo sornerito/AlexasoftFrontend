@@ -136,7 +136,7 @@ export default function ProveedoresPage() {
     };
 
     fetchProveedores();
-  }, []);
+  }, [onOpenWarning,onOpenError]);
 
   const proveedoresFiltrados = React.useMemo(
     () =>
@@ -201,7 +201,7 @@ export default function ProveedoresPage() {
         error: (err) => err.message,
       });
     },
-    [proveedores]
+    [proveedores,onOpenError]
   );
 
   const handleOpenModal = (idProveedor: string) => {
@@ -221,7 +221,7 @@ export default function ProveedoresPage() {
       .then((response) => {
         if (!response.ok) {
           throw new Error(
-            "Error al eliminar el proveedor, Tiene un relación con una compra"
+            "Error al eliminar el proveedor. Tiene un relación con una compra"
           );
         }
         toast.success("Proveedor eliminado con éxito!");
@@ -443,40 +443,6 @@ export default function ProveedoresPage() {
               onChange={(page) => setPage(page)}
             />
           </div>
-
-          {/* Modal Cambiar Estado */}
-          <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-            <ModalContent>
-              {(onClose) => (
-                <>
-                  <ModalHeader className="flex flex-col items-center gap-1">
-                    <CircleHelp color="#fef08a" size={100} />
-                  </ModalHeader>
-                  <ModalBody className="text-center">
-                    <h1 className="text-3xl">
-                      ¿Desea cambiar el estado del proveedor?
-                    </h1>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button color="danger" variant="light" onPress={onClose}>
-                      Cancelar
-                    </Button>
-                    <Button
-                      className="bg-[#609448]"
-                      onPress={() => {
-                        if (selectedProveedorId) {
-                          handleToggleEstado(selectedProveedorId);
-                        }
-                        onClose();
-                      }}
-                    >
-                      Cambiar Estado
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
 
           <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
             <ModalContent>

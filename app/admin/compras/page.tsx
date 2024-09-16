@@ -114,7 +114,7 @@ export default function ComprasPage() {
   const rowsProductoPage = 3;
   const tamanoMovil = useMediaQuery({ maxWidth: 768 });
 
-  // Función para obtener los detalles de la venta
+  // Función para obtener los detalles de la compra
   const fetchCompraDetalles = async (idCompra: string) => {
     try {
       // Petición para obtener los detalles del producto (primera petición)
@@ -219,7 +219,7 @@ export default function ComprasPage() {
     };
 
     fetchProveedores();
-  }, []);
+  }, );
 
   useEffect(() => {
     const fetchCompras = async () => {
@@ -256,7 +256,7 @@ export default function ComprasPage() {
     };
 
     fetchCompras();
-  }, []);
+  }, );
 
   const comprasFiltradas = React.useMemo(
     () =>
@@ -324,26 +324,26 @@ export default function ComprasPage() {
 
   const handleSave = async () => {
     if (selectedCompra && validarMotivoAnular()) {
-      const updatedInsumo = { ...selectedCompra, motivoAnular };
+      const updatedSalidaProducto = { ...selectedCompra, motivoAnular };
 
       try {
         const response = await postWithAuth(
           `http://localhost:8080/compras/${selectedCompra.idCompra}`,
-          updatedInsumo
+          updatedSalidaProducto
         );
         if (response.ok) {
           setCompras((prevCompras) =>
             prevCompras.map((compra) =>
               compra.idCompra === selectedCompra.idCompra
-                ? updatedInsumo
+                ? updatedSalidaProducto
                 : compra
             )
           );
-          toast.success("Insumo actualizado con éxito!");
+          toast.success("SalidaProducto actualizado con éxito!");
         } else {
-          console.error("Error al actualizar el insumo:", response.statusText);
+          console.error("Error al actualizar el SalidaProducto:", response.statusText);
           setMensajeError(
-            "Error al actualizar el insumo. Por favor, inténtalo de nuevo."
+            "Error al actualizar el SalidaProducto. Por favor, inténtalo de nuevo."
           );
           onOpenError();
         }
@@ -687,7 +687,7 @@ export default function ComprasPage() {
                     <CircleHelp color="#fef08a" size={100} />
                   </ModalHeader>
                   <ModalBody className="text-center">
-                    <h1 className="text-3xl">Anular Insumo</h1>
+                    <h1 className="text-3xl">Anular SalidaProducto</h1>
                     <br />
                     <Select
                       isRequired

@@ -21,8 +21,8 @@ import {
 } from "@nextui-org/react";
 import { verificarAccesoPorPermiso } from "@/config/peticionesConfig";
 
-interface SalidaInsumo {
-  idInsumo: string;
+interface SalidaSalidaProducto {
+  idSalidaProducto: string;
   idProducto: string;
   fechaRetiro: string;
   cantidad: string;
@@ -39,14 +39,14 @@ export default function ProductosEditarPage() {
   const [acceso, setAcceso] = React.useState<boolean>(false);
   React.useEffect(() => {
     if(typeof window !== "undefined"){
-    if(verificarAccesoPorPermiso("Gestionar Insumos") == false){
+    if(verificarAccesoPorPermiso("Gestionar Salida Producto") == false){
       window.location.href = "../../../../acceso/noAcceso"
     }
-    setAcceso(verificarAccesoPorPermiso("Gestionar Insumos"));
+    setAcceso(verificarAccesoPorPermiso("Gestionar Salida Producto"));
   }
   }, []);
-  const [salida, setSalida] = useState<SalidaInsumo | null>(null);
-  const [originalSalida, setOriginalSalida] = useState<SalidaInsumo | null>(null);
+  const [salida, setSalida] = useState<SalidaSalidaProducto | null>(null);
+  const [originalSalida, setOriginalSalida] = useState<SalidaSalidaProducto | null>(null);
   const [idProducto, setIdProducto] = useState<string>("");
   const [productos, setProductos] = useState<Producto[]>([]);
   const [errores, setErrores] = useState<any>({});
@@ -54,7 +54,7 @@ export default function ProductosEditarPage() {
   const { isOpen: isOpenError, onOpen: onOpenError, onOpenChange: onOpenChangeError } = useDisclosure();
   const [mensajeError, setMensajeError] = useState("");
   const router = useRouter();
-  const { idInsumo } = useParams();
+  const { idSalidaProducto } = useParams();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,7 +75,7 @@ export default function ProductosEditarPage() {
   }, []);
 
   useEffect(() => {
-    fetch(`http://localhost:8080/compras/salidas-insumo/${idInsumo}`)
+    fetch(`http://localhost:8080/compras/salidas-producto/${idSalidaProducto}`)
       .then(response => response.json())
       .then(data => {
         console.log(data);
@@ -87,12 +87,12 @@ export default function ProductosEditarPage() {
         setIdProducto(data.idProducto.idProducto);
       })
       .catch(err => {
-        console.error("Error al obtener Salida insumo:", err);
+        console.error("Error al obtener Salida SalidaProducto:", err);
         setMensajeError("Error al obtener producto. Por favor, inténtalo de nuevo.");
         onOpenError();
       });
     setIsLoading(false);
-  }, [idInsumo]);
+  }, [idSalidaProducto]);
 
 
   // Validaciones
@@ -105,7 +105,7 @@ export default function ProductosEditarPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setSalida({ ...salida, [name]: value } as SalidaInsumo);
+    setSalida({ ...salida, [name]: value } as SalidaSalidaProducto);
 
     let error = "";
     switch (name) {
@@ -139,7 +139,7 @@ export default function ProductosEditarPage() {
         return;
       }
   
-      const response = await fetch(`http://localhost:8080/compras/productos/${idInsumo}`, {
+      const response = await fetch(`http://localhost:8080/compras/productos/${idSalidaProducto}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -174,7 +174,7 @@ export default function ProductosEditarPage() {
   const handleChangeProducto = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setIdProducto(value);
-    setSalida({ ...salida, idProducto: value } as SalidaInsumo);
+    setSalida({ ...salida, idProducto: value } as SalidaSalidaProducto);
   };
 
 
@@ -198,7 +198,7 @@ export default function ProductosEditarPage() {
       <br /><br />
 
       {isLoading ? (
-        <div className="flex justify-center text-center h-screen">
+        <div className="flex justify-center h-screen text-center">
           <div className="text-center">
             <Spinner color="warning" size="lg" />
           </div>
@@ -221,7 +221,7 @@ export default function ProductosEditarPage() {
           
           </div>
           <div className="flex justify-end mt-4">
-            <Link href="/admin/compras/SalidaInsumos">
+            <Link href="/admin/compras/SalidaSalidaProductos">
               <Button className="bg-[#894242] mr-2" type="button">
                 Cancelar
               </Button>
@@ -236,12 +236,12 @@ export default function ProductosEditarPage() {
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleHelp color="#fef08a" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">
-                <h1 className="text-3xl">¿Desea editar la salida Insumos?</h1>
-                <p>La salida de insumo se actualizará con la información proporcionada.</p>
+                <h1 className="text-3xl">¿Desea editar la salida SalidaProductos?</h1>
+                <p>La salida de SalidaProducto se actualizará con la información proporcionada.</p>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
@@ -266,7 +266,7 @@ export default function ProductosEditarPage() {
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1 items-center">
+              <ModalHeader className="flex flex-col items-center gap-1">
                 <CircleX color="#894242" size={100} />
               </ModalHeader>
               <ModalBody className="text-center">

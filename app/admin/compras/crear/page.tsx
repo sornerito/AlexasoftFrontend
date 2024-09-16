@@ -103,7 +103,6 @@ export default function VentasPageCrear() {
 
   const router = useRouter();
 
-  // Efecto para obtener la lista de clientes y colaboradores al montar el componente
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -116,9 +115,8 @@ export default function VentasPageCrear() {
     };
 
     fetchData();
-  }, []);
+  },);
 
-  // Fetch de clientes
   const fetchProveedor = async () => {
     try {
       const response = await getWithAuth(

@@ -99,6 +99,14 @@ export default function CrearProveedorPage() {
     }
     return "";
   };
+
+  const validarContacto = (contacto: string, tipoEmpresa: string) => {
+    if (tipoEmpresa === "Juridica" && !contacto) {
+      return "El contacto es obligatorio para empresas Juridicas.";
+    }
+    return "";
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProveedor({ ...proveedor, [name]: value });
@@ -120,6 +128,9 @@ export default function CrearProveedorPage() {
       case "numeroIdentificacion":
         error = validarNumeroIdentificacion(value);
         break;
+      case "contacto":
+        error = validarContacto(value, proveedor.tipoEmpresa);
+        break;
     }
     setErrores({ ...errores, [name]: error });
   };
@@ -134,13 +145,18 @@ export default function CrearProveedorPage() {
     const errorNumeroIdentificacion = validarNumeroIdentificacion(
       proveedor.numeroIdentificacion
     );
+    const errorContacto = validarContacto(
+      proveedor.contacto,
+      proveedor.tipoEmpresa
+    );
 
     if (
       errorNombre ||
       errorDescripcion ||
       errorTelefono ||
       errorCorreo ||
-      errorNumeroIdentificacion
+      errorNumeroIdentificacion || 
+      errorContacto
     ) {
       setErrores({
         nombre: errorNombre,
@@ -149,6 +165,8 @@ export default function CrearProveedorPage() {
         telefono: errorTelefono,
         correo: errorCorreo,
         errorNumeroIdentificacion: errorNumeroIdentificacion,
+        contacto: proveedor.tipoEmpresa === "Juridica" ? errorContacto : "",
+
       });
       setMensajeError("Por favor corrija los errores en el formulario.");
       onOpenError();
@@ -156,26 +174,48 @@ export default function CrearProveedorPage() {
     }
     onOpen();
   };
+  
   const handleConfirmSubmit = async () => {
     try {
+      const proveedorData: {
+        nombre: string;
+        descripcion: string;
+        telefono: string;
+        correo: string;
+        numeroIdentificacion: string;
+        tipoEmpresa: string;
+        contacto: string | null; // Aceptar null en contacto
+      } = { ...proveedor };
+  
+      // Si es Natural, establecer contacto como null
+      if (proveedorData.tipoEmpresa === "Natural") {
+        proveedorData.contacto = null;
+      }else if (proveedorData.tipoEmpresa === "Juridica"){
+        proveedorData.contacto = proveedor.contacto;
+      }
+  
       const response = await postWithAuth(
         "http://localhost:8080/compras/proveedores/",
-        proveedor
+        proveedorData
       );
+  
       if (!response.ok) {
         const errorResponse = await response.text();
         setMensajeError(
-          "No se puede crear el proveedor ya que hay un Nombre o Telefono o numero de identificaicon estan Repetido"
+          "No se puede crear el proveedor ya que hay un Nombre o Telefono o numero de identificación repetido."
         );
         onOpenError();
         throw new Error("Error al intentar guardar el proveedor");
       }
+  
       router.push("/admin/compras/proveedores");
     } catch (error) {
       console.error("Error al enviar los datos:", error);
     }
     onOpenChange();
   };
+  
+
   const TipoEmpresa = [
     { key: "Natural", label: "Natural" },
     { key: "Juridica", label: "Juridica" },

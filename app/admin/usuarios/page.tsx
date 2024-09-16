@@ -395,7 +395,8 @@ export default function UsuariosPage() {
                       Cancelar
                     </Button>
                     <Button
-                      className="bg-[#609448]"
+                      color="warning"
+                      variant="light"
                       onPress={() => {
                         cambiarEstado(usuarioId, estadoActual);
                         onClose();
