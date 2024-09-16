@@ -36,6 +36,7 @@ import {
   postWithAuth,
   verificarAccesoPorPermiso,
 } from "@/config/peticionesConfig";
+import { Toaster, toast } from "sonner";
 
 //Encabezado de la tabla, el uid debe coincidir con la forma en la que procesamos la data en el fetch
 const columns = [

@@ -45,6 +45,7 @@ import {
   Spinner,
 } from "@nextui-org/react";
 import { useMediaQuery } from "react-responsive";
+import { Toaster, toast } from "sonner";
 
 // Definición de columnas
 const columns = [
@@ -195,41 +196,55 @@ export default function ServiciosPage() {
 
   const [servicioId, setServicioId] = React.useState("");
   const [estadoActual, setEstadoActual] = React.useState("");
+
   const cambiarEstado = async (idServicio: any, estadoActual: any) => {
     const data = {
       estado: estadoActual,
     };
-    try {
-      const response = await postWithAuth(
-        "http://localhost:8080/servicio/cambiarEstadoServicio/" + idServicio,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
+  
+    const promise = new Promise<void>((resolve, reject) => {
+      setTimeout(async () => {
+        try {
+          const response = await postWithAuth(
+            "http://localhost:8080/servicio/cambiarEstadoServicio/" + idServicio,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            }
+          );
+  
+          if (response.ok) {
+            const nuevoEstado = estadoActual === "Activo" ? "Desactivado" : "Activo";
+            setServicios((prevSrrvicio) =>
+              prevSrrvicio.map((servicio) =>
+                servicio.idServicio === idServicio
+                  ? { ...servicio, estado: nuevoEstado }
+                  : servicio
+              )
+            );
+            resolve(); // Resuelve la promesa si el cambio de estado es exitoso
+          } else {
+            const errorResponse = await response.text();
+            setMensajeError(errorResponse);
+            onOpenError();
+            console.error("Error al cambiar de estado: ", await response.text());
+            reject(new Error(errorResponse)); // Rechaza la promesa si hay un error
+          }
+        } catch (error: any) {
+          console.error("Error al cambiar de estado: ", error);
+          reject(error); // Rechaza la promesa si hay un error en la solicitud
         }
-      );
-
-      if (response.ok) {
-        const nuevoEstado =
-          estadoActual === "Activo" ? "Desactivado" : "Activo";
-        setServicios((prevSrrvicio) =>
-          prevSrrvicio.map((servicio) =>
-            servicio.idServicio === idServicio
-              ? { ...servicio, estado: nuevoEstado }
-              : servicio
-          )
-        );
-      } else {
-        const errorResponse = await response.text();
-        setMensajeError(errorResponse);
-        onOpenError();
-        console.error("Error al cambiar de estado: ", await response.text());
-      }
-    } catch (error) {
-      console.error("Error al cambiar de estado: ", error);
-    }
+      }, 500); // Simula un retraso de 500 ms para mostrar la promesa
+    });
+  
+    toast.promise(promise, {
+      loading: "Editando...",
+      success: "El estado ha sido cambiado con éxito",
+      error: (err) => err.message,
+    });
   };
 
   const handleEstadoChange = async (idServicio: any, estado: any) => {
@@ -247,6 +262,7 @@ export default function ServiciosPage() {
       {acceso ? (
         <div>
           <h1 className={title()}>Servicios</h1>
+          <Toaster position="bottom-right" />
           <div className="flex flex-col items-start sm:flex-row sm:items-center">
             <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
               <Input
@@ -556,13 +572,15 @@ export default function ServiciosPage() {
                   </ModalBody>
                   <ModalFooter>
                     <Button
-                      className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                      color="danger"
+                      variant="light"
                       onPress={onClose}
                     >
                       Cancelar
                     </Button>
                     <Button
-                      className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                      color="warning"
+                      variant="light"
                       onPress={() => {
                         cambiarEstado(servicioId, estadoActual);
                         onClose();

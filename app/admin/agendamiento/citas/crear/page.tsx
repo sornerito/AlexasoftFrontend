@@ -14,12 +14,14 @@ import {
   Select,
   SelectItem,
 } from "@nextui-org/react";
-import { PlusIcon, CircleHelp, CircleX } from "lucide-react";
+import { CircleHelp, CircleX } from "lucide-react";
 import {
   getWithAuth,
   postWithAuth,
   verificarAccesoPorPermiso,
 } from "@/config/peticionesConfig";
+
+import {DatePicker} from "@nextui-org/date-picker";
 
 interface Colaborador {
   idColaborador: number;
@@ -49,6 +51,7 @@ interface Paquete {
   nombrePaquete: string;
   idPaquete: number;
   estado: string;
+  tiempoTotalServicio: number;
   servicios: string[];
 }
 
@@ -126,12 +129,14 @@ export default function CrearCitaPage() {
       .then((data) => {
         const paquetesActivos = data
           .filter((item: { paquete: { estado: string } }) => item.paquete.estado === "Activo")
-          .map((item: { paquete: { idPaquete: number; nombre: string }; servicios: { nombre: string }[] }) => ({
+          .map((item: { paquete: { idPaquete: number; nombre: string; estado: string; tiempoTotalServicio: number;  }; servicios: { nombre: string }[] }) => ({
             idPaquete: item.paquete.idPaquete,
             nombrePaquete: item.paquete.nombre,
+            tiempoTotalServicio: item.paquete.tiempoTotalServicio,
             servicios: item.servicios.map((servicio) => servicio.nombre), // Esto es opcional, solo muestra los nombres
           }));
-        setPaquetes(paquetesActivos); // Ahora es un array, así que puedes usar .map()
+        setPaquetes(paquetesActivos);
+        
       })
       .catch((err) => console.error("Error fetching paquetes:", err.message));
 
@@ -250,7 +255,9 @@ export default function CrearCitaPage() {
     }
   };
 
+  const [creandoCita, setCreandoCita] = useState(false);
   const handleConfirmSubmit = async () => {
+    setCreandoCita(true);
     const horaConSegundos = `${formData.hora}:00`;
 
     const datosParaEnviar = {
@@ -262,20 +269,25 @@ export default function CrearCitaPage() {
       detalle: formData.detalle,
       estado: formData.estado,
     };
+    const duracion = paquetes[formData.idPaquete].tiempoTotalServicio;
+    let mensajeE = "";
 
     try {
       const response = await postWithAuth(
-        "http://localhost:8080/cita",
+        `http://localhost:8080/cita?duracion=${duracion}`,
         datosParaEnviar
       );
+      mensajeE = await response.text();
       if (response.ok) {
         window.location.href = "/admin/agendamiento/citas";
       } else {
-        setMensajeError("Error al crear la cita");
+        setCreandoCita(false);
+        setMensajeError(await response.text());
         onOpenError();
       }
     } catch (error) {
-      setMensajeError("Error al enviar la solicitud");
+      setCreandoCita(false);
+      setMensajeError(mensajeE);
       onOpenError();
     }
     onCloseConfirm();
@@ -349,6 +361,7 @@ export default function CrearCitaPage() {
                     : ""
                 }
               />
+              
               <Select
                 label="Hora"
                 name="hora"
@@ -407,6 +420,7 @@ export default function CrearCitaPage() {
 
             <div className="flex justify-end mt-6">
               <Button
+              isLoading={creandoCita ? true : false}
                 type="submit"
                 className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
                 disabled={!formIsValid}
@@ -428,7 +442,7 @@ export default function CrearCitaPage() {
                 <Button color="danger" onClick={onCloseConfirm}>
                   Cancelar
                 </Button>
-                <Button color="warning" onClick={handleConfirmSubmit}>
+                <Button isLoading={creandoCita ? true : false} color="warning" onClick={handleConfirmSubmit}>
                   Crear
                 </Button>
               </ModalFooter>

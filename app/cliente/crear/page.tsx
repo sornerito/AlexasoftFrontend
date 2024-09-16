@@ -49,6 +49,7 @@ interface Paquete {
   nombrePaquete: string;
   idPaquete: number;
   estado: string;
+  tiempoTotalServicio: number;
   servicios: string[];
 }
 
@@ -108,17 +109,19 @@ export default function CrearCitaPage() {
       .then((data) => setColaboradores(data))
       .catch((err) => console.log(err.message));
 
-    getWithAuth("http://localhost:8080/servicio/paquetes")
+      getWithAuth("http://localhost:8080/servicio/paquetes")
       .then((response) => response.json())
       .then((data) => {
         const paquetesActivos = data
           .filter((item: { paquete: { estado: string } }) => item.paquete.estado === "Activo")
-          .map((item: { paquete: { idPaquete: number; nombre: string }; servicios: { nombre: string }[] }) => ({
+          .map((item: { paquete: { idPaquete: number; nombre: string; estado: string; tiempoTotalServicio: number;  }; servicios: { nombre: string }[] }) => ({
             idPaquete: item.paquete.idPaquete,
             nombrePaquete: item.paquete.nombre,
+            tiempoTotalServicio: item.paquete.tiempoTotalServicio,
             servicios: item.servicios.map((servicio) => servicio.nombre), // Esto es opcional, solo muestra los nombres
           }));
-        setPaquetes(paquetesActivos); // Ahora es un array, así que puedes usar .map()
+        setPaquetes(paquetesActivos);
+        
       })
       .catch((err) => console.error("Error fetching paquetes:", err.message));
 
@@ -171,8 +174,6 @@ export default function CrearCitaPage() {
   const handlePaqueteChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedPaqueteId = parseInt(e.target.value, 10);
     handleInputChange(e);
-
-    // Suponiendo que tienes una forma de obtener los servicios del paquete seleccionado
     const paqueteSeleccionado = paquetes.find(paquete => paquete.idPaquete === selectedPaqueteId);
 
     if (paqueteSeleccionado) {
@@ -237,9 +238,11 @@ export default function CrearCitaPage() {
   const handleConfirmSubmit = async () => {
     const horaConSegundos = `${formData.hora}:00`;
     console.log(formData);
+    const duracion = paquetes[formData.idPaquete].tiempoTotalServicio;
+    const url = `http://localhost:8080/cita?duracion=${duracion}`;
 
     try {
-      const response = await postWithAuth("http://localhost:8080/cita", {
+      const response = await postWithAuth(url, {
         ...formData,
         hora: horaConSegundos,
       });
@@ -247,7 +250,7 @@ export default function CrearCitaPage() {
         onOpenSuccess();
         window.location.href = "/cliente";
       } else {
-        setMensajeError("Error al crear la cita");
+        setMensajeError(await response.text());
         onOpenError();
       }
     } catch (error) {

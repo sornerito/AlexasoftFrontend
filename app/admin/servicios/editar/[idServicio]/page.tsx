@@ -28,6 +28,7 @@ import {
   verificarAccesoPorPermiso,
 } from "@/config/peticionesConfig";
 import React from "react";
+import { Toaster, toast } from "sonner";
 
 // Interfaces de datos
 interface Servicio {
@@ -340,6 +341,10 @@ export default function EditarServicioPage() {
 
         if (response.ok) {
           setIsConfirmModalOpen(false); 
+          toast.success("Servicio actualizado con éxito!");
+          setTimeout(() => {
+            router.push("/admin/servicios");
+          }, 1000);
         } else {
           const errorData = await response.json();
           setMensajeError(
@@ -459,6 +464,7 @@ export default function EditarServicioPage() {
 
   return (
     <div className="container mx-auto p-4">
+      <Toaster position="bottom-right" />
       <>
         {acceso ? (
           <div className="flex gap-4">

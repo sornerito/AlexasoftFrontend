@@ -34,6 +34,7 @@ import {
   validarCantidadModal,
 } from "@/config/validaciones2";
 import React from "react";
+import { Toaster, toast } from "sonner";
 
 // Interfaces de datos
 interface Servicio {
@@ -286,8 +287,10 @@ export default function CrearServicioPage() {
       });
 
       if (response.ok) {
-        console.log("Servicio creado:", await response.json());
-        router.push("/admin/servicios");
+        toast.success("Servicio creada con éxito!");
+        setTimeout(() => {
+          router.push("/admin/servicios");
+        }, 1000);
       } else {
         const errorData = await response.json();
         if (errorData.message && errorData.message.includes("Ya existe un servicio con el nombre")) {
@@ -401,6 +404,7 @@ export default function CrearServicioPage() {
 
   return (
     <div className="container mx-auto p-4">
+      <Toaster position="bottom-right" />
       {acceso ? (
         <>
           <div className="flex gap-4">
@@ -622,35 +626,39 @@ export default function CrearServicioPage() {
             </Button>
           </div>
 
-          <Modal isOpen={isOpenConfirm} onOpenChange={onCloseConfirm} className="bg-white shadow-lg rounded-lg">
-            <ModalContent>
-              <ModalHeader className="flex flex-col items-center gap-4 p-6 bg-yellow-100 rounded-t-lg">
-                <CircleHelp color="#fef08a" size={80} />
-                <h2 className="text-2xl font-semibold text-gray-800">Confirmación</h2>
-              </ModalHeader>
-              <ModalBody className="p-6 text-center">
-                <p className="text-lg text-gray-700">¿Desea crear el servicio?</p>
+          {/* Modal de Confirmación */}
+        <Modal isOpen={isOpenConfirm} onOpenChange={onCloseConfirm}>
+          <ModalContent>
+            {(onClose) => (
+              <>
+                <ModalHeader className="flex flex-col items-center gap-1">
+                  <CircleHelp color="#fef08a" size={100} />
+                </ModalHeader>
+                <ModalBody className="text-center">
+                <p className="text-lg text-gray-50">¿Desea crear el servicio?</p>
                 <p className="text-sm text-gray-500 mt-2">El servicio no podrá eliminarse, pero podrá desactivarse.</p>
-              </ModalBody>
-              <ModalFooter className="flex justify-center gap-4 p-6 bg-gray-100 rounded-b-lg">
-                <Button
-                  className="bg-red-600 text-white hover:bg-red-700 transition duration-200"
-                  onClick={onCloseConfirm}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  className="bg-yellow-600 text-white hover:bg-yellow-700 transition duration-200"
-                  onClick={() => {
-                    guardarServicio();
-                    onCloseConfirm();
-                  }}
-                >
-                  Crear
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                    onClick={onCloseConfirm}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                    onClick={() => {
+                      guardarServicio();
+                      onCloseConfirm();
+                    }}  
+                  >
+                    Crear Servicio
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
 
           {/*Modal de error*/}
           <Modal isOpen={isOpenError} onOpenChange={onCloseError}>
@@ -672,6 +680,7 @@ export default function CrearServicioPage() {
                 </>
               )}
             </ModalContent>
+            
           </Modal>
         </>
       ) : (

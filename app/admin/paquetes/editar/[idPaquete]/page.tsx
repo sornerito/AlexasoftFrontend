@@ -28,6 +28,7 @@ import {
   postWithAuth,
   verificarAccesoPorPermiso,
 } from "@/config/peticionesConfig";
+import { toast, Toaster } from "sonner";
 
 //Encabezado de la tabla, el uid debe coincidir con la forma en la que procesamos la data en el fetch
 const columns = [
@@ -169,13 +170,12 @@ export default function EditarPaquetePage({
   const serviciosFiltrados = React.useMemo(() => {
     return servicios.filter(
       (servicio) =>
-        servicio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        servicio.estado.toLowerCase() === "activo" && 
+        (servicio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         servicio.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        servicio.tiempoMinutos
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
+        servicio.tiempoMinutos.toLowerCase().includes(searchTerm.toLowerCase()) ||
         servicio.estado.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        servicio.idServicio.toString().includes(searchTerm.toLowerCase())
+        servicio.idServicio.toString().includes(searchTerm.toLowerCase()))
     );
   }, [servicios, searchTerm]);
 
@@ -238,13 +238,17 @@ export default function EditarPaquetePage({
         data
       );
 
-      if (!response.ok) {
-        const errorResponse = await response.text();
-        setMensajeError(errorResponse);
+      if (response.ok) {
+        toast.success("Paquete actualizado con éxito!");
+        setTimeout(() => {
+          window.location.href = "/admin/paquetes";
+        }, 1000); 
+      } else {
+        const errorData = await response.json();
+        const errorMessage = errorData.error || "Error al actualizar el paquete";
+        setMensajeError(errorMessage);
         onOpenError();
-        throw new Error("Error al intentar guardar el paquete");
       }
-      window.location.href = "/admin/paquetes";
     } catch (error) {
       console.error("Error al enviar los datos:", error);
     }
@@ -278,10 +282,10 @@ export default function EditarPaquetePage({
   };
   return (
     <>
+    <Toaster position="bottom-right" />
       {acceso ? (
         <div>
           <h1 className={title()}>Editar Paquete</h1>
-
           <Input
             isRequired
             type="text"
