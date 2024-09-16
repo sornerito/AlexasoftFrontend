@@ -11,10 +11,6 @@ import {
   Pagination,
   Input,
   Button,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
   Modal,
   ModalContent,
   ModalHeader,
@@ -26,7 +22,7 @@ import {
   Select,
   SelectItem,
 } from "@nextui-org/react";
-import { PlusIcon, Ellipsis, Edit, Info, FileBarChart2 } from "lucide-react";
+import { PlusIcon, Info, FileBarChart2 } from "lucide-react";
 import {
   getWithAuth,
   postWithAuth,
@@ -66,6 +62,13 @@ interface Cita {
   idColaborador: number;
 }
 
+interface Paquete {
+  idPaquete: number;
+  nombre: string;
+  estado: string;
+  tiempoTotalServicio: number;
+}
+
 const estadoColors: { [key: string]: string } = {
   En_espera: "yellow",
   Aceptado: "green",
@@ -86,7 +89,7 @@ export default function CitasPage() {
   }, []);
   const [citas, setCitas] = useState<Cita[]>([]);
   const [clientes, setClientes] = useState<{ [key: number]: string }>({});
-  const [paquetes, setPaquetes] = useState<{ [key: number]: string }>({});
+  const [paquetes, setPaquetes] = useState<{ [key: number]: Paquete }>({});
   const [colaboradores, setColaboradores] = useState<{ [key: number]: string }>(
     {}
   );
@@ -143,15 +146,19 @@ export default function CitasPage() {
 
     const fetchPaquetes = async () => {
       const ids = Array.from(new Set(citas.map((cita) => cita.idPaquete)));
-      const fetchedPaquetes: { [key: number]: string } = {};
+      const fetchedPaquetes: { [key: number]: Paquete } = {};
       for (const id of ids) {
         const response = await getWithAuth(
           `http://localhost:8080/servicio/paquete/${id}`
         );
         const data = await response.json();
-        if (data && data.paquete) {
-          fetchedPaquetes[id] = data.paquete.nombre;
-        }
+        const { idPaquete, nombre, estado, tiempoTotalServicio } = data.paquete;
+        fetchedPaquetes[idPaquete] = {
+          idPaquete,
+          nombre,
+          estado,
+          tiempoTotalServicio,
+        };
       }
       setPaquetes(fetchedPaquetes);
     };
@@ -203,7 +210,7 @@ export default function CitasPage() {
         clientes[cita.idCliente]
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        paquetes[cita.idPaquete]
+        paquetes[cita.idPaquete].nombre
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
         diasSemana[cita.idHorario]
@@ -230,6 +237,7 @@ export default function CitasPage() {
         `http://localhost:8080/cita/${selectedCita.idCita}/estado`,
         {
           estado: nuevoEstado,
+          citasCancelar: idsCitasConflicto
         }
       );
 
@@ -242,6 +250,7 @@ export default function CitasPage() {
           citas.map((cita) =>
             cita.idCita === selectedCita.idCita
               ? { ...cita, estado: nuevoEstado }
+              : idsCitasConflicto.includes(Number(cita.idCita)) ? { ...cita, estado: "Cancelado" }
               : cita
           )
         );
@@ -256,6 +265,8 @@ export default function CitasPage() {
     }
   };
 
+  const [citasConConflicto, setCitasConConflicto] = useState<Cita[]>([]);
+  const [idsCitasConflicto, setIdsCitasConflicto] = useState<number[]>([]);
   const handleEstadoSelect = (
     cita: Cita,
     e: React.ChangeEvent<HTMLSelectElement>
@@ -263,12 +274,47 @@ export default function CitasPage() {
     const estadoSeleccionado = e.target.value;
     setSelectedCita(cita);
     setNuevoEstado(estadoSeleccionado);
+    setCitasConConflicto(obtenerCitasEnConflicto());
+    setIdsCitasConflicto(citasConConflicto.map((cita) => Number(cita.idCita)));
     onOpenEstado();
   };
 
   const handleShowDetails = (cita: Cita) => {
     setSelectedCita(cita);
     onOpenDetails();
+  };
+
+  const obtenerCitasEnConflicto = () => {
+    return citas.filter(
+      (c) =>
+        c.estado === "En_espera" &&
+        c.idCita != selectedCita?.idCita &&
+        c.fecha === selectedCita?.fecha &&
+        c.idColaborador === selectedCita.idColaborador && 
+        (
+        c.hora <
+          calcularHoraFin(
+            selectedCita.hora,
+            paquetes[selectedCita.idPaquete].tiempoTotalServicio
+          ) &&
+        calcularHoraFin(c.hora, paquetes[c.idPaquete].tiempoTotalServicio) >
+          selectedCita.hora 
+        )
+    );
+  };
+
+  const calcularHoraFin = (
+    hora: string,
+    tiempoTotalServicio: number
+  ): string => {
+    const [hours, minutes] = hora.split(":").map(Number);
+    const fecha = new Date();
+    fecha.setHours(hours);
+    fecha.setMinutes(minutes);
+    fecha.setMinutes(fecha.getMinutes() + tiempoTotalServicio);
+    const horaFin = fecha.getHours().toString().padStart(2, "0");
+    const minutosFin = fecha.getMinutes().toString().padStart(2, "0");
+    return `${horaFin}:${minutosFin}`;
   };
 
   return (
@@ -439,7 +485,8 @@ export default function CitasPage() {
                       ) : column.uid === "idCliente" ? (
                         clientes[item.idCliente] || item.idCliente.toString()
                       ) : column.uid === "idPaquete" ? (
-                        paquetes[item.idPaquete] || item.idPaquete.toString()
+                        paquetes[item.idPaquete]?.nombre ||
+                        item.idPaquete.toString()
                       ) : column.uid === "idHorario" ? (
                         diasSemana[item.idHorario] || "Día no disponible"
                       ) : column.uid === "idColaborador" ? (
@@ -483,7 +530,7 @@ export default function CitasPage() {
                     </p>
                     <p>
                       <strong>Paquete:</strong>{" "}
-                      {paquetes[selectedCita.idPaquete]}
+                      {paquetes[selectedCita.idPaquete]?.nombre}
                     </p>
                     <p>
                       <strong>Detalle:</strong> {selectedCita.detalle || "N/A"}
@@ -511,12 +558,30 @@ export default function CitasPage() {
           </Modal>
 
           {/* Modal de cambio de estado */}
-          <Modal isOpen={isOpenEstado} onClose={onCloseEstado}>
+          <Modal
+            scrollBehavior="inside"
+            size="5xl"
+            isOpen={isOpenEstado}
+            onClose={onCloseEstado}
+          >
             <ModalContent>
               <ModalHeader>Cambiar Estado de Cita</ModalHeader>
               <ModalBody>
+                {citasConConflicto.length > 0 ? (
+                  <ul>
+                    {citasConConflicto.map((cita) => (
+                      <li key={cita.idCita}>
+                        Cliente: {cita.idCliente}, Fecha:
+                        {new Date(cita.fecha).toLocaleDateString()}, Hora:
+                        {cita.hora}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>Ninguna cita tiene conflicto</p>
+                )}
                 <p>
-                  ¿Está seguro de que desea cambiar el estado de esta cita a{" "}
+                  ¿Está seguro de que desea cambiar el estado de esta cita a 
                   <strong>{nuevoEstado}</strong>?
                 </p>
               </ModalBody>

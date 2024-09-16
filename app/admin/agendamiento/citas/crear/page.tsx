@@ -45,6 +45,13 @@ interface Horario {
   estado: string;
 }
 
+interface Paquete {
+  idPaquete: number;
+  nombre: string;
+  estado: string;
+  tiempoTotalServicio: number;
+}
+
 export default function CrearCitaPage() {
   // Valida permiso
   const [acceso, setAcceso] = useState<boolean>(false);
@@ -59,7 +66,7 @@ export default function CrearCitaPage() {
 
   const [clientes, setClientes] = useState<{ [key: number]: string }>({});
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
-  const [paquetes, setPaquetes] = useState<{ [key: number]: string }>({});
+  const [paquetes, setPaquetes] = useState<{ [key: number]: Paquete }>({});
   const [formData, setFormData] = useState<Cita>({
     idCliente: 0,
     idColaborador: 0,
@@ -116,16 +123,18 @@ export default function CrearCitaPage() {
     getWithAuth("http://localhost:8080/servicio/paquetes")
       .then((response) => response.json())
       .then((data) => {
-        const fetchedPaquetes: { [key: number]: string } = {};
+        const fetchedPaquetes: { [key: number]: Paquete } = {};
         data
           .filter(
             (item: { paquete: { estado: string } }) =>
               item.paquete.estado === "Activo"
           ) // Filtra paquetes activos
           .forEach(
-            (item: { paquete: { idPaquete: number; nombre: string } }) => {
-              const { idPaquete, nombre } = item.paquete;
-              fetchedPaquetes[idPaquete] = nombre;
+            (item: {
+              paquete: { idPaquete: number; nombre: string; estado: string; tiempoTotalServicio: number; };
+            }) => {
+              const { idPaquete, nombre, estado, tiempoTotalServicio } = item.paquete;
+              fetchedPaquetes[idPaquete] = { idPaquete, nombre, estado, tiempoTotalServicio };
             }
           );
         setPaquetes(fetchedPaquetes);
@@ -233,7 +242,9 @@ export default function CrearCitaPage() {
     onOpenConfirm(); // Abre el modal de confirmación
   };
 
+  const [creandoCita, setCreandoCita] = useState(false);
   const handleConfirmSubmit = async () => {
+    setCreandoCita(true);
     const horaConSegundos = `${formData.hora}:00`;
 
     const datosParaEnviar = {
@@ -245,20 +256,24 @@ export default function CrearCitaPage() {
       detalle: formData.detalle,
       estado: formData.estado,
     };
-
+    const duracion = paquetes[formData.idPaquete].tiempoTotalServicio;
+    let mensajeE = "";
     try {
       const response = await postWithAuth(
-        "http://localhost:8080/cita",
+        `http://localhost:8080/cita?duracion=${duracion}`,
         datosParaEnviar
       );
+      mensajeE = await response.text();
       if (response.ok) {
         window.location.href = "/admin/agendamiento/citas";
       } else {
-        setMensajeError("Error al crear la cita");
+        setCreandoCita(false);
+        setMensajeError(await response.text());
         onOpenError();
       }
     } catch (error) {
-      setMensajeError("Error al enviar la solicitud");
+      setCreandoCita(false);
+      setMensajeError(mensajeE);
       onOpenError();
     }
     onCloseConfirm();
@@ -366,11 +381,12 @@ export default function CrearCitaPage() {
                     : ""
                 }
               >
-                {Object.entries(paquetes).map(([idPaquete, nombre]) => (
-                  <SelectItem key={idPaquete} value={idPaquete}>
-                    {nombre}
-                  </SelectItem>
-                ))}
+                {Object.entries(paquetes)
+                  .map(([idPaquete, paquete]) => (
+                    <SelectItem key={idPaquete} value={idPaquete}>
+                      {paquete.nombre}
+                    </SelectItem>
+                  ))}
               </Select>
               <Input
                 name="detalle"
@@ -384,6 +400,7 @@ export default function CrearCitaPage() {
 
             <div className="flex justify-end mt-6">
               <Button
+                isLoading={creandoCita ? true : false}
                 type="submit"
                 className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
                 disabled={!formIsValid}
@@ -405,7 +422,7 @@ export default function CrearCitaPage() {
                 <Button color="danger" onClick={onCloseConfirm}>
                   Cancelar
                 </Button>
-                <Button color="warning" onClick={handleConfirmSubmit}>
+                <Button isLoading={creandoCita ? true : false} color="warning" onClick={handleConfirmSubmit}>
                   Crear
                 </Button>
               </ModalFooter>

@@ -49,6 +49,7 @@ interface Paquete {
   idPaquete: number;
   nombre: string;
   estado: string;
+  tiempoTotalServicio: number;
 }
 
 export default function CrearCitaPage() {
@@ -111,13 +112,14 @@ export default function CrearCitaPage() {
         const fetchedPaquetes: { [key: number]: Paquete } = {}; // Cambia el tipo a Paquete
         data.forEach(
           (item: {
-            paquete: { idPaquete: number; nombre: string; estado: string };
+            paquete: { idPaquete: number; nombre: string; estado: string; tiempoTotalServicio: number; };
           }) => {
-            const { idPaquete, nombre, estado } = item.paquete;
-            fetchedPaquetes[idPaquete] = { idPaquete, nombre, estado }; // Almacena un objeto Paquete completo
+            const { idPaquete, nombre, estado, tiempoTotalServicio } = item.paquete;
+            fetchedPaquetes[idPaquete] = { idPaquete, nombre, estado, tiempoTotalServicio }; // Almacena un objeto Paquete completo
           }
         );
         setPaquetes(fetchedPaquetes); // Esto ahora debe coincidir con el tipo esperado
+        
       })
       .catch((err) => console.log(err.message));
 
@@ -220,9 +222,11 @@ export default function CrearCitaPage() {
   const handleConfirmSubmit = async () => {
     const horaConSegundos = `${formData.hora}:00`;
     console.log(formData);
+    const duracion = paquetes[formData.idPaquete].tiempoTotalServicio;
+    const url = `http://localhost:8080/cita?duracion=${duracion}`;
 
     try {
-      const response = await postWithAuth("http://localhost:8080/cita", {
+      const response = await postWithAuth(url, {
         ...formData,
         hora: horaConSegundos,
       });
@@ -230,7 +234,7 @@ export default function CrearCitaPage() {
         onOpenSuccess();
         window.location.href = "/cliente";
       } else {
-        setMensajeError("Error al crear la cita");
+        setMensajeError(await response.text());
         onOpenError();
       }
     } catch (error) {
