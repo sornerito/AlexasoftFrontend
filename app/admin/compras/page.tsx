@@ -114,7 +114,7 @@ export default function ComprasPage() {
   const rowsProductoPage = 3;
   const tamanoMovil = useMediaQuery({ maxWidth: 768 });
 
-  // Función para obtener los detalles de la venta
+  // Función para obtener los detalles de la compra
   const fetchCompraDetalles = async (idCompra: string) => {
     try {
       // Petición para obtener los detalles del producto (primera petición)
@@ -219,7 +219,7 @@ export default function ComprasPage() {
     };
 
     fetchProveedores();
-  }, []);
+  }, );
 
   useEffect(() => {
     const fetchCompras = async () => {
@@ -256,7 +256,7 @@ export default function ComprasPage() {
     };
 
     fetchCompras();
-  }, []);
+  }, );
 
   const comprasFiltradas = React.useMemo(
     () =>
