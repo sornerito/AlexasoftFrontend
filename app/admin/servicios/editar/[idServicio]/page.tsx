@@ -83,7 +83,7 @@ export default function EditarServicioPage() {
   const [unidadMedida, setUnidadMedida] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; 
+  const itemsPerPage = 5;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -95,6 +95,7 @@ export default function EditarServicioPage() {
   const [nombreError, setNombreError] = useState("");
   const [descripcionError, setDescripcionError] = useState("");
   const [tiempoMinutosError, setTiempoMinutosError] = useState("");
+  const [imagenes, setImagenError] = useState("");
   const [cantidadError, setCantidadError] = useState("");
 
 
@@ -119,9 +120,9 @@ export default function EditarServicioPage() {
       );
 
 
-      setEditIndex(null); 
-      setEditCantidad(null); 
-      setEditCantidadError(""); 
+      setEditIndex(null);
+      setEditCantidad(null);
+      setEditCantidadError("");
     } else {
       setEditCantidadError("La cantidad no es válida o está vacía.");
     }
@@ -235,20 +236,23 @@ export default function EditarServicioPage() {
     validarTiempo(tiempoMinutos);
     validarCantidad(cantidad);
     validarImagenes(imagen);
+    setImagenError(validarImagenes(imagen));
 
-    // Si no hay errores, habilitar el botón de Guardar
+
     setIsFormValid(
-      !nombreError && !descripcionError && !tiempoMinutosError && !cantidadError
+      !nombreError && !descripcionError && !tiempoMinutosError && !cantidadError && !imagenes
     );
   }, [
     nombre,
     descripcion,
     tiempoMinutos,
     cantidad,
+    imagen,
     nombreError,
     descripcionError,
     tiempoMinutosError,
     cantidadError,
+    imagenes,
   ]);
 
   const agregarProducto = () => {
@@ -270,7 +274,7 @@ export default function EditarServicioPage() {
       onOpenError();
       return;
     }
-    
+
     const errorCantidad = validarCantidad(cantidad); // unidadMedida ya está actualizada
     if (errorCantidad) {
       setMensajeError(errorCantidad);
@@ -302,7 +306,7 @@ export default function EditarServicioPage() {
     } else {
       setCantidadError(
         error ||
-          "Seleccione un producto y complete todos los campos necesarios."
+        "Seleccione un producto y complete todos los campos necesarios."
       );
       onOpenError();
     }
@@ -315,7 +319,7 @@ export default function EditarServicioPage() {
   };
 
   const confirmarActualizacion = () => {
-    setIsConfirmModalOpen(true); 
+    setIsConfirmModalOpen(true);
   };
 
   const actualizarServicio = async () => {
@@ -332,7 +336,7 @@ export default function EditarServicioPage() {
 
         // Utilizar los valores actualizados de productosSeleccionados
         const productosId = productosSeleccionados.map(p => p.idProducto);
-        const cantidad = productosSeleccionados.map(p => p.cantidad || 0); 
+        const cantidad = productosSeleccionados.map(p => p.cantidad || 0);
         const unidadMedida = productosSeleccionados.map(p => p.unidadMedida);
 
 
@@ -442,14 +446,16 @@ export default function EditarServicioPage() {
 
   const validarImagenes = (imagen: string) => {
     const url = /(jpg|jpeg|png|gif)/i;
-    if (!url.test(imagen)) {
+    if (!imagen) {
+      return "La URL de la imagen no puede estar vacía.";
+    } else if (!url.test(imagen)) {
       return "La URL de la imagen debe terminar en .jpg, .jpeg, .png o .gif.";
-    }
-    if (imagen.length >= 500) {
-      return "La URL de la imagen permite 500 careacteres";
+    } else if (imagen.length >= 500) {
+      return "La URL de la imagen permite 500 caracteres";
     }
     return "";
   };
+
 
   const cancelarEdicion = () => {
     window.location.href = "/admin/servicios";
@@ -530,7 +536,7 @@ export default function EditarServicioPage() {
                     errorMessage={descripcionError}
                     onValueChange={(value) => {
                       setDescripcion(value);
-                      validarDescripcion(value); // Validar mientras el usuario escribe
+                      validarDescripcion(value); 
                     }}
                     className="w-full mb-4"
                   />
@@ -539,29 +545,32 @@ export default function EditarServicioPage() {
                   )}
                 </div>
 
-                {/* Campo Imágenes */}
                 <div className="col-span-2">
                   <Input
                     isRequired
                     type="text"
                     label="Imágenes"
                     value={imagen}
-                    onValueChange={setImagen}
+                    onValueChange={(value) => {
+                      setImagen(value);
+                      setImagenError(validarImagenes(value)); 
+                    }}
                     className="w-full mb-4"
+                    errorMessage={imagenes} 
                   />
+                  {imagenes && <span className="text-red-500">{imagenes}</span>}
                 </div>
               </div>
             </div>
 
-            {/* Sección de Productos Seleccionados (Derecha) */}
             <div className="flex-1 p-4 rounded-lg shadow-md">
-              <div className="flex flex-col items-start mb-4"> {/* Cambia a flex-col */}
+              <div className="flex flex-col items-start mb-4"> 
                 <h2 className="text-lg font-bold">Productos Seleccionados</h2>
               </div>
 
-              <Divider className="h-1 my-4" /> {/* Añade el divisor */}
+              <Divider className="h-1 my-4" /> 
 
-              <div className="flex justify-end mb-4"> {/* Contenedor para el botón */}
+              <div className="flex justify-end mb-4"> 
                 <Button
                   size="sm"
                   className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
@@ -576,7 +585,7 @@ export default function EditarServicioPage() {
               </div>
 
 
-              {/* Tabla de productos seleccionados */}
+             
               <Table aria-label="Productos seleccionados">
                 <TableHeader>
                   <TableColumn>Producto</TableColumn>
@@ -589,7 +598,7 @@ export default function EditarServicioPage() {
                     <TableRow key={index}>
                       <TableCell>{producto.nombre}</TableCell>
 
-                      {/* Si estamos en modo edición para esta fila, mostramos un campo de entrada */}
+                     
                       <TableCell>
                         {editIndex === index ? (
                           <div>
@@ -599,7 +608,7 @@ export default function EditarServicioPage() {
                               onChange={(e) => {
                                 const nuevaCantidad = Number(e.target.value);
                                 setEditCantidad(nuevaCantidad);
-                                validarCantidadEditada(nuevaCantidad, producto.unidadMedida); // Validar mientras el usuario escribe
+                                validarCantidadEditada(nuevaCantidad, producto.unidadMedida); 
                               }}
                               className="w-full"
                             />
@@ -617,7 +626,6 @@ export default function EditarServicioPage() {
                       <TableCell>
                         {editIndex === index ? (
                           <>
-                            {/* Botón Guardar para la cantidad editada */}
                             <Button
                               size="sm"
                               color="success"
@@ -626,7 +634,6 @@ export default function EditarServicioPage() {
                             >
                               Guardar
                             </Button>
-                            {/* Botón Cancelar edición */}
                             <Button
                               size="sm"
                               color="danger"
@@ -642,7 +649,6 @@ export default function EditarServicioPage() {
                           </>
                         ) : (
                           <>
-                            {/* Botón Editar */}
                             <Button
                               size="sm"
                               color="primary"
@@ -654,7 +660,6 @@ export default function EditarServicioPage() {
                               startContent={<EditIcon />}
                             >
                             </Button>
-                            {/* Botón Eliminar */}
                             <Button
                               size="sm"
                               color="danger"
@@ -697,7 +702,6 @@ export default function EditarServicioPage() {
 
 
 
-              {/* Botones Actualizar y Cancelar */}
               <div className="flex justify-end space-x-4 mt-10">
                 <Button
                   className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
@@ -718,8 +722,6 @@ export default function EditarServicioPage() {
           <CircularProgress color="primary" size="lg" />
         )}
 
-        {/* Modales */}
-        {/* Modal para seleccionar productos */}
         <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
           <ModalContent>
             <ModalHeader>Seleccionar Producto</ModalHeader>
@@ -766,7 +768,7 @@ export default function EditarServicioPage() {
               <Input
                 label="Unidad de Medida"
                 value={productoSeleccionado?.unidadMedida || ""}
-                isReadOnly // Hacer que sea solo lectura
+                isReadOnly 
                 className="mt-4"
               />
             </ModalBody>
@@ -789,7 +791,7 @@ export default function EditarServicioPage() {
           </ModalContent>
         </Modal>
 
-        {/* Modal de Confirmación */}
+
         <Modal isOpen={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
           <ModalContent>
             {(onClose) => (
@@ -820,27 +822,27 @@ export default function EditarServicioPage() {
           </ModalContent>
         </Modal>
 
-         {/*Modal de error*/}
-         <Modal isOpen={isOpenError} onOpenChange={onCloseError}>
-            <ModalContent>
-              {(onClose) => (
-                <>
-                  <ModalHeader className="flex flex-col items-center gap-1">
-                    <CircleX color="#894242" size={100} />
-                  </ModalHeader>
-                  <ModalBody className="text-center">
-                    <h1 className="text-3xl ">Error</h1>
-                    <p>{mensajeError}</p>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button color="danger" variant="light" onPress={onClose}>
-                      Cerrar
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
+        {/*Modal de error*/}
+        <Modal isOpen={isOpenError} onOpenChange={onCloseError}>
+          <ModalContent>
+            {(onClose) => (
+              <>
+                <ModalHeader className="flex flex-col items-center gap-1">
+                  <CircleX color="#894242" size={100} />
+                </ModalHeader>
+                <ModalBody className="text-center">
+                  <h1 className="text-3xl ">Error</h1>
+                  <p>{mensajeError}</p>
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="danger" variant="light" onPress={onClose}>
+                    Cerrar
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
       </>
     </div >
   );
