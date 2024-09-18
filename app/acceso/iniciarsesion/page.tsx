@@ -93,7 +93,7 @@ export default function RegistroPage() {
 
     try {
       const response = await fetch(
-        "http://10.170.83.243:8080/acceso/iniciarSesion",
+        "http://192.168.56.1:8080/acceso/iniciarSesion",
         {
           method: "POST",
           headers: {
