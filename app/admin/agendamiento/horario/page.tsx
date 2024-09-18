@@ -94,7 +94,7 @@ export default function HorarioPage() {
   };
 
   React.useEffect(() => {
-    getWithAuth("http://192.168.56.1:8080/horario")
+    getWithAuth("http://10.170.83.243:8080/horario")
       .then((response) => response.json())
       .then((data) => {
         const processedData = data.map(
@@ -143,7 +143,7 @@ export default function HorarioPage() {
     if (!selectedHorario) return;
     try {
       const response = await postWithAuth(
-        `http://192.168.56.1:8080/horario/${selectedHorario.idHorario}/estado`,
+        `http://10.170.83.243:8080/horario/${selectedHorario.idHorario}/estado`,
         { estado: selectedEstado }
       );
 

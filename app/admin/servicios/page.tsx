@@ -112,7 +112,7 @@ export default function ServiciosPage() {
 
   // Hacer Fetch para obtener ventas y procesar datos
   React.useEffect(() => {
-    getWithAuth("http://192.168.56.1:8080/servicio")
+    getWithAuth("http://10.170.83.243:8080/servicio")
       .then((response) => response.json())
       .then((data) => {
         // Procesar los datos para que coincidan con la estructura de columnas
@@ -208,7 +208,7 @@ export default function ServiciosPage() {
       setTimeout(async () => {
         try {
           const response = await postWithAuth(
-            "http://192.168.56.1:8080/servicio/cambiarEstadoServicio/" + idServicio,
+            "http://10.170.83.243:8080/servicio/cambiarEstadoServicio/" + idServicio,
             {
               method: "POST",
               headers: {

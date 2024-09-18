@@ -79,7 +79,7 @@ export default function EditarRolPage({
 
   // Hacer Fetch para obtener rol del id
   React.useEffect(() => {
-    getWithAuth("http://192.168.56.1:8080/configuracion/rol/" + params.idRol)
+    getWithAuth("http://10.170.83.243:8080/configuracion/rol/" + params.idRol)
       .then((response) => response.json())
       .then((data) => {
         const processedData: Rol = {
@@ -100,7 +100,7 @@ export default function EditarRolPage({
 
   // Hacer Fetch para obtener permisos y acomodarlos a conveniencia
   React.useEffect(() => {
-    getWithAuth("http://192.168.56.1:8080/configuracion/permisos")
+    getWithAuth("http://10.170.83.243:8080/configuracion/permisos")
       .then((response) => response.json())
       .then((data) => {
         // Procesar los datos para que coincidan con la estructura de columnas
@@ -197,7 +197,7 @@ export default function EditarRolPage({
 
     try {
       const response = await postWithAuth(
-        "http://192.168.56.1:8080/configuracion/rol/" + params.idRol,
+        "http://10.170.83.243:8080/configuracion/rol/" + params.idRol,
         data
       );
 

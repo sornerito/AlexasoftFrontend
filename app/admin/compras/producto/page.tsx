@@ -108,7 +108,7 @@ export default function ProductosPage() {
     const fetchProductos = async () => {
       try {
         const response = await getWithAuth(
-          "http://192.168.56.1:8080/compras/productos"
+          "http://10.170.83.243:8080/compras/productos"
         );
         const data = await response.json();
         setProductos(
@@ -144,7 +144,7 @@ export default function ProductosPage() {
     const fetchProductosCompra = async () => {
       try {
         const response = await getWithAuth(
-          "http://192.168.56.1:8080/compras/detalle-producto-compra-producto"
+          "http://10.170.83.243:8080/compras/detalle-producto-compra-producto"
         );
         const data = await response.json();
         setCompras(
@@ -215,7 +215,7 @@ export default function ProductosPage() {
       const promise = new Promise<void>((resolve, reject) => {
         setTimeout(() => {
           postWithAuth(
-            `http://192.168.56.1:8080/compras/productos/${idProducto}`,
+            `http://10.170.83.243:8080/compras/productos/${idProducto}`,
             { estado: updatedEstado }
           )
             .then((response) => {

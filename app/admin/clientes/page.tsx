@@ -102,7 +102,7 @@ export default function ClientesPage() {
   useEffect(() => {
     const fetchClientes = async () => {
       try {
-        const response = await getWithAuth("http://192.168.56.1:8080/cliente");
+        const response = await getWithAuth("http://10.170.83.243:8080/cliente");
         const data = await response.json();
         // Mapear los datos de la respuesta a la interfaz Cliente
         setClientes(
@@ -163,7 +163,7 @@ export default function ClientesPage() {
       const promise = new Promise<void>((resolve, reject) => {
         setTimeout(() => {
           postWithAuth(
-            `http://192.168.56.1:8080/cliente/${idCliente}`,
+            `http://10.170.83.243:8080/cliente/${idCliente}`,
             updatedCliente
           )
             .then((response) => {

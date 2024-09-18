@@ -59,7 +59,7 @@ interface DetalleCompra {
 const fetchCategorias = async () => {
   try {
     const response = await getWithAuth(
-      "http://192.168.56.1:8080/compras/categorias-producto"
+      "http://10.170.83.243:8080/compras/categorias-producto"
     );
     if (!response.ok) {
       throw new Error("Error al obtener las categorías");
@@ -80,7 +80,7 @@ const fetchCategorias = async () => {
 // Función para obtener las marcas
 const fetchMarcas = async () => {
   try {
-    const response = await getWithAuth("http://192.168.56.1:8080/compras/marcas");
+    const response = await getWithAuth("http://10.170.83.243:8080/compras/marcas");
     if (!response.ok) {
       throw new Error("Error al obtener las marcas");
     }
@@ -101,7 +101,7 @@ const fetchMarcas = async () => {
 const fetchDetalleCompra = async () => {
   try {
     const response = await getWithAuth(
-      "http://192.168.56.1:8080/compras/detalle-producto-compra-producto"
+      "http://10.170.83.243:8080/compras/detalle-producto-compra-producto"
     );
     if (!response.ok) {
       throw new Error("Error al obtener las detalle de compra producto ");
@@ -249,7 +249,7 @@ export default function CrearProductoPage() {
   const handleConfirmSubmit = async () => {
     try {
       const response = await postWithAuth(
-        "http://192.168.56.1:8080/compras/productos/",
+        "http://10.170.83.243:8080/compras/productos/",
         {
           ...producto,
           idMarca: Number(producto.marca),

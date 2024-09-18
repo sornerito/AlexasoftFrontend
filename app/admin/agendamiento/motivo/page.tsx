@@ -75,7 +75,7 @@ export default function MotivoCancelacionPage() {
   const [mensajeError, setMensajeError] = React.useState("");
 
   React.useEffect(() => {
-    getWithAuth("http://192.168.56.1:8080/motivocancelacion")
+    getWithAuth("http://10.170.83.243:8080/motivocancelacion")
       .then((response) => response.json())
       .then((data) => {
         setMotivos(data);
@@ -107,7 +107,7 @@ export default function MotivoCancelacionPage() {
     try {
       const updatedMotivo = { ...selectedMotivo, estado: selectedEstado };
       const response = await postWithAuth(
-        `http://192.168.56.1:8080/motivocancelacion/${selectedMotivo.idMotivo}`,
+        `http://10.170.83.243:8080/motivocancelacion/${selectedMotivo.idMotivo}`,
         updatedMotivo
       );
 

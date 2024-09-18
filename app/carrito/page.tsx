@@ -133,7 +133,7 @@ export default function Carrito() {
     const fetchData = async () => {
       try {
         const responseProductos = await getWithAuth(
-          "http://192.168.56.1:8080/compras/productos"
+          "http://10.170.83.243:8080/compras/productos"
         );
         if (responseProductos.ok) {
           const dataProductos = await responseProductos.json();
@@ -318,7 +318,7 @@ export default function Carrito() {
   // Función para enviar la venta
   const crearVenta = async () => {
     try {
-      const response = await postWithAuth("http://192.168.56.1:8080/venta", venta);
+      const response = await postWithAuth("http://10.170.83.243:8080/venta", venta);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -356,7 +356,7 @@ export default function Carrito() {
       };
 
       const response = await postWithAuth(
-        "http://192.168.56.1:8080/venta/detalles-productos",
+        "http://10.170.83.243:8080/venta/detalles-productos",
         ventasConProductos
       );
 

@@ -250,7 +250,7 @@ export default function VentasPage() {
   const fetchVentaDetallesProductos = async (idVenta: string) => {
     try {
       const ventaResponse = await getWithAuth(
-        "http://192.168.56.1:8080/venta/detalles-productos/" + idVenta
+        "http://10.170.83.243:8080/venta/detalles-productos/" + idVenta
       );
       const ventaData = await ventaResponse.json();
 
@@ -286,7 +286,7 @@ export default function VentasPage() {
   const fetchVentaDetallesServicios = async (idVenta: string) => {
     try {
       const ventaResponse = await getWithAuth(
-        "http://192.168.56.1:8080/venta/detalles-servicios/" + idVenta
+        "http://10.170.83.243:8080/venta/detalles-servicios/" + idVenta
       );
       if (!ventaResponse.ok) {
         throw new Error("No se encontró el detalle de venta de servicios.");
@@ -318,11 +318,11 @@ export default function VentasPage() {
           productosResponse,
           citasResponse,
         ] = await Promise.all([
-          getWithAuth("http://192.168.56.1:8080/venta"),
-          getWithAuth("http://192.168.56.1:8080/cliente"),
-          getWithAuth("http://192.168.56.1:8080/colaborador"),
-          getWithAuth("http://192.168.56.1:8080/compras/productos"),
-          getWithAuth("http://192.168.56.1:8080/cita"),
+          getWithAuth("http://10.170.83.243:8080/venta"),
+          getWithAuth("http://10.170.83.243:8080/cliente"),
+          getWithAuth("http://10.170.83.243:8080/colaborador"),
+          getWithAuth("http://10.170.83.243:8080/compras/productos"),
+          getWithAuth("http://10.170.83.243:8080/cita"),
         ]);
 
         const [
@@ -422,7 +422,7 @@ export default function VentasPage() {
 
       const promise = new Promise<void>((resolve, reject) => {
         setTimeout(() => {
-          postWithAuth("http://192.168.56.1:8080/venta/" + idVenta, updatedVenta)
+          postWithAuth("http://10.170.83.243:8080/venta/" + idVenta, updatedVenta)
             .then((response) => {
               if (response.ok) {
                 setVentas((prevVentas) =>

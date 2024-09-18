@@ -159,7 +159,7 @@ export default function VentasPageCrear() {
     // Obtener las citas aceptadas del cliente seleccionado
     try {
       const response = await getWithAuth(
-        `http://192.168.56.1:8080/cita/cliente/${value.target.value}`
+        `http://10.170.83.243:8080/cita/cliente/${value.target.value}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -219,7 +219,7 @@ export default function VentasPageCrear() {
   // Función para obtener la lista de clientes
   const fetchClientes = async () => {
     try {
-      const response = await getWithAuth("http://192.168.56.1:8080/cliente");
+      const response = await getWithAuth("http://10.170.83.243:8080/cliente");
       if (response.ok) {
         const data = await response.json();
         setClientes(data);
@@ -240,7 +240,7 @@ export default function VentasPageCrear() {
   // Función para obtener la lista de colaboradores
   const fetchColaboradores = async () => {
     try {
-      const response = await getWithAuth("http://192.168.56.1:8080/colaborador");
+      const response = await getWithAuth("http://10.170.83.243:8080/colaborador");
       if (response.ok) {
         const data = await response.json();
         setColaboradores(data);
@@ -262,7 +262,7 @@ export default function VentasPageCrear() {
   const fetchProductos = async () => {
     try {
       const response = await getWithAuth(
-        "http://192.168.56.1:8080/compras/productos"
+        "http://10.170.83.243:8080/compras/productos"
       );
       if (response.ok) {
         const data = await response.json();
@@ -285,7 +285,7 @@ export default function VentasPageCrear() {
   const crearVenta = async (ventaData: any) => {
     try {
       const response = await postWithAuth(
-        "http://192.168.56.1:8080/venta",
+        "http://10.170.83.243:8080/venta",
         ventaData
       );
       if (!response.ok) {
@@ -314,7 +314,7 @@ export default function VentasPageCrear() {
         cantidad: productosSeleccionados.map((item) => item.cantidad),
       };
       const response = await postWithAuth(
-        "http://192.168.56.1:8080/venta/detalles-productos",
+        "http://10.170.83.243:8080/venta/detalles-productos",
         detalleVenta
       );
       if (!response.ok) {
@@ -341,7 +341,7 @@ export default function VentasPageCrear() {
         subtotal: calcularTotalCitaConIVA(),
       };
       const response = await postWithAuth(
-        "http://192.168.56.1:8080/venta/detalles-servicios",
+        "http://10.170.83.243:8080/venta/detalles-servicios",
         detalleVentaCita
       );
       if (!response.ok) {
@@ -396,7 +396,7 @@ export default function VentasPageCrear() {
       await crearDetallesVentaCita(nuevaVenta);
 
       const response = await postWithAuth(
-        `http://192.168.56.1:8080/cita/${citaSeleccionada.idCita}/estado`,
+        `http://10.170.83.243:8080/cita/${citaSeleccionada.idCita}/estado`,
         {
           estado: "Finalizado",
         }

@@ -76,7 +76,7 @@ export default function EditarUsuarioPage({
   } = useDisclosure(); //Hook de modal error
 
   React.useEffect(() => {
-    getWithAuth("http://192.168.56.1:8080/configuracion/roles")
+    getWithAuth("http://10.170.83.243:8080/configuracion/roles")
       .then((response) => response.json())
       .then((data) => {
         // Procesar los datos para que coincidan con la estructura de columnas
@@ -100,7 +100,7 @@ export default function EditarUsuarioPage({
   }, []);
 
   React.useEffect(() => {
-    getWithAuth("http://192.168.56.1:8080/usuario/" + params.idUsuario)
+    getWithAuth("http://10.170.83.243:8080/usuario/" + params.idUsuario)
       .then((response) => response.json())
       .then((data) => {
         // Procesar los datos para que coincidan con la estructura de columnas
@@ -183,13 +183,13 @@ export default function EditarUsuarioPage({
       idRol: idRolUsuario,
     };
 
-    let url = "http://192.168.56.1:8080/usuario/" + params.idUsuario;
+    let url = "http://10.170.83.243:8080/usuario/" + params.idUsuario;
     let dataFinal = {};
     dataFinal = data;
     if (
       idRolUsuario == roles.find((rol) => rol.nombre == "Colaborador")?.idRol
     ) {
-      url = "http://192.168.56.1:8080/usuario/cambiarRol/" + params.idUsuario;
+      url = "http://10.170.83.243:8080/usuario/cambiarRol/" + params.idUsuario;
       const errorCedula = validarCedulaModal(cedula);
       if (errorCedula !== "") {
         setMensajeError(errorCedula);
@@ -207,7 +207,7 @@ export default function EditarUsuarioPage({
     } else if (
       idRolUsuario == roles.find((rol) => rol.nombre == "Cliente")?.idRol
     ) {
-      url = "http://192.168.56.1:8080/usuario/cambiarRol/" + params.idUsuario;
+      url = "http://10.170.83.243:8080/usuario/cambiarRol/" + params.idUsuario;
       if (instagram != "" && instagram != "@") {
         const errorInstagram = validarInstagramModal(instagram);
         if (errorInstagram !== "") {

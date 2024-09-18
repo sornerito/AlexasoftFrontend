@@ -116,7 +116,7 @@ export default function CitasPage() {
   } = useDisclosure();
 
   useEffect(() => {
-    getWithAuth("http://192.168.56.1:8080/cita")
+    getWithAuth("http://10.170.83.243:8080/cita")
       .then((response) => response.json())
       .then((data) => {
         const processedData = data.map((item: Cita) => ({
@@ -136,7 +136,7 @@ export default function CitasPage() {
       const fetchedClientes: { [key: number]: string } = {};
       for (const id of ids) {
         const response = await getWithAuth(
-          `http://192.168.56.1:8080/cliente/${id}`
+          `http://10.170.83.243:8080/cliente/${id}`
         );
         const data = await response.json();
         fetchedClientes[id] = data.nombre;
@@ -149,7 +149,7 @@ export default function CitasPage() {
       const fetchedPaquetes: { [key: number]: Paquete } = {};
       for (const id of ids) {
         const response = await getWithAuth(
-          `http://192.168.56.1:8080/servicio/paquete/${id}`
+          `http://10.170.83.243:8080/servicio/paquete/${id}`
         );
         const data = await response.json();
         const { idPaquete, nombre, estado, tiempoTotalServicio } = data.paquete;
@@ -168,7 +168,7 @@ export default function CitasPage() {
       const fetchedColaboradores: { [key: number]: string } = {};
       for (const id of ids) {
         const response = await getWithAuth(
-          `http://192.168.56.1:8080/colaborador/${id}`
+          `http://10.170.83.243:8080/colaborador/${id}`
         );
         const data = await response.json();
         fetchedColaboradores[id] = data.nombre;
@@ -178,7 +178,7 @@ export default function CitasPage() {
 
     const fetchMotivos = async () => {
       const response = await getWithAuth(
-        `http://192.168.56.1:8080/motivocancelacion`
+        `http://10.170.83.243:8080/motivocancelacion`
       );
       const data = await response.json();
       const fetchedMotivos: { [key: number]: string } = {};
@@ -234,7 +234,7 @@ export default function CitasPage() {
 
     try {
       const response = await postWithAuth(
-        `http://192.168.56.1:8080/cita/${selectedCita.idCita}/estado`,
+        `http://10.170.83.243:8080/cita/${selectedCita.idCita}/estado`,
         {
           estado: nuevoEstado,
           citasCancelar: idsCitasConflicto

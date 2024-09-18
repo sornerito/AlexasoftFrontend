@@ -48,7 +48,7 @@ export default function EditarHorarioPage({
   const [mensajeError, setMensajeError] = useState("");
 
   useEffect(() => {
-    getWithAuth(`http://192.168.56.1:8080/horario/${params.idHorario}`)
+    getWithAuth(`http://10.170.83.243:8080/horario/${params.idHorario}`)
       .then((response) => response.json())
       .then((data) => {
         setnumeroDia(data.numeroDia);
@@ -82,7 +82,7 @@ export default function EditarHorarioPage({
 
     try {
       const response = await postWithAuth(
-        `http://192.168.56.1:8080/horario/${params.idHorario}`,
+        `http://10.170.83.243:8080/horario/${params.idHorario}`,
         horarioActualizado
       );
       if (response.ok) {

@@ -55,7 +55,7 @@ export default function EditarCategoriaProductoPage({
 
   useEffect(() => {
     getWithAuth(
-      `http://192.168.56.1:8080/compras/categorias-producto/${params.idCategoriaProducto}`
+      `http://10.170.83.243:8080/compras/categorias-producto/${params.idCategoriaProducto}`
     )
       .then((response) => response.json())
       .then((data) => {
@@ -122,7 +122,7 @@ export default function EditarCategoriaProductoPage({
 
     try {
       const response = await postWithAuth(
-        `http://192.168.56.1:8080/compras/categorias-producto/${params.idCategoriaProducto}`,
+        `http://10.170.83.243:8080/compras/categorias-producto/${params.idCategoriaProducto}`,
         categoriaProductoActualizado
       );
       if (response.ok) {
