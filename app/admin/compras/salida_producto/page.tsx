@@ -173,10 +173,10 @@ export default function SalidaProductosPage() {
               SalidaProducto.idSalidaProducto === selectedSalidaProducto.idSalidaProducto ? updatedSalidaProducto : SalidaProducto
             )
           );
-          toast.success("SalidaProducto actualizado con éxito!");
+          toast.success("Salida Producto actualizado con éxito!");
         } else {
-          console.error("Error al actualizar el SalidaProducto:", response.statusText);
-          setMensajeError("Error al actualizar el SalidaProducto. Por favor, inténtalo de nuevo.");
+          console.error("Error al actualizar el Salida Producto:", response.statusText);
+          setMensajeError("Error al actualizar el Salida Producto. Por favor, inténtalo de nuevo.");
           onOpenError();
         }
       } catch (err) {
@@ -246,7 +246,7 @@ const validarMotivoAnular = () => {
         <div className="flex items-center justify-end mb-4 space-x-2 basis-1/4 sm:my-4 text-end">
           <Link href="/admin/compras/salida_producto/crear">
             <Button className="bg-gradient-to-tr from-red-600 to-orange-300" aria-label="Crear SalidaProducto">
-              <PlusIcon /> Crear SalidaProducto
+              <PlusIcon /> Crear Salida Producto
             </Button>
           </Link>
         </div>

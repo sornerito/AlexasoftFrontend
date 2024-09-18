@@ -214,8 +214,8 @@ export default function CrearProductoPage() {
                                 <CircleHelp color="#fef08a" size={100} />
                             </ModalHeader>
                             <ModalBody className="text-center">
-                                <h1 className="text-3xl">¿Desea crear la salida SalidaProductos?</h1>
-                                <p>La salida de SalidaProducto se creará con la información proporcionada.</p>
+                                <h1 className="text-3xl">¿Desea crear la salida Salida Productos?</h1>
+                                <p>La salida de Salida Producto se creará con la información proporcionada.</p>
                             </ModalBody>
                             <ModalFooter>
                                 <Button color="danger" variant="light" onPress={onClose}>
