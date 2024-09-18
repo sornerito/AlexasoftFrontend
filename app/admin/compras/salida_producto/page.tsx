@@ -105,11 +105,11 @@ export default function SalidaProductosPage() {
         }
 
         if (err.message === "Unexpected end of JSON input") {
-          setMensajeError("No hay Categoria Salida SalidaProductos registradas aún.");
+          setMensajeError("No hay Categoria Salida Salida Productos registradas aún.");
           onOpenWarning();
         }else{
-          console.error("Error al obtener Salida SalidaProductos:", err);
-          setMensajeError("Error al obtener Salida SalidaProductos. Por favor, inténtalo de nuevo.");
+          console.error("Error al obtener Salida Salida Productos:", err);
+          setMensajeError("Error al obtener Salida Salida Productos. Por favor, inténtalo de nuevo.");
           onOpenError();
         }
       }
@@ -397,7 +397,7 @@ const validarMotivoAnular = () => {
           <CircleHelp color="#fef08a" size={100} />
         </ModalHeader>
         <ModalBody className="text-center">
-          <h1 className="text-3xl">Anular SalidaProducto</h1>
+          <h1 className="text-3xl">Anular Salida Producto</h1>
           <br />
           <Select
             isRequired

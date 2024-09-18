@@ -128,7 +128,7 @@ export default function CrearProductoPage() {
                 const errorResponse = await response.text();
                 setMensajeError("No hay producto disponibles!!");
                 onOpenError();
-                throw new Error("Error al intentar guardar la salida SalidaProductos");
+                throw new Error("Error al intentar guardar la salida Salida Productos");
             }
 
             router.push("/admin/compras/salida_producto");
