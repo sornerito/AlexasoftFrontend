@@ -121,7 +121,6 @@ export default function CrearCitaPage() {
             servicios: item.servicios.map((servicio) => servicio.nombre), // Esto es opcional, solo muestra los nombres
           }));
         setPaquetes(paquetesActivos);
-        
       })
       .catch((err) => console.error("Error fetching paquetes:", err.message));
 
@@ -237,25 +236,29 @@ export default function CrearCitaPage() {
 
   const handleConfirmSubmit = async () => {
     const horaConSegundos = `${formData.hora}:00`;
-    console.log(formData);
-    const duracion = paquetes[formData.idPaquete].tiempoTotalServicio;
-    const url = `http://localhost:8080/cita?duracion=${duracion}`;
-
-    try {
-      const response = await postWithAuth(url, {
-        ...formData,
-        hora: horaConSegundos,
-      });
-      if (response.ok) {
-        onOpenSuccess();
-        window.location.href = "/cliente";
-      } else {
-        setMensajeError(await response.text());
+    const idPaqueteSeleccionado = Number(formData.idPaquete);
+    const paqueteSeleccionado = paquetes.find(paquete => paquete.idPaquete === idPaqueteSeleccionado);
+    if (paqueteSeleccionado) {
+      console.log(paqueteSeleccionado);
+      const duracion = paqueteSeleccionado.tiempoTotalServicio;
+      try {
+        const response = await postWithAuth(`http://localhost:8080/cita?duracion=${duracion}`, {
+          ...formData,
+          hora: horaConSegundos,
+        });
+        if (response.ok) {
+          onOpenSuccess();
+          window.location.href = "/cliente";
+        } else {
+          setMensajeError(await response.text());
+          onOpenError();
+        }
+      } catch (error) {
+        setMensajeError("Error al enviar la solicitud");
         onOpenError();
       }
-    } catch (error) {
-      setMensajeError("Error al enviar la solicitud");
-      onOpenError();
+    } else {
+      console.error("Paquete no encontrado");
     }
   };
 
