@@ -165,131 +165,218 @@ export default function PaquetesPage() {
 
   const [paqueteId, setPaqueteId] = React.useState("");
   const [estadoActual, setEstadoActual] = React.useState("");
+
   const cambiarEstado = async (idPaquete: any, estadoActual: any) => {
     const data = {
       estado: estadoActual,
     };
-    try {
-      const response = await postWithAuth(
-        "http://localhost:8080/servicio/cambiarEstado/" + idPaquete,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
+    const promise = new Promise<void>((resolve, reject) => {
+      setTimeout(async () => {
+        try {
+          const response = await postWithAuth(
+            "http://localhost:8080/servicio/cambiarEstado/" + idPaquete,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            }
+          );
+
+          if (response.ok) {
+            const nuevoEstado =
+              estadoActual === "Activo" ? "Desactivado" : "Activo";
+            setPaquetes((prevPaquete) =>
+              prevPaquete.map((paquete) =>
+                paquete.idPaquete === idPaquete
+                  ? { ...paquete, estado: nuevoEstado }
+                  : paquete
+              )
+            );
+            resolve();
+          } else {
+            const errorResponse = await response.text();
+            setMensajeError(errorResponse);
+            onOpenError();
+            console.error("Error al cambiar de estado: ", await response.text());
+            reject(new Error(errorResponse));
+          }
+        } catch (error: any) {
+          console.error("Error al cambiar de estado: ", error);
+          reject(error);
         }
-      );
+      }, 500);
+    });
 
-      if (response.ok) {
-        const nuevoEstado =
-          estadoActual === "Activo" ? "Desactivado" : "Activo";
-        setPaquetes((prevPaquete) =>
-          prevPaquete.map((paquete) =>
-            paquete.idPaquete === idPaquete
-              ? { ...paquete, estado: nuevoEstado }
-              : paquete
-          )
-        );
-      } else {
-        const errorResponse = await response.text();
-        setMensajeError(errorResponse);
-        onOpenError();
-        console.error("Error al cambiar de estado: ", await response.text());
-      }
-    } catch (error) {
-      console.error("Error al cambiar de estado: ", error);
+    toast.promise(promise, {
+      loading: "Editando...",
+      success: "El estado ha sido cambiado con éxito",
+      error: (err) => err.message,
+    });
+  };
+
+    const handleEstadoChange = async (idPaquete: any, estado: any) => {
+      setPaqueteId(idPaquete);
+      setEstadoActual(estado);
+      onOpen();
+    };
+
+    if (!paginaCargada) {
+      return null;
     }
-  };
-
-  const handleEstadoChange = async (idPaquete: any, estado: any) => {
-    setPaqueteId(idPaquete);
-    setEstadoActual(estado);
-    onOpen();
-  };
-
-  if (!paginaCargada) {
-    return null;
-  }
 
 
-  const mostrarDetallePaquete = (idPaquete: string) => {
-    const paquete = paquetes.find(
-      (paquete) => paquete.idPaquete === idPaquete
-    );
-    setPaquetesSeleccionado(paquete || null);
-    onOpenDetalles(); // Abre el modal
-  };
+    const mostrarDetallePaquete = (idPaquete: string) => {
+      const paquete = paquetes.find(
+        (paquete) => paquete.idPaquete === idPaquete
+      );
+      setPaquetesSeleccionado(paquete || null);
+      onOpenDetalles(); // Abre el modal
+    };
 
-  return (
-    <>
-      {acceso ? (
-        <div>
-          <h1 className={title()}>Paquetes</h1>
-          <div className="flex flex-col items-start sm:flex-row sm:items-center">
-            <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
-              <Input
-                classNames={{
-                  label: "text-black/50 dark:text-white/90",
-                  input: [
-                    "bg-transparent",
-                    "text-black/90 dark:text-white/90",
-                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                  ],
-                  innerWrapper: "bg-transparent",
-                  inputWrapper: [
-                    "shadow-xl",
-                    "rounded-lg",
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focus=true]:bg-default-200/50",
-                    "dark:group-data-[focus=true]:bg-default/60",
-                    "!cursor-text",
-                  ],
-                }}
-                placeholder="Buscar..."
-                onChange={(e: any) => setSearchTerm(e.target.value)}
-              />
+    return (
+      <>
+        {acceso ? (
+          <div>
+            <h1 className={title()}>Paquetes</h1>
+            <Toaster position="bottom-right" />
+            <div className="flex flex-col items-start sm:flex-row sm:items-center">
+              <div className="p-0 my-4 rounded-lg basis-1/4 bg-gradient-to-tr from-yellow-600 to-yellow-300">
+                <Input
+                  classNames={{
+                    label: "text-black/50 dark:text-white/90",
+                    input: [
+                      "bg-transparent",
+                      "text-black/90 dark:text-white/90",
+                      "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                    ],
+                    innerWrapper: "bg-transparent",
+                    inputWrapper: [
+                      "shadow-xl",
+                      "rounded-lg",
+                      "bg-default-200/50",
+                      "dark:bg-default/60",
+                      "backdrop-blur-xl",
+                      "backdrop-saturate-200",
+                      "hover:bg-default-200/70",
+                      "dark:hover:bg-default/70",
+                      "group-data-[focus=true]:bg-default-200/50",
+                      "dark:group-data-[focus=true]:bg-default/60",
+                      "!cursor-text",
+                    ],
+                  }}
+                  placeholder="Buscar..."
+                  onChange={(e: any) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="basis-1/2"></div>
+              <div className="flex items-center justify-end mb-4 space-x-2 basis-1/4 sm:my-4 text-end">
+                <Link href="/admin/paquetes/crear">
+                  <Button
+                    className="bg-gradient-to-tr from-red-600 to-orange-300"
+                    aria-label="Crear Paquete"
+                  >
+                    <PlusIcon /> Crear Paquete
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <div className="basis-1/2"></div>
-            <div className="flex items-center justify-end mb-4 space-x-2 basis-1/4 sm:my-4 text-end">
-              <Link href="/admin/paquetes/crear">
-                <Button
-                  className="bg-gradient-to-tr from-red-600 to-orange-300"
-                  aria-label="Crear Paquete"
-                >
-                  <PlusIcon /> Crear Paquete
-                </Button>
-              </Link>
-            </div>
-          </div>
-          {tamanoMovil ? (
-            <div>
-              {items.map((item) => (
-                <div key={item.idPaquete}>
-                  <style></style>
-                  <Card className="mb-4 group">
-                    <CardBody>
+            {tamanoMovil ? (
+              <div>
+                {items.map((item) => (
+                  <div key={item.idPaquete}>
+                    <style></style>
+                    <Card className="mb-4 group">
+                      <CardBody>
+                        {columns.map((column) => (
+                          <div
+                            key={column.uid}
+                            className="truncate group-hover:whitespace-normal group-hover:overflow-visible "
+                          >
+                            <strong>
+                              {column.uid === "acciones" ? "" : column.name + ":"}{" "}
+                            </strong>
+                            {column.uid === "acciones" &&
+                              item.estado == "Activo" ? (
+                              <Dropdown>
+                                <DropdownTrigger className="w-auto my-2 bg-transparent">
+                                  <Button
+                                    isIconOnly
+                                    className="border"
+                                    aria-label="Actions"
+                                  >
+                                    <Ellipsis />
+                                  </Button>
+                                </DropdownTrigger>
+                                <DropdownMenu
+                                  onAction={(action) => console.log(action)}
+                                >
+                                  <DropdownItem
+                                    href={`/admin/paquetes/editar/${item.idPaquete}`}
+                                  >
+                                    <Button className="w-full bg-transparent">
+                                      <Edit />
+                                      Editar Paquete
+                                    </Button>
+                                  </DropdownItem>
+                                  <DropdownItem>
+                                    <Button
+                                      className="w-full bg-transparent"
+                                      onClick={() =>
+                                        mostrarDetallePaquete(item.idPaquete)
+                                      }
+                                    >
+                                      <Eye />
+                                      Detalles
+                                    </Button>
+                                  </DropdownItem>
+                                </DropdownMenu>
+                              </Dropdown>
+                            ) : column.uid === "estado" ? (
+                              <Chip
+                                color={
+                                  item.estado === "Activo" ? "success" : "danger"
+                                }
+                                variant="bordered"
+                                className="align-middle transition-transform duration-100 ease-in-out cursor-pointer hover:scale-90"
+                                onClick={() =>
+                                  handleEstadoChange(item.idPaquete, item.estado)
+                                }
+                              >
+                                {item.estado}
+                              </Chip>
+                            ) : (
+                              <span>{item[column.uid as keyof Paquete]}</span>
+                            )}
+                          </div>
+                        ))}
+                      </CardBody>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Table className="mb-8" isStriped>
+                <TableHeader columns={columns}>
+                  {(column) => (
+                    <TableColumn className="text-base" key={column.uid}>
+                      {column.name}
+                    </TableColumn>
+                  )}
+                </TableHeader>
+                <TableBody items={items}>
+                  {(item) => (
+                    <TableRow key={item.idPaquete}>
                       {columns.map((column) => (
-                        <div
-                          key={column.uid}
-                          className="truncate group-hover:whitespace-normal group-hover:overflow-visible "
-                        >
-                          <strong>
-                            {column.uid === "acciones" ? "" : column.name + ":"}{" "}
-                          </strong>
+                        <TableCell key={column.uid}>
                           {column.uid === "acciones" &&
                             item.estado == "Activo" ? (
                             <Dropdown>
-                              <DropdownTrigger className="w-auto my-2 bg-transparent">
+                              <DropdownTrigger>
                                 <Button
-                                  isIconOnly
-                                  className="border"
-                                  aria-label="Actions"
+                                  aria-label="Acciones"
+                                  className="bg-transparent"
                                 >
                                   <Ellipsis />
                                 </Button>
@@ -313,7 +400,7 @@ export default function PaquetesPage() {
                                     }
                                   >
                                     <Eye />
-                                    Detalles
+                                    Ver Detalles
                                   </Button>
                                 </DropdownItem>
                               </DropdownMenu>
@@ -324,7 +411,7 @@ export default function PaquetesPage() {
                                 item.estado === "Activo" ? "success" : "danger"
                               }
                               variant="bordered"
-                              className="align-middle transition-transform duration-100 ease-in-out cursor-pointer hover:scale-90"
+                              className="transition-transform duration-100 ease-in-out cursor-pointer hover:scale-110"
                               onClick={() =>
                                 handleEstadoChange(item.idPaquete, item.estado)
                               }
@@ -332,233 +419,160 @@ export default function PaquetesPage() {
                               {item.estado}
                             </Chip>
                           ) : (
-                            <span>{item[column.uid as keyof Paquete]}</span>
+                            item[column.uid as keyof Paquete]
                           )}
-                        </div>
+                        </TableCell>
                       ))}
-                    </CardBody>
-                  </Card>
-                </div>
-              ))}
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
+            <div className="flex justify-center w-full mb-4">
+              <Pagination
+                showControls
+                color="warning"
+                page={page}
+                total={Math.ceil(paquetesFiltrados.length / rowsPerPage)}
+                onChange={(page) => setPage(page)}
+              />
             </div>
-          ) : (
-            <Table className="mb-8" isStriped>
-              <TableHeader columns={columns}>
-                {(column) => (
-                  <TableColumn className="text-base" key={column.uid}>
-                    {column.name}
-                  </TableColumn>
-                )}
-              </TableHeader>
-              <TableBody items={items}>
-                {(item) => (
-                  <TableRow key={item.idPaquete}>
-                    {columns.map((column) => (
-                      <TableCell key={column.uid}>
-                        {column.uid === "acciones" &&
-                          item.estado == "Activo" ? (
-                          <Dropdown>
-                            <DropdownTrigger>
-                              <Button
-                                aria-label="Acciones"
-                                className="bg-transparent"
-                              >
-                                <Ellipsis />
-                              </Button>
-                            </DropdownTrigger>
-                            <DropdownMenu
-                              onAction={(action) => console.log(action)}
-                            >
-                              <DropdownItem
-                                href={`/admin/paquetes/editar/${item.idPaquete}`}
-                              >
-                                <Button className="w-full bg-transparent">
-                                  <Edit />
-                                  Editar Paquete
-                                </Button>
-                              </DropdownItem>
-                              <DropdownItem>
-                                <Button
-                                  className="w-full bg-transparent"
-                                  onClick={() =>
-                                    mostrarDetallePaquete(item.idPaquete)
-                                  }
-                                >
-                                  <Eye />
-                                  Ver Detalles
-                                </Button>
-                              </DropdownItem>
-                            </DropdownMenu>
-                          </Dropdown>
-                        ) : column.uid === "estado" ? (
-                          <Chip
-                            color={
-                              item.estado === "Activo" ? "success" : "danger"
-                            }
-                            variant="bordered"
-                            className="transition-transform duration-100 ease-in-out cursor-pointer hover:scale-110"
-                            onClick={() =>
-                              handleEstadoChange(item.idPaquete, item.estado)
-                            }
+
+            <Modal
+              isOpen={isOpenDetalles}
+              onOpenChange={onOpenChangeDetalles}
+              className="max-w-5xl"
+            >
+              <ModalContent>
+                {(onClose) => (
+                  <>
+                    <ModalHeader className="flex flex-col items-center pb-4 border-b border-gray-200">
+                      <Eye color="#FFD700" size={100} />
+                      <h1 className="mt-2 text-3xl font-semibold">
+                        Detalle Paquetes
+                      </h1>
+                    </ModalHeader>
+                    <ModalBody className="p-6 overflow-y-auto max-h-96">
+                      {paquetesSeleccionado ? (
+                        <div className="flex flex-col gap-6 lg:flex-row">
+                          <Table
+                            aria-label="Detalles de la Venta"
+                            className="flex-1"
                           >
-                            {item.estado}
-                          </Chip>
-                        ) : (
-                          item[column.uid as keyof Paquete]
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
+                            <TableHeader>
+                              <TableColumn>Informacion Paquetes</TableColumn>
+                              <TableColumn>Información</TableColumn>
+                            </TableHeader>
+                            <TableBody>
+                              <TableRow>
+                                <TableCell>Nombre</TableCell>
+                                <TableCell>
+                                  {paquetesSeleccionado.nombre}
+                                </TableCell>
+                              </TableRow>
+                              <TableRow>
+                                <TableCell>Descripcion</TableCell>
+                                <TableCell>
+                                  {paquetesSeleccionado.descripcion}
+                                </TableCell>
+                              </TableRow>
+                              <TableRow>
+                                <TableCell>TiempoTotalServicios</TableCell>
+                                <TableCell>
+                                  {paquetesSeleccionado.tiempoTotalServicio}
+                                </TableCell>
+                              </TableRow>
+                              <TableRow>
+                                <TableCell>Estado</TableCell>
+                                <TableCell>
+                                  {paquetesSeleccionado.estado}
+                                </TableCell>
+                              </TableRow>
+                              <TableRow>
+                                <TableCell>Servicios</TableCell>
+                                <TableCell>{paquetesSeleccionado.servicios}</TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : isLoading ? (
+                        <div className="flex items-center justify-center">
+                          <Spinner color="warning" size="lg" />
+                        </div>
+                      ) : (
+                        <p>No hay detalles para mostrar</p>
+                      )}
+                    </ModalBody>
+                    <ModalFooter className="pt-4 border-t border-gray-200">
+                      <Button color="danger" variant="light" onPress={onClose}>
+                        Cerrar
+                      </Button>
+                    </ModalFooter>
+                  </>
                 )}
-              </TableBody>
-            </Table>
-          )}
-          <div className="flex justify-center w-full mb-4">
-            <Pagination
-              showControls
-              color="warning"
-              page={page}
-              total={Math.ceil(paquetesFiltrados.length / rowsPerPage)}
-              onChange={(page) => setPage(page)}
-            />
+              </ModalContent>
+            </Modal>
+
+            {/*Modal Cambiar Estado*/}
+            <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+              <ModalContent>
+                {(onClose) => (
+                  <>
+                    <ModalHeader className="flex flex-col items-center gap-1">
+                      <CircleHelp color="#fef08a" size={100} />
+                    </ModalHeader>
+                    <ModalBody className="text-center">
+                      <h1 className="text-3xl ">
+                        ¿Desea cambiar el estado del paquete?
+                      </h1>
+                      <p>
+                        Hacerlo inhabilitará estepaquete
+                      </p>
+                    </ModalBody>
+                    <ModalFooter>
+                      <Button color="danger" variant="light" onPress={onClose}>
+                        Cancelar
+                      </Button>
+                      <Button
+                        className="bg-[#609448]"
+                        onPress={() => {
+                          cambiarEstado(paqueteId, estadoActual);
+                          onClose();
+                        }}
+                      >
+                        Cambiar Estado
+                      </Button>
+                    </ModalFooter>
+                  </>
+                )}
+              </ModalContent>
+            </Modal>
+
+            {/*Modal de error*/}
+            <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
+              <ModalContent>
+                {(onClose) => (
+                  <>
+                    <ModalHeader className="flex flex-col items-center gap-1">
+                      <CircleX color="#894242" size={100} />
+                    </ModalHeader>
+                    <ModalBody className="text-center">
+                      <h1 className="text-3xl ">Error</h1>
+                      <p>{mensajeError}</p>
+                    </ModalBody>
+                    <ModalFooter>
+                      <Button color="danger" variant="light" onPress={onClose}>
+                        Cerrar
+                      </Button>
+                    </ModalFooter>
+                  </>
+                )}
+              </ModalContent>
+            </Modal>
           </div>
-
-          <Modal
-            isOpen={isOpenDetalles}
-            onOpenChange={onOpenChangeDetalles}
-            className="max-w-5xl"
-          >
-            <ModalContent>
-              {(onClose) => (
-                <>
-                  <ModalHeader className="flex flex-col items-center pb-4 border-b border-gray-200">
-                    <Eye color="#FFD700" size={100} />
-                    <h1 className="mt-2 text-3xl font-semibold">
-                      Detalle Paquetes
-                    </h1>
-                  </ModalHeader>
-                  <ModalBody className="p-6 overflow-y-auto max-h-96">
-                    {paquetesSeleccionado ? (
-                      <div className="flex flex-col gap-6 lg:flex-row">
-                        <Table
-                          aria-label="Detalles de la Venta"
-                          className="flex-1"
-                        >
-                          <TableHeader>
-                            <TableColumn>Informacion Paquetes</TableColumn>
-                            <TableColumn>Información</TableColumn>
-                          </TableHeader>
-                          <TableBody>
-                            <TableRow>
-                              <TableCell>Nombre</TableCell>
-                              <TableCell>
-                                {paquetesSeleccionado.nombre}
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell>Descripcion</TableCell>
-                              <TableCell>
-                                {paquetesSeleccionado.descripcion}
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell>TiempoTotalServicios</TableCell>
-                              <TableCell>
-                                {paquetesSeleccionado.tiempoTotalServicio}
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell>Estado</TableCell>
-                              <TableCell>
-                                {paquetesSeleccionado.estado}
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                            <TableCell>Servicios</TableCell>
-                            <TableCell>{paquetesSeleccionado.servicios}</TableCell>
-                          </TableRow>
-                          </TableBody>
-                        </Table>
-                      </div>
-                    ) : isLoading ? (
-                      <div className="flex items-center justify-center">
-                        <Spinner color="warning" size="lg" />
-                      </div>
-                    ) : (
-                      <p>No hay detalles para mostrar</p>
-                    )}
-                  </ModalBody>
-                  <ModalFooter className="pt-4 border-t border-gray-200">
-                    <Button color="danger" variant="light" onPress={onClose}>
-                      Cerrar
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
-
-          {/*Modal Cambiar Estado*/}
-          <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-            <ModalContent>
-              {(onClose) => (
-                <>
-                  <ModalHeader className="flex flex-col items-center gap-1">
-                    <CircleHelp color="#fef08a" size={100} />
-                  </ModalHeader>
-                  <ModalBody className="text-center">
-                    <h1 className="text-3xl ">
-                      ¿Desea cambiar el estado del paquete?
-                    </h1>
-                    <p>
-                      Hacerlo inhabilitará a todos los usuarios que tengan este
-                      rol.
-                    </p>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button color="danger" variant="light" onPress={onClose}>
-                      Cancelar
-                    </Button>
-                    <Button
-                      className="bg-[#609448]"
-                      onPress={() => {
-                        cambiarEstado(paqueteId, estadoActual);
-                        onClose();
-                      }}
-                    >
-                      Cambiar Estado
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
-
-          {/*Modal de error*/}
-          <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
-            <ModalContent>
-              {(onClose) => (
-                <>
-                  <ModalHeader className="flex flex-col items-center gap-1">
-                    <CircleX color="#894242" size={100} />
-                  </ModalHeader>
-                  <ModalBody className="text-center">
-                    <h1 className="text-3xl ">Error</h1>
-                    <p>{mensajeError}</p>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button color="danger" variant="light" onPress={onClose}>
-                      Cerrar
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
-        </div>
-      ) : (
-        <CircularProgress color="warning" aria-label="Cargando..." />
-      )}
-    </>
-  );
-}
+        ) : (
+          <CircularProgress color="warning" aria-label="Cargando..." />
+        )}
+      </>
+    );
+  }

@@ -245,6 +245,13 @@ export default function EditarPaquetePage({
         }, 1000); 
       } else {
         const errorData = await response.json();
+        // Validación para nombre de paquete duplicado
+        if (errorData.message && errorData.message.includes("Ya existe un paquete con el nombre")) {
+          setMensajeError(errorData.message);
+          onOpenError();
+          return; // Detener la ejecución si hay un error de nombre duplicado
+        }
+        // Manejo de otros errores
         const errorMessage = errorData.error || "Error al actualizar el paquete";
         setMensajeError(errorMessage);
         onOpenError();

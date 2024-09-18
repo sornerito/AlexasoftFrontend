@@ -103,7 +103,7 @@ export default function EditarServicioPage() {
   const [editCantidadError, setEditCantidadError] = useState<string>("");
 
   const validarCantidadEditada = (cantidad: number, unidadMedida: string) => {
-    const error = validarCantidad(cantidad, unidadMedida);
+    const error = validarCantidad(cantidad);
     setEditCantidadError(error);
     return error;
   };
@@ -233,7 +233,7 @@ export default function EditarServicioPage() {
     validarNombre(nombre);
     validarDescripcion(descripcion);
     validarTiempo(tiempoMinutos);
-    validarCantidad(cantidad, unidadMedida);
+    validarCantidad(cantidad);
     validarImagenes(imagen);
 
     // Si no hay errores, habilitar el botón de Guardar
@@ -252,8 +252,7 @@ export default function EditarServicioPage() {
   ]);
 
   const agregarProducto = () => {
-    const error = validarCantidad(cantidad, unidadMedida);
-
+    const error = validarCantidad(cantidad);
     if (!productoSeleccionado) {
       setMensajeError("Seleccione un producto.");
       onOpenError();
@@ -272,7 +271,14 @@ export default function EditarServicioPage() {
       return;
     }
     
-    if (productoSeleccionado && cantidad > 0 && error === "") {
+    const errorCantidad = validarCantidad(cantidad); // unidadMedida ya está actualizada
+    if (errorCantidad) {
+      setMensajeError(errorCantidad);
+      onOpenError();
+      return;
+    }
+
+    if (productoSeleccionado && cantidad > 0 && errorCantidad === "") {
       const productoExiste = productosSeleccionados.find(
         (p) => p.idProducto === productoSeleccionado.idProducto
       );
@@ -282,19 +288,21 @@ export default function EditarServicioPage() {
         onOpenError();
         return;
       }
-
-      // Mantener los productos ya seleccionados
       setProductosSeleccionados((prevProductosSeleccionados) => [
         ...prevProductosSeleccionados,
-        { ...productoSeleccionado, cantidad, unidadMedida },
+        {
+          ...productoSeleccionado,
+          cantidad,
+          unidadMedida: productoSeleccionado.unidadMedida,
+        },
       ]);
       setProductoSeleccionado(null);
       setCantidad(0);
-      setUnidadMedida("");
       setCantidadError("");
     } else {
-      setMensajeError(
-        "Seleccione un producto y complete todos los campos necesarios."
+      setCantidadError(
+        error ||
+          "Seleccione un producto y complete todos los campos necesarios."
       );
       onOpenError();
     }
@@ -340,17 +348,20 @@ export default function EditarServicioPage() {
 
 
         if (response.ok) {
-          setIsConfirmModalOpen(false); 
           toast.success("Servicio actualizado con éxito!");
           setTimeout(() => {
             router.push("/admin/servicios");
           }, 1000);
         } else {
           const errorData = await response.json();
-          setMensajeError(
-            errorData.message || "Error al actualizar el servicio"
-          );
-          onOpenError();
+          if (errorData.message && errorData.message.includes("Ya existe un servicio con el nombre")) {
+            setMensajeError(errorData.message);
+            onOpenError();
+          } else {
+            const errorData = await response.json();
+            setMensajeError(errorData.message || "Error al actualizar el servicio");
+            onOpenError();
+          }
         }
       } catch (error) {
         setMensajeError("Error en la comunicación con el servidor");
@@ -405,28 +416,28 @@ export default function EditarServicioPage() {
     }
   };
 
-  const validarCantidad = (cantidad: number, unidadMedida: string) => {
-    if (!cantidad) {
+  const validarCantidad = (cantidad: number) => {
+    if (
+      cantidad === null ||
+      cantidad === undefined ||
+      cantidad.toString().trim() === ""
+    ) {
       return "La cantidad no puede estar vacía.";
     }
-
-    if (unidadMedida === "g") {
+    if (productoSeleccionado?.unidadMedida === "g") {
       if (cantidad < 10) {
         return "La cantidad mínima en gramos es 10g.";
-      } else if (cantidad > 10000) {
+      } else if (cantidad > 1000) {
         return "La cantidad máxima en gramos es 10000g.";
       }
-    } else if (unidadMedida === "ml") {
+    } else if (productoSeleccionado?.unidadMedida === "ml") {
       if (cantidad < 10) {
         return "La cantidad mínima en mililitros es 10ml.";
-      } else if (cantidad > 10000) {
+      } else if (cantidad > 1000) {
         return "La cantidad máxima en mililitros es 10000ml.";
       }
-    } else {
-      return "Seleccione una unidad de medida válida.";
     }
-
-    return ""; // Si no hay errores, retornar cadena vacía.
+    return "";
   };
 
   const validarImagenes = (imagen: string) => {
@@ -746,7 +757,7 @@ export default function EditarServicioPage() {
                 errorMessage={cantidadError}
                 onValueChange={(value) => {
                   setCantidad(Number(value));
-                  setCantidadError(validarCantidad(Number(value), productoSeleccionado?.unidadMedida || ""));
+                  setCantidadError(validarCantidad(Number(value)));
                 }}
                 className="mt-4"
               />

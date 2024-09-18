@@ -105,6 +105,8 @@ export default function ServiciosPage() {
   } = useDisclosure(); //Hook de modal error
 
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Define la cantidad de items por página
 
   const router = useRouter(); // Hook para manejar la navegación
 
@@ -201,7 +203,7 @@ export default function ServiciosPage() {
     const data = {
       estado: estadoActual,
     };
-  
+
     const promise = new Promise<void>((resolve, reject) => {
       setTimeout(async () => {
         try {
@@ -215,7 +217,7 @@ export default function ServiciosPage() {
               body: JSON.stringify(data),
             }
           );
-  
+
           if (response.ok) {
             const nuevoEstado = estadoActual === "Activo" ? "Desactivado" : "Activo";
             setServicios((prevSrrvicio) =>
@@ -225,21 +227,21 @@ export default function ServiciosPage() {
                   : servicio
               )
             );
-            resolve(); // Resuelve la promesa si el cambio de estado es exitoso
+            resolve();
           } else {
             const errorResponse = await response.text();
             setMensajeError(errorResponse);
             onOpenError();
             console.error("Error al cambiar de estado: ", await response.text());
-            reject(new Error(errorResponse)); // Rechaza la promesa si hay un error
+            reject(new Error(errorResponse));
           }
         } catch (error: any) {
           console.error("Error al cambiar de estado: ", error);
-          reject(error); // Rechaza la promesa si hay un error en la solicitud
+          reject(error);
         }
-      }, 500); // Simula un retraso de 500 ms para mostrar la promesa
+      }, 500);
     });
-  
+
     toast.promise(promise, {
       loading: "Editando...",
       success: "El estado ha sido cambiado con éxito",
@@ -345,7 +347,7 @@ export default function ServiciosPage() {
                                 </DropdownItem>
                                 <DropdownItem>
                                   <Button
-                                  className="w-full bg-transparent"
+                                    className="w-full bg-transparent"
                                     onClick={() =>
                                       mostrarDetalleServicio(item.idServicio)
                                     }
@@ -417,7 +419,7 @@ export default function ServiciosPage() {
                               </DropdownItem>
                               <DropdownItem>
                                 <Button
-                                className="w-full bg-transparent"
+                                  className="w-full bg-transparent"
                                   onClick={() =>
                                     mostrarDetalleServicio(item.idServicio)
                                   }
@@ -509,7 +511,7 @@ export default function ServiciosPage() {
                             <TableRow>
                               <TableCell>Estado</TableCell>
                               <TableCell>
-                               {servicioSeleccionado.estado}
+                                {servicioSeleccionado.estado}
                               </TableCell>
                             </TableRow>
                           </TableBody>
@@ -517,24 +519,45 @@ export default function ServiciosPage() {
 
                         <div style={{ width: "50%" }}>
                           {servicioSeleccionado.productos.length > 0 ? (
-                            <Table aria-label="Productos" className="flex-1">
-                              <TableHeader>
-                                <TableColumn>Producto</TableColumn>
-                                <TableColumn>Cantidad</TableColumn>
-                                <TableColumn>Unidad</TableColumn>
-                              </TableHeader>
-                              <TableBody>
-                                {servicioSeleccionado.productos.map((producto: any, index: number) => (
-                                  <TableRow key={index}>
-                                    <TableCell>{producto.nombre}</TableCell>
-                                    <TableCell>{producto.cantidad}</TableCell>
-                                    <TableCell>{producto.unidadMedida}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
+                           <> {/* Envolviendo la tabla con un fragmento <> */}
+                           <Table aria-label="Productos" className="flex-1">
+                             <TableHeader>
+                               <TableColumn>Producto</TableColumn>
+                               <TableColumn>Cantidad</TableColumn>
+                               <TableColumn>Unidad</TableColumn>
+                             </TableHeader>
+                             <TableBody>
+                               {servicioSeleccionado.productos
+                                 .slice(
+                                   (currentPage - 1) * itemsPerPage, 
+                                   currentPage * itemsPerPage
+                                 )
+                                 .map((producto: any, index: number) => (
+                                   <TableRow key={index}>
+                                     <TableCell>{producto.nombre}</TableCell>
+                                     <TableCell>{producto.cantidad}</TableCell>
+                                     <TableCell>{producto.unidadMedida}</TableCell>
+                                   </TableRow>
+                               ))}
+                             </TableBody>
+                           </Table>
+
+                           {/* Paginación dentro de la tabla */}
+                           <div className="flex justify-center mt-4"> 
+                             <Pagination
+                               showControls
+                               color="warning"
+                               page={currentPage} // Usando el estado currentPage
+                               total={Math.ceil(
+                                 servicioSeleccionado.productos.length / itemsPerPage // Usando itemsPerPage
+                               )}
+                               onChange={(page) => setCurrentPage(page)} 
+                             />
+                           </div>
+                           </> 
+
                           ) : (
-                            <p>No hay productos asociados a este servicio.</p>
+                          <p>No hay productos asociados a este servicio.</p>
                           )}
                         </div>
                       </div>
@@ -637,10 +660,11 @@ export default function ServiciosPage() {
               )}
             </ModalContent>
           </Modal>
-        </div>
+        </div >
       ) : (
         <CircularProgress color="warning" aria-label="Cargando..." />
-      )}
+      )
+      }
     </>
   );
 }
