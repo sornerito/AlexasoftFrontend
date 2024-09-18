@@ -21,7 +21,7 @@ import {
   verificarAccesoPorPermiso,
 } from "@/config/peticionesConfig";
 
-import {DatePicker} from "@nextui-org/date-picker";
+import { DatePicker } from "@nextui-org/date-picker";
 
 interface Colaborador {
   idColaborador: number;
@@ -129,14 +129,14 @@ export default function CrearCitaPage() {
       .then((data) => {
         const paquetesActivos = data
           .filter((item: { paquete: { estado: string } }) => item.paquete.estado === "Activo")
-          .map((item: { paquete: { idPaquete: number; nombre: string; estado: string; tiempoTotalServicio: number;  }; servicios: { nombre: string }[] }) => ({
+          .map((item: { paquete: { idPaquete: number; nombre: string; estado: string; tiempoTotalServicio: number; }; servicios: { nombre: string }[] }) => ({
             idPaquete: item.paquete.idPaquete,
             nombrePaquete: item.paquete.nombre,
             tiempoTotalServicio: item.paquete.tiempoTotalServicio,
-            servicios: item.servicios.map((servicio) => servicio.nombre), // Esto es opcional, solo muestra los nombres
+            servicios: item.servicios.map((servicio) => servicio.nombre),
           }));
         setPaquetes(paquetesActivos);
-        
+
       })
       .catch((err) => console.error("Error fetching paquetes:", err.message));
 
@@ -269,28 +269,37 @@ export default function CrearCitaPage() {
       detalle: formData.detalle,
       estado: formData.estado,
     };
-    const duracion = paquetes[formData.idPaquete].tiempoTotalServicio;
-    let mensajeE = "";
 
-    try {
-      const response = await postWithAuth(
-        `http://localhost:8080/cita?duracion=${duracion}`,
-        datosParaEnviar
-      );
-      mensajeE = await response.text();
-      if (response.ok) {
-        window.location.href = "/admin/agendamiento/citas";
-      } else {
+    const idPaqueteSeleccionado = Number(formData.idPaquete);
+    const paqueteSeleccionado = paquetes.find(paquete => paquete.idPaquete === idPaqueteSeleccionado);
+    if (paqueteSeleccionado) {
+      console.log(paqueteSeleccionado);
+      const duracion = paqueteSeleccionado.tiempoTotalServicio;
+      let mensajeE = "";
+
+      try {
+        const response = await postWithAuth(
+          `http://localhost:8080/cita?duracion=${duracion}`,
+          datosParaEnviar
+        );
+        mensajeE = await response.text();
+        if (response.ok) {
+          window.location.href = "/admin/agendamiento/citas";
+        } else {
+          setCreandoCita(false);
+          setMensajeError(await response.text());
+          onOpenError();
+        }
+      } catch (error) {
         setCreandoCita(false);
-        setMensajeError(await response.text());
+        setMensajeError(mensajeE);
         onOpenError();
       }
-    } catch (error) {
-      setCreandoCita(false);
-      setMensajeError(mensajeE);
-      onOpenError();
+      onCloseConfirm();
+    } else {
+      console.error("Paquete no encontrado");
     }
-    onCloseConfirm();
+
   };
 
   return (
@@ -361,7 +370,7 @@ export default function CrearCitaPage() {
                     : ""
                 }
               />
-              
+
               <Select
                 label="Hora"
                 name="hora"
@@ -420,7 +429,7 @@ export default function CrearCitaPage() {
 
             <div className="flex justify-end mt-6">
               <Button
-              isLoading={creandoCita ? true : false}
+                isLoading={creandoCita ? true : false}
                 type="submit"
                 className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
                 disabled={!formIsValid}
