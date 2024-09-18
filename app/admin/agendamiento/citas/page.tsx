@@ -35,7 +35,6 @@ const columns = [
   { name: "Colaborador", uid: "idColaborador" },
   { name: "Fecha", uid: "fecha" },
   { name: "Estado", uid: "estado" },
-  { name: "Motivo", uid: "idMotivo" },
   { name: "Acciones", uid: "acciones" },
 ];
 
@@ -76,6 +75,12 @@ const estadoColors: { [key: string]: string } = {
   Finalizado: "blue",
 };
 
+const estadoLabels: { [key: string]: string } = {
+  En_espera: "En espera",
+  Aceptado: "Aceptado",
+  Cancelado: "Cancelado",
+};
+
 export default function CitasPage() {
   //Valida permiso
   const [acceso, setAcceso] = React.useState<boolean>(false);
@@ -114,6 +119,10 @@ export default function CitasPage() {
     onOpen: onOpenDetails,
     onClose: onCloseDetails,
   } = useDisclosure();
+
+  const [isOpenCancelConfirmation, setIsOpenCancelConfirmation] = useState(false);
+  const [actionOnCancel, setActionOnCancel] = useState(""); // "reagendar" o "cancelar"
+
 
   useEffect(() => {
     getWithAuth("http://localhost:8080/cita")
@@ -232,51 +241,50 @@ export default function CitasPage() {
   const handleChangeEstado = async () => {
     if (!selectedCita || !nuevoEstado) return;
 
-    try {
-      const response = await postWithAuth(
-        `http://localhost:8080/cita/${selectedCita.idCita}/estado`,
-        {
-          estado: nuevoEstado,
-          citasCancelar: idsCitasConflicto
-        }
-      );
-
-      if (response.ok) {
-        const updatedCita = await response.json();
-        console.log("Cita después de cambiar estado:", updatedCita);
-
-        // Actualiza solo el estado en el estado local
-        setCitas(
-          citas.map((cita) =>
-            cita.idCita === selectedCita.idCita
-              ? { ...cita, estado: nuevoEstado }
-              : idsCitasConflicto.includes(Number(cita.idCita)) ? { ...cita, estado: "Cancelado" }
-              : cita
-          )
+    if (actionOnCancel === "reagendar") {
+      // Aquí va la lógica para reagendar la cita
+      console.log("Reagendando la cita:", selectedCita);
+      // ... 
+      onCloseEstado(); // Cierra el modal de cambio de estado
+    } else if (actionOnCancel === "cancelar") {
+      // Si se seleccionó cancelar definitivamente
+      try {
+        const response = await postWithAuth(
+          `http://localhost:8080/cita/${selectedCita.idCita}/estado`,
+          { estado: "Cancelado", citasCancelar: idsCitasConflicto }
         );
-        onCloseEstado();
-      } else {
-        setMensajeError("Error al cambiar el estado de la cita");
+
+        if (response.ok) {
+          const updatedCita = await response.json();
+          // Actualiza el estado de la cita
+          setCitas(citas.map(cita => cita.idCita === selectedCita.idCita ? { ...cita, estado: "Cancelado" } : cita));
+          onCloseEstado();
+        } else {
+          setMensajeError("Error al cambiar el estado de la cita");
+          onOpenError();
+        }
+      } catch (error) {
+        setMensajeError("Error al enviar la solicitud");
         onOpenError();
       }
-    } catch (error) {
-      setMensajeError("Error al enviar la solicitud");
-      onOpenError();
     }
   };
 
+
   const [citasConConflicto, setCitasConConflicto] = useState<Cita[]>([]);
   const [idsCitasConflicto, setIdsCitasConflicto] = useState<number[]>([]);
-  const handleEstadoSelect = (
-    cita: Cita,
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const estadoSeleccionado = e.target.value;
+  const handleEstadoSelect = (cita: Cita, nuevoEstado: string) => {
     setSelectedCita(cita);
-    setNuevoEstado(estadoSeleccionado);
-    setCitasConConflicto(obtenerCitasEnConflicto());
-    setIdsCitasConflicto(citasConConflicto.map((cita) => Number(cita.idCita)));
-    onOpenEstado();
+    setNuevoEstado(nuevoEstado);
+
+    if (nuevoEstado === "Cancelado") {
+      setActionOnCancel(""); // Resetea la acción
+      setIsOpenCancelConfirmation(true); // Abre el modal de confirmación
+    } else {
+      setCitasConConflicto(obtenerCitasEnConflicto());
+      setIdsCitasConflicto(citasConConflicto.map((cita) => Number(cita.idCita)));
+      onOpenEstado();
+    }
   };
 
   const handleShowDetails = (cita: Cita) => {
@@ -290,15 +298,15 @@ export default function CitasPage() {
         c.estado === "En_espera" &&
         c.idCita != selectedCita?.idCita &&
         c.fecha === selectedCita?.fecha &&
-        c.idColaborador === selectedCita.idColaborador && 
+        c.idColaborador === selectedCita.idColaborador &&
         (
-        c.hora <
+          c.hora <
           calcularHoraFin(
             selectedCita.hora,
             paquetes[selectedCita.idPaquete].tiempoTotalServicio
           ) &&
-        calcularHoraFin(c.hora, paquetes[c.idPaquete].tiempoTotalServicio) >
-          selectedCita.hora 
+          calcularHoraFin(c.hora, paquetes[c.idPaquete].tiempoTotalServicio) >
+          selectedCita.hora
         )
     );
   };
@@ -398,76 +406,33 @@ export default function CitasPage() {
                   {columns.map((column) => (
                     <TableCell key={column.uid}>
                       {column.uid === "estado" ? (
-                        <Select
-                          value={item.estado}
-                          variant="bordered"
-                          placeholder={item.estado}
-                          onChange={(e) => handleEstadoSelect(item, e)}
-                          className="hover:scale-105 focus:outline-none"
-                          style={{
-                            backgroundColor: "transparent",
-                            color: "white",
-                            border: "2px solid",
-                            borderColor: estadoColors[item.estado],
-                            borderRadius: "9999px",
-                            padding: "0.5rem 1rem",
-                            cursor: "pointer",
-                            transition: "transform 0.1s ease-in-out",
-                          }}
-                        >
-                          <SelectItem
-                            key="En_espera"
-                            value="En_espera"
-                            style={{
-                              backgroundColor: "transparent",
-                              color: "white",
-                              border: "2px solid",
-                              borderColor: estadoColors["En_espera"],
-                              borderRadius: "9999px",
-                            }}
-                          >
-                            En espera
-                          </SelectItem>
-                          <SelectItem
-                            key="Aceptado"
-                            value="Aceptado"
-                            style={{
-                              backgroundColor: "transparent",
-                              color: "white",
-                              border: "2px solid",
-                              borderColor: estadoColors["Aceptado"],
-                              borderRadius: "9999px",
-                            }}
-                          >
-                            Aceptado
-                          </SelectItem>
-                          <SelectItem
-                            key="Cancelado"
-                            value="Cancelado"
-                            style={{
-                              backgroundColor: "transparent",
-                              color: "white",
-                              border: "2px solid",
-                              borderColor: estadoColors["Cancelado"],
-                              borderRadius: "9999px",
-                            }}
-                          >
-                            Cancelado
-                          </SelectItem>
-                          <SelectItem
-                            key="Finalizado"
-                            value="Finalizado"
-                            style={{
-                              backgroundColor: "transparent",
-                              color: "white",
-                              border: "2px solid",
-                              borderColor: estadoColors["Finalizado"],
-                              borderRadius: "9999px",
-                            }}
-                          >
-                            Finalizado
-                          </SelectItem>
-                        </Select>
+                        <div className="flex space-x-2">
+                          {["En_espera", "Aceptado", "Cancelado"].map((estado) => {
+                            const isDisabled = item.estado === "Aceptado" || item.estado === "Cancelado";
+                            const isSelected = item.estado === estado; // Verifica si este botón es el seleccionado
+
+                            return (
+                              <Button
+                                key={estado}
+                                onClick={!isDisabled ? () => handleEstadoSelect(item, estado) : undefined}
+                                value={estado}
+                                style={{
+                                  backgroundColor: isSelected ? estadoColors[estado] : "transparent", // Cambia el fondo si está seleccionado
+                                  color: isDisabled ? "gray" : "white",
+                                  border: "2px solid",
+                                  borderColor: estadoColors[estado],
+                                  borderRadius: "9999px",
+                                  cursor: isDisabled ? "not-allowed" : "pointer",
+                                }}
+                                disabled={isDisabled}
+                              >
+                                {estadoLabels[estado]}
+                              </Button>
+                            );
+                          })}
+
+                        </div>
+
                       ) : column.uid === "acciones" ? (
                         <Button
                           className="bg-transparent"
@@ -498,6 +463,7 @@ export default function CitasPage() {
                         item[column.uid as keyof Cita]?.toString()
                       )}
                     </TableCell>
+
                   ))}
                 </TableRow>
               ))}
@@ -581,14 +547,35 @@ export default function CitasPage() {
                   <p>Ninguna cita tiene conflicto</p>
                 )}
                 <p>
-                  ¿Está seguro de que desea cambiar el estado de esta cita a 
-                  <strong>{nuevoEstado}</strong>?
+                  ¿Está seguro de que desea cambiar el estado de esta cita a <strong>{nuevoEstado}</strong>?
                 </p>
               </ModalBody>
               <ModalFooter>
                 <Button onClick={onCloseEstado}>Cancelar</Button>
                 <Button onClick={handleChangeEstado}>Confirmar</Button>
               </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          <Modal isOpen={isOpenCancelConfirmation} onClose={() => setIsOpenCancelConfirmation(false)}>
+            <ModalContent>
+              <ModalHeader>¿Que desea hacer?</ModalHeader>
+              <ModalBody>
+                <p>
+                  ¿Desea <strong>reagendar</strong> esta cita o <strong>cancelar definitivamente</strong>?
+                </p>
+                <Button onClick={() => {
+                  setActionOnCancel("reagendar");
+                  setIsOpenCancelConfirmation(false);
+                  // Aquí puedes añadir la lógica para reagendar la cita
+                  // ...
+                }}>Reagendar</Button>
+                <Button onClick={() => {
+                  setActionOnCancel("cancelar");
+                  setIsOpenCancelConfirmation(false);
+                  onOpenEstado(); // Abre el modal de cambio de estado
+                }}>Cancelar Definitivamente</Button>
+              </ModalBody>
             </ModalContent>
           </Modal>
         </div>
