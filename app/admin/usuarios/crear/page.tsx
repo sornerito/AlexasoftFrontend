@@ -64,7 +64,7 @@ export default function CrearUsuarioPage() {
   } = useDisclosure(); //Hook de modal error
 
   React.useEffect(() => {
-    getWithAuth("http://localhost:8080/configuracion/roles")
+    getWithAuth("http://192.168.56.1:8080/configuracion/roles")
       .then((response) => response.json())
       .then((data) => {
         // Procesar los datos para que coincidan con la estructura de columnas
@@ -149,13 +149,13 @@ export default function CrearUsuarioPage() {
       idRol: idRolUsuario,
     };
 
-    let url = "http://localhost:8080/usuario/";
+    let url = "http://192.168.56.1:8080/usuario/";
     let dataFinal = {};
     dataFinal = data;
     if (
       idRolUsuario == roles.find((rol) => rol.nombre == "Colaborador")?.idRol
     ) {
-      url = "http://localhost:8080/usuario/cambiarRol/0";
+      url = "http://192.168.56.1:8080/usuario/cambiarRol/0";
       const errorCedula = validarCedulaModal(cedula);
       if (errorCedula !== "") {
         setMensajeError(errorCedula);
@@ -173,7 +173,7 @@ export default function CrearUsuarioPage() {
     } else if (
       idRolUsuario == roles.find((rol) => rol.nombre == "Cliente")?.idRol
     ) {
-      url = "http://localhost:8080/usuario/cambiarRol/0";
+      url = "http://192.168.56.1:8080/usuario/cambiarRol/0";
       if (instagram != "" && instagram != "@") {
         const errorInstagram = validarInstagramModal(instagram);
         if (errorInstagram !== "") {

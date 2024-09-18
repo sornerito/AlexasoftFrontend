@@ -60,7 +60,7 @@ export default function ProductosEditarPage() {
     const fetchData = async () => {
       try {
         const [productoResponse] = await Promise.all([
-          fetch("http://localhost:8080/compras/productos"),
+          fetch("http://192.168.56.1:8080/compras/productos"),
         ]);
         const productoData = await productoResponse.json();
         console.log(productoData)
@@ -75,7 +75,7 @@ export default function ProductosEditarPage() {
   }, []);
 
   useEffect(() => {
-    fetch(`http://localhost:8080/compras/salidas-producto/${idSalidaProducto}`)
+    fetch(`http://192.168.56.1:8080/compras/salidas-producto/${idSalidaProducto}`)
       .then(response => response.json())
       .then(data => {
         console.log(data);
@@ -139,7 +139,7 @@ export default function ProductosEditarPage() {
         return;
       }
   
-      const response = await fetch(`http://localhost:8080/compras/productos/${idSalidaProducto}`, {
+      const response = await fetch(`http://192.168.56.1:8080/compras/productos/${idSalidaProducto}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

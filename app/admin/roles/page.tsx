@@ -84,7 +84,7 @@ export default function RolesPage() {
 
   // Hacer Fetch para obtener roles y acomodarlos a conveniencia
   React.useEffect(() => {
-    getWithAuth("http://localhost:8080/configuracion/roles")
+    getWithAuth("http://192.168.56.1:8080/configuracion/roles")
       .then((response: any) => {
         if (response.status === 204) {
           setMensajeError("No hay roles, ¡Crea uno nuevo!");
@@ -148,7 +148,7 @@ export default function RolesPage() {
     };
     try {
       const response = await postWithAuth(
-        "http://localhost:8080/configuracion/cambiarEstado/" + idRol,
+        "http://192.168.56.1:8080/configuracion/cambiarEstado/" + idRol,
         data
       );
 

@@ -100,7 +100,7 @@ export default function CrearCitaPage() {
 
   useEffect(() => {
     // Fetch clientes, colaboradores, paquetes
-    getWithAuth("http://localhost:8080/cliente")
+    getWithAuth("http://192.168.56.1:8080/cliente")
       .then((response) => response.json())
       .then((data) => {
         const fetchedClientes: { [key: number]: string } = {};
@@ -113,7 +113,7 @@ export default function CrearCitaPage() {
       })
       .catch((err) => console.log(err.message));
 
-    getWithAuth("http://localhost:8080/colaborador")
+    getWithAuth("http://192.168.56.1:8080/colaborador")
       .then((response) => response.json())
       .then((data) => {
         // Filtra solo colaboradores activos
@@ -124,7 +124,7 @@ export default function CrearCitaPage() {
       })
       .catch((err) => console.log(err.message));
 
-    getWithAuth("http://localhost:8080/servicio/paquetes")
+    getWithAuth("http://192.168.56.1:8080/servicio/paquetes")
       .then((response) => response.json())
       .then((data) => {
         const paquetesActivos = data
@@ -140,7 +140,7 @@ export default function CrearCitaPage() {
       })
       .catch((err) => console.error("Error fetching paquetes:", err.message));
 
-    getWithAuth("http://localhost:8080/horario")
+    getWithAuth("http://192.168.56.1:8080/horario")
       .then((response) => response.json())
       .then((data: Horario[]) => setHorarios(data))
       .catch((err) => console.log(err.message));
@@ -279,7 +279,7 @@ export default function CrearCitaPage() {
 
       try {
         const response = await postWithAuth(
-          `http://localhost:8080/cita?duracion=${duracion}`,
+          `http://192.168.56.1:8080/cita?duracion=${duracion}`,
           datosParaEnviar
         );
         mensajeE = await response.text();

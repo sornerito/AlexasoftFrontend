@@ -66,7 +66,7 @@ export default function CrearRolPage() {
 
   // Hacer Fetch para obtener permisos y acomodarlos a conveniencia
   React.useEffect(() => {
-    getWithAuth("http://localhost:8080/configuracion/permisos")
+    getWithAuth("http://192.168.56.1:8080/configuracion/permisos")
       .then((response) => response.json())
       .then((data) => {
         // Procesar los datos para que coincidan con la estructura de columnas
@@ -149,7 +149,7 @@ export default function CrearRolPage() {
 
     try {
       const response = await postWithAuth(
-        "http://localhost:8080/configuracion/roles",
+        "http://192.168.56.1:8080/configuracion/roles",
         data
       );
 

@@ -88,7 +88,7 @@ export default function UsuariosPage() {
   const [mensajeError, setMensajeError] = React.useState(""); //Mensaje de error
   // Hacer Fetch para obtener usuarios y acomodarlos a conveniencia
   React.useEffect(() => {
-    getWithAuth("http://localhost:8080/usuario")
+    getWithAuth("http://192.168.56.1:8080/usuario")
       .then((response: any) => {
         if (response.status === 204) {
           setMensajeError("No hay usuarios, ¡Crea uno nuevo!");
@@ -159,7 +159,7 @@ export default function UsuariosPage() {
     };
     try {
       const response = await postWithAuth(
-        "http://localhost:8080/usuario/cambiarEstado/" + idUsuario,
+        "http://192.168.56.1:8080/usuario/cambiarEstado/" + idUsuario,
         data
       );
 

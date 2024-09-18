@@ -78,7 +78,7 @@ export default function EditarClientePage() {
 
   // Obtiene los datos del cliente al cargar el componente
   useEffect(() => {
-    getWithAuth(`http://localhost:8080/cliente/${idCliente}`)
+    getWithAuth(`http://192.168.56.1:8080/cliente/${idCliente}`)
       .then((response) => {
         if (!response.ok) {
           if (response.status === 404) {
@@ -112,7 +112,7 @@ export default function EditarClientePage() {
         instagram: cliente?.instagram.trim() === "" ? null : cliente?.instagram,
       };
       const response = await postWithAuth(
-        `http://localhost:8080/cliente/${cliente?.idCliente}`,
+        `http://192.168.56.1:8080/cliente/${cliente?.idCliente}`,
         clienteData
       );
       if (response.ok) {

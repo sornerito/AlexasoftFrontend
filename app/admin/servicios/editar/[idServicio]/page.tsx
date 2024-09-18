@@ -177,7 +177,7 @@ export default function EditarServicioPage() {
   const fetchServicio = async (idServicio: string) => {
     try {
       const response = await getWithAuth(
-        `http://localhost:8080/servicio/${idServicio}`
+        `http://192.168.56.1:8080/servicio/${idServicio}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -212,7 +212,7 @@ export default function EditarServicioPage() {
   const fetchProductos = async () => {
     try {
       const response = await getWithAuth(
-        "http://localhost:8080/compras/productos"
+        "http://192.168.56.1:8080/compras/productos"
       );
       if (response.ok) {
         const data = await response.json();
@@ -341,7 +341,7 @@ export default function EditarServicioPage() {
 
 
         const response = await postWithAuth(
-          `http://localhost:8080/servicio/${idServicio}`,
+          `http://192.168.56.1:8080/servicio/${idServicio}`,
           {
             servicio: servicioActualizado,
             productosId,

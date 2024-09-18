@@ -93,7 +93,7 @@ export default function ClientesPageCrear() {
         instagram: cliente.instagram.trim() === "" ? null : cliente.instagram,
       };
       const response = await postWithAuth(
-        "http://localhost:8080/cliente",
+        "http://192.168.56.1:8080/cliente",
         clienteData
       );
       if (response.ok) {

@@ -120,7 +120,7 @@ export default function VentasPageCrear() {
   const fetchProveedor = async () => {
     try {
       const response = await getWithAuth(
-        "http://localhost:8080/compras/proveedores"
+        "http://192.168.56.1:8080/compras/proveedores"
       );
       if (response.ok) {
         const data = await response.json();
@@ -145,7 +145,7 @@ export default function VentasPageCrear() {
   const fetchProductos = async () => {
     try {
       const response = await getWithAuth(
-        "http://localhost:8080/compras/productos"
+        "http://192.168.56.1:8080/compras/productos"
       );
       if (response.ok) {
         const data = await response.json();
@@ -169,7 +169,7 @@ export default function VentasPageCrear() {
   // Función para enviar el formulario
   const crearCompra = async () => {
     try {
-      const response = await postWithAuth("http://localhost:8080/compras", {
+      const response = await postWithAuth("http://192.168.56.1:8080/compras", {
         ...compra,
         subtotal: compra.subTotal,
         precio: compra.precioTotal,
@@ -206,7 +206,7 @@ export default function VentasPageCrear() {
       console.log("Enviando detalle de compra:", detalleCompra);
 
       const response = await postWithAuth(
-        "http://localhost:8080/compras/detalle-producto-compra",
+        "http://192.168.56.1:8080/compras/detalle-producto-compra",
         detalleCompra
       );
 

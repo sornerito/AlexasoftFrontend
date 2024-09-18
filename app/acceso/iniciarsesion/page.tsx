@@ -150,7 +150,7 @@ export default function RegistroPage() {
     }
 
     let url =
-      "http://localhost:8080/acceso/cambiarRecuperarContrasena?correo=" +
+      "http://192.168.56.1:8080/acceso/cambiarRecuperarContrasena?correo=" +
       correoRecuperar +
       "&nuevaContrasena=" +
       contrasenaRecuperar;
@@ -189,7 +189,7 @@ export default function RegistroPage() {
     }
 
     let url =
-      "http://localhost:8080/acceso/solicitarCambioContrasenaCorreo?correo=" +
+      "http://192.168.56.1:8080/acceso/solicitarCambioContrasenaCorreo?correo=" +
       correoRecuperar +
       "&registro=false";
     try {
@@ -223,7 +223,7 @@ export default function RegistroPage() {
     }
 
     let url =
-      "http://localhost:8080/acceso/validarCodigo?correo=" +
+      "http://192.168.56.1:8080/acceso/validarCodigo?correo=" +
       correoRecuperar +
       "&codigo=" +
       codigo;

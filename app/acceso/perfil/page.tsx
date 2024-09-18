@@ -86,11 +86,11 @@ export default function EditarUsuarioPage() {
 
   const [usuario, setUsuario] = React.useState<Usuario>();
   React.useEffect(() => {
-    let url = "http://localhost:8080/usuario/" + idUsuario;
+    let url = "http://192.168.56.1:8080/usuario/" + idUsuario;
     if (rol == "Cliente") {
-      url = "http://localhost:8080/cliente/" + idUsuario;
+      url = "http://192.168.56.1:8080/cliente/" + idUsuario;
     } else if (rol == "Colaborador") {
-      url = "http://localhost:8080/colaborador/" + idUsuario;
+      url = "http://192.168.56.1:8080/colaborador/" + idUsuario;
     }
     getWithAuth(url)
       .then((response) => response.json())
@@ -188,7 +188,7 @@ export default function EditarUsuarioPage() {
     };
 
     let url =
-      "http://localhost:8080/acceso/actualizarInformacion?id=" +
+      "http://192.168.56.1:8080/acceso/actualizarInformacion?id=" +
       idUsuario +
       "&rol=" +
       rol;
@@ -234,7 +234,7 @@ export default function EditarUsuarioPage() {
     }
 
     let url =
-      "http://localhost:8080/acceso/cambiarContrasena?id=" +
+      "http://192.168.56.1:8080/acceso/cambiarContrasena?id=" +
       idUsuario +
       "&rol=" +
       rol +

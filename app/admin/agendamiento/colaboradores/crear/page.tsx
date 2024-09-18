@@ -60,7 +60,7 @@ export default function CrearColaboradorPage() {
 
     try {
       const response = await postWithAuth(
-        "http://localhost:8080/colaborador",
+        "http://192.168.56.1:8080/colaborador",
         nuevoColaborador
       );
       if (response.ok) {

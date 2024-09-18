@@ -105,7 +105,7 @@ export default function ProveedoresPage() {
     const fetchProveedores = async () => {
       try {
         const response = await getWithAuth(
-          "http://localhost:8080/compras/proveedores"
+          "http://192.168.56.1:8080/compras/proveedores"
         );
         const data = await response.json();
         setProveedores(
@@ -168,7 +168,7 @@ export default function ProveedoresPage() {
       const promise = new Promise<void>((resolve, reject) => {
         setTimeout(() => {
           postWithAuth(
-            `http://localhost:8080/compras/proveedores/editar/${idProveedor}`,
+            `http://192.168.56.1:8080/compras/proveedores/editar/${idProveedor}`,
 
             updatedProveedor
           )
@@ -216,7 +216,7 @@ export default function ProveedoresPage() {
 
   const handleDeleteProveedorModalConfirm = () => {
     deleteWithAuth(
-      `http://localhost:8080/compras/proveedores/eliminar/${selectedProveedorId}`
+      `http://192.168.56.1:8080/compras/proveedores/eliminar/${selectedProveedorId}`
     )
       .then((response) => {
         if (!response.ok) {

@@ -60,7 +60,7 @@ export default function EditarProveedorPage({
 
   useEffect(() => {
     getWithAuth(
-      `http://localhost:8080/compras/proveedores/${params.idProveedor}`
+      `http://192.168.56.1:8080/compras/proveedores/${params.idProveedor}`
     )
       .then((response) => response.json())
       .then((data) => {
@@ -196,7 +196,7 @@ export default function EditarProveedorPage({
 
     try {
       const response = await postWithAuth(
-        `http://localhost:8080/compras/proveedores/editar/${params.idProveedor}`,
+        `http://192.168.56.1:8080/compras/proveedores/editar/${params.idProveedor}`,
         proveedorActualizado
       );
       if (response.ok) {

@@ -89,7 +89,7 @@ export default function SalidaProductosPage() {
 
     const fetchSalidaProductos = async () => {
       try {
-        const response = await getWithAuth("http://localhost:8080/compras/salidas-producto", );
+        const response = await getWithAuth("http://192.168.56.1:8080/compras/salidas-producto", );
         const data = await response.json();
         setSalidaProductos(data.map((item: any) => ({
           idSalidaProducto: item.idSalidaProducto,
@@ -117,7 +117,7 @@ export default function SalidaProductosPage() {
 
     const fetchProductos = async () => {
       try {
-        const response = await getWithAuth("http://localhost:8080/compras/productos", );
+        const response = await getWithAuth("http://192.168.56.1:8080/compras/productos", );
         const data = await response.json();
         const productosMap = new Map<number, string>();
         data.forEach((producto: Producto) => {
@@ -163,7 +163,7 @@ export default function SalidaProductosPage() {
       const updatedSalidaProducto = { ...selectedSalidaProducto, motivoAnular };
 
       try {
-        const response = await postWithAuth(`http://localhost:8080/compras/salidas-producto/${selectedSalidaProducto.idSalidaProducto}`, 
+        const response = await postWithAuth(`http://192.168.56.1:8080/compras/salidas-producto/${selectedSalidaProducto.idSalidaProducto}`, 
           updatedSalidaProducto
         );
 
