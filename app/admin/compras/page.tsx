@@ -119,7 +119,7 @@ export default function ComprasPage() {
     try {
       // Petición para obtener los detalles del producto (primera petición)
       const productosResponse = await getWithAuth(
-        `http://localhost:8080/compras/detalle-producto-compra-producto`
+        `http://10.170.83.243:8080/compras/detalle-producto-compra-producto`
       );
       const productosData = await productosResponse.json();
 
@@ -130,7 +130,7 @@ export default function ComprasPage() {
 
       // Petición para obtener los detalles de la compra (segunda petición)
       const compraResponse = await getWithAuth(
-        `http://localhost:8080/compras/detalle-producto-compra/${idCompra}`
+        `http://10.170.83.243:8080/compras/detalle-producto-compra/${idCompra}`
       );
       const compraData = await compraResponse.json();
       console.log(compraData);
@@ -198,7 +198,7 @@ export default function ComprasPage() {
     const fetchProveedores = async () => {
       try {
         const response = await getWithAuth(
-          "http://localhost:8080/compras/proveedores"
+          "http://10.170.83.243:8080/compras/proveedores"
         );
         const data = await response.json();
         const map = new Map();
@@ -224,7 +224,7 @@ export default function ComprasPage() {
   useEffect(() => {
     const fetchCompras = async () => {
       try {
-        const response = await getWithAuth("http://localhost:8080/compras");
+        const response = await getWithAuth("http://10.170.83.243:8080/compras");
         const data = await response.json();
         setCompras(
           data.map((item: any) => {
@@ -328,7 +328,7 @@ export default function ComprasPage() {
 
       try {
         const response = await postWithAuth(
-          `http://localhost:8080/compras/${selectedCompra.idCompra}`,
+          `http://10.170.83.243:8080/compras/${selectedCompra.idCompra}`,
           updatedSalidaProducto
         );
         if (response.ok) {

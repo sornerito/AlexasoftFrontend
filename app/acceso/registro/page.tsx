@@ -123,7 +123,7 @@ export default function RegistroPage() {
     }
 
     let url =
-      "http://localhost:8080/acceso/solicitarCambioContrasenaCorreo?correo=" +
+      "http://10.170.83.243:8080/acceso/solicitarCambioContrasenaCorreo?correo=" +
       correoCliente +
       "&registro=true";
     try {
@@ -154,7 +154,7 @@ export default function RegistroPage() {
     }
 
     let url =
-      "http://localhost:8080/acceso/validarCodigo?correo=" +
+      "http://10.170.83.243:8080/acceso/validarCodigo?correo=" +
       correoCliente +
       "&codigo=" +
       codigo;
@@ -186,7 +186,7 @@ export default function RegistroPage() {
     };
 
     try {
-      const response = await fetch("http://localhost:8080/acceso/registro", {
+      const response = await fetch("http://10.170.83.243:8080/acceso/registro", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

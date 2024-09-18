@@ -46,7 +46,7 @@ export default function EditarMotivosPage({
   const [mensajeError, setMensajeError] = useState("");
 
   useEffect(() => {
-    getWithAuth(`http://localhost:8080/motivocancelacion/${params.idMotivo}`)
+    getWithAuth(`http://10.170.83.243:8080/motivocancelacion/${params.idMotivo}`)
       .then((response) => response.json())
       .then((data) => {
         setMotivo(data.motivo);
@@ -72,7 +72,7 @@ export default function EditarMotivosPage({
 
     try {
       const response = await postWithAuth(
-        `http://localhost:8080/motivocancelacion/${params.idMotivo}`,
+        `http://10.170.83.243:8080/motivocancelacion/${params.idMotivo}`,
         motivoActualizado
       );
       if (response.ok) {

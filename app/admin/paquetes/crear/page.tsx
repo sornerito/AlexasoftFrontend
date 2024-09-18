@@ -73,7 +73,7 @@ export default function CrearPaquetePage() {
 
   // Hacer Fetch para obtener permisos y acomodarlos a conveniencia
   React.useEffect(() => {
-    getWithAuth("http://localhost:8080/servicio")
+    getWithAuth("http://10.170.83.243:8080/servicio")
       .then((response) => response.json())
       .then((data) => {
         // Procesar los datos para que coincidan con la estructura de columnas
@@ -181,7 +181,7 @@ export default function CrearPaquetePage() {
 
     try {
       const response = await postWithAuth(
-        "http://localhost:8080/servicio/paquete",
+        "http://10.170.83.243:8080/servicio/paquete",
         data
       );
 

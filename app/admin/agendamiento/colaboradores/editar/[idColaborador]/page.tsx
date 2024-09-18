@@ -35,7 +35,7 @@ export default function EditarColaboradorPage({
   const [mensajeError, setMensajeError] = useState("");
 
   useEffect(() => {
-    getWithAuth(`http://localhost:8080/colaborador/${params.idColaborador}`)
+    getWithAuth(`http://10.170.83.243:8080/colaborador/${params.idColaborador}`)
       .then((response) => response.json())
       .then((data) => {
         setNombre(data.nombre);
@@ -65,7 +65,7 @@ export default function EditarColaboradorPage({
 
     try {
       const response = await postWithAuth(
-        `http://localhost:8080/colaborador/${params.idColaborador}`,
+        `http://10.170.83.243:8080/colaborador/${params.idColaborador}`,
         colaboradorActualizado
       );
       if (response.ok) {

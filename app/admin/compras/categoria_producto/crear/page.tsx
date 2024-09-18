@@ -90,7 +90,7 @@ export default function CrearCategoriaProductoPage() {
   const handleConfirmSubmit = async () => {
     try {
       const response = await postWithAuth(
-        "http://localhost:8080/compras/categorias-producto/",
+        "http://10.170.83.243:8080/compras/categorias-producto/",
         categoria
       );
 

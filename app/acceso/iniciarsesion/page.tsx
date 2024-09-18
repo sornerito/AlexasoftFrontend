@@ -93,7 +93,7 @@ export default function RegistroPage() {
 
     try {
       const response = await fetch(
-        "http://localhost:8080/acceso/iniciarSesion",
+        "http://10.170.83.243:8080/acceso/iniciarSesion",
         {
           method: "POST",
           headers: {
@@ -150,7 +150,7 @@ export default function RegistroPage() {
     }
 
     let url =
-      "http://localhost:8080/acceso/cambiarRecuperarContrasena?correo=" +
+      "http://10.170.83.243:8080/acceso/cambiarRecuperarContrasena?correo=" +
       correoRecuperar +
       "&nuevaContrasena=" +
       contrasenaRecuperar;
@@ -189,7 +189,7 @@ export default function RegistroPage() {
     }
 
     let url =
-      "http://localhost:8080/acceso/solicitarCambioContrasenaCorreo?correo=" +
+      "http://10.170.83.243:8080/acceso/solicitarCambioContrasenaCorreo?correo=" +
       correoRecuperar +
       "&registro=false";
     try {
@@ -223,7 +223,7 @@ export default function RegistroPage() {
     }
 
     let url =
-      "http://localhost:8080/acceso/validarCodigo?correo=" +
+      "http://10.170.83.243:8080/acceso/validarCodigo?correo=" +
       correoRecuperar +
       "&codigo=" +
       codigo;
@@ -364,7 +364,7 @@ export default function RegistroPage() {
     <div className="mb-10">
       {token == null ? (
         <div className="flex h-screen">
-          <div className="flex flex-col items-center justify-center w-full p-8  border-slate-4002 sm:w-1/2 sm:border-3 sm:border-r-0">
+          <div className="flex flex-col items-center justify-center w-full p-8 border-slate-4002 sm:w-1/2 sm:border-3 sm:border-r-0">
             <div className="mb-6 text-center">
               <h1 className={title({ color: "yellow" })}>¡Inicia Sesión!</h1>
             </div>
@@ -415,7 +415,7 @@ export default function RegistroPage() {
               </div>
             </div>
           </div>
-          <div className="items-center justify-center hidden w-1/2  sm:flex">
+          <div className="items-center justify-center hidden w-1/2 sm:flex">
             <Image
               removeWrapper
               radius="lg"

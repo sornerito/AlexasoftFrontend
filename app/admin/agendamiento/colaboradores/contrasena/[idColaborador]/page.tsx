@@ -58,7 +58,7 @@ export default function EditarContrasenaColaboradorPage({
   const obtenerDatosColaborador = async () => {
     try {
       const response = await getWithAuth(
-        `http://localhost:8080/colaborador/${params.idColaborador}`
+        `http://10.170.83.243:8080/colaborador/${params.idColaborador}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -105,7 +105,7 @@ export default function EditarContrasenaColaboradorPage({
     try {
       const datosColaborador = colaborador;
       const response = await postWithAuth(
-        `http://localhost:8080/colaborador/${params.idColaborador}`,
+        `http://10.170.83.243:8080/colaborador/${params.idColaborador}`,
         { ...datosColaborador, contrasena: contrasena }
       );
 
