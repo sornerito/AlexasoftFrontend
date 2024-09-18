@@ -163,7 +163,7 @@ export default function SalidaProductosPage() {
       const updatedSalidaProducto = { ...selectedSalidaProducto, motivoAnular };
 
       try {
-        const response = await postWithAuth(`http://localhost:8080/compras/salidas-SalidaProducto/${selectedSalidaProducto.idSalidaProducto}`, 
+        const response = await postWithAuth(`http://localhost:8080/compras/salidas-producto/${selectedSalidaProducto.idSalidaProducto}`, 
           updatedSalidaProducto
         );
 
