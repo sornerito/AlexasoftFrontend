@@ -69,15 +69,18 @@ export default function CrearCitaPage() {
     estado: "En_espera",
   });
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
+  const [colaboradorSeleccionado, setColaboradorSeleccionado] = useState<number | null>(null);
   const [horarios, setHorarios] = useState<Horario[]>([]);
   const [paquetes, setPaquetes] = useState<Paquete[]>([]);
   const [servicios, setServicios] = useState<string[]>([]);
   const [mensajeError, setMensajeError] = useState("");
   const [minDate, setMinDate] = useState("");
   const [maxDate, setMaxDate] = useState("");
-  const [minHora, setMinHora] = useState("08:00");
-  const [maxHora, setMaxHora] = useState("17:00");
+  const [minHora, setMinHora] = useState("");
+  const [maxHora, setMaxHora] = useState("");
   const [opcionesHoras, setOpcionesHoras] = useState<string[]>([]);
+  const [horasOcupadas, setHorasOcupadas] = useState<{ [key: number]: { [key: string]: string[] } }>({});
+
   const {
     isOpen: isOpenSuccess,
     onOpen: onOpenSuccess,
@@ -109,12 +112,43 @@ export default function CrearCitaPage() {
       .then((data) => setColaboradores(data))
       .catch((err) => console.log(err.message));
 
-      getWithAuth("http://localhost:8080/servicio/paquetes")
+    getWithAuth("http://localhost:8080/cita")
+      .then((response) => response.json())
+      .then((data) => {
+        const citasAceptadas = data.filter((cita: Cita) => cita.estado === 'Aceptado');
+
+        const horasPorColaboradorYFecha = citasAceptadas.reduce((acc: any, cita: Cita) => {
+          const idColaborador = cita.idColaborador;
+          const fecha = cita.fecha; // Suponiendo que es una cadena en formato 'YYYY-MM-DD'
+          const hora = convertToHourMinute(cita.hora);
+        
+          // Asegurarse de que exista el colaborador
+          if (!acc[idColaborador]) {
+            acc[idColaborador] = {};
+          }
+        
+          // Asegurarse de que exista la fecha para el colaborador
+          if (!acc[idColaborador][fecha]) {
+            acc[idColaborador][fecha] = [];
+          }
+        
+          // Agregar la hora ocupada
+          acc[idColaborador][fecha].push(hora);
+        
+          return acc;
+        }, {} as { [key: number]: { [key: string]: string[] } });
+        
+        setHorasOcupadas(horasPorColaboradorYFecha);
+        
+      })
+      .catch((err) => console.log(err.message));
+
+    getWithAuth("http://localhost:8080/servicio/paquetes")
       .then((response) => response.json())
       .then((data) => {
         const paquetesActivos = data
           .filter((item: { paquete: { estado: string } }) => item.paquete.estado === "Activo")
-          .map((item: { paquete: { idPaquete: number; nombre: string; estado: string; tiempoTotalServicio: number;  }; servicios: { nombre: string }[] }) => ({
+          .map((item: { paquete: { idPaquete: number; nombre: string; estado: string; tiempoTotalServicio: number; }; servicios: { nombre: string }[] }) => ({
             idPaquete: item.paquete.idPaquete,
             nombrePaquete: item.paquete.nombre,
             tiempoTotalServicio: item.paquete.tiempoTotalServicio,
@@ -262,6 +296,37 @@ export default function CrearCitaPage() {
     }
   };
 
+  const handleColaboradorChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+
+    // Actualiza el colaborador seleccionado y el estado del formulario
+    setColaboradorSeleccionado(parseInt(value, 10));
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
+  // Convierte el formato de hora de 'HH:MM:SS' a 'HH:MM'
+  const convertToHourMinute = (hora: string) => {
+    const [hours, minutes] = hora.split(':');
+    return `${hours}:${minutes}`;
+  };
+
+// Obtener las horas ocupadas por colaborador y fecha
+const horasOcupadasPorColaboradorYFecha = colaboradorSeleccionado && formData.fecha
+  ? horasOcupadas[colaboradorSeleccionado]?.[formData.fecha] || []
+  : [];
+
+// Convertir las horas ocupadas al formato "HH:MM"
+const horasOcupadasConvertidas = horasOcupadasPorColaboradorYFecha.map(convertToHourMinute);
+
+// Filtrar las horas disponibles
+const opcionesHorasDisponibles = opcionesHoras.filter(hora => !horasOcupadasConvertidas.includes(hora));
+
+
   return (
     <>
       {acceso ? (
@@ -274,7 +339,7 @@ export default function CrearCitaPage() {
                 label="Colaborador"
                 name="idColaborador"
                 placeholder="Seleccione un colaborador"
-                onChange={handleInputChange}
+                onChange={handleColaboradorChange}
                 size="lg"
                 className="block w-full"
                 isInvalid={!validarColaborador(formData.idColaborador)}
@@ -325,11 +390,17 @@ export default function CrearCitaPage() {
                     : ""
                 }
               >
-                {opcionesHoras.map((hora) => (
-                  <SelectItem key={hora} value={hora}>
-                    {hora}
+                {opcionesHorasDisponibles.length > 0 ? (
+                  opcionesHorasDisponibles.map((hora) => (
+                    <SelectItem key={hora} value={hora}>
+                      {hora}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="" isDisabled key={""}>
+                    No hay horas disponibles
                   </SelectItem>
-                ))}
+                )}
               </Select>
               <Select
                 label="Paquete"
