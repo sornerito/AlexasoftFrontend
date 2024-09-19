@@ -628,11 +628,12 @@ export default function CitasPage() {
                 <Button
                   onClick={async () => {
                     if (!selectedCita) return;
+                    const horaConSegundos = `${nuevaHora}:00`;
                     const updatedData = {
                       ...selectedCita,
                       estado: "Aceptado",
                       fecha: nuevaFecha,
-                      hora: nuevaHora,
+                      hora: horaConSegundos
                     };
                     try {
                       const response = await postWithAuth(
