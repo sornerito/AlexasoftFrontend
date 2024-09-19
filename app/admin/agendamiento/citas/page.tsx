@@ -119,10 +119,15 @@ export default function CitasPage() {
     onOpen: onOpenDetails,
     onClose: onCloseDetails,
   } = useDisclosure();
+  const [nuevaFecha, setNuevaFecha] = useState("");
+  const [nuevaHora, setNuevaHora] = useState("");
+  const {
+    isOpen: isOpenReagendar,
+    onOpen: onOpenReagendar,
+    onClose: onCloseReagendar,
+  } = useDisclosure();
 
   const [isOpenCancelConfirmation, setIsOpenCancelConfirmation] = useState(false);
-  const [actionOnCancel, setActionOnCancel] = useState(""); // "reagendar" o "cancelar"
-
 
   useEffect(() => {
     getWithAuth("http://10.170.83.243:8080/cita")
@@ -241,13 +246,7 @@ export default function CitasPage() {
   const handleChangeEstado = async () => {
     if (!selectedCita || !nuevoEstado) return;
 
-    if (actionOnCancel === "reagendar") {
-      // Aquí va la lógica para reagendar la cita
-      console.log("Reagendando la cita:", selectedCita);
-      // ... 
-      onCloseEstado(); // Cierra el modal de cambio de estado
-    } else if (actionOnCancel === "cancelar") {
-      // Si se seleccionó cancelar definitivamente
+    if (nuevoEstado === "cancelar") {
       try {
         const response = await postWithAuth(
           `http://localhost:8080/cita/${selectedCita.idCita}/estado`,
@@ -256,8 +255,26 @@ export default function CitasPage() {
 
         if (response.ok) {
           const updatedCita = await response.json();
-          // Actualiza el estado de la cita
           setCitas(citas.map(cita => cita.idCita === selectedCita.idCita ? { ...cita, estado: "Cancelado" } : cita));
+          onCloseEstado();
+        } else {
+          setMensajeError("Error al cambiar el estado de la cita");
+          onOpenError();
+        }
+      } catch (error) {
+        setMensajeError("Error al enviar la solicitud");
+        onOpenError();
+      }
+    } else if (nuevoEstado === "Aceptado") {
+      try {
+        const response = await postWithAuth(
+          `http://localhost:8080/cita/${selectedCita.idCita}/estado`,
+          { estado: "Aceptado", citasCancelar: idsCitasConflicto }
+        );
+
+        if (response.ok) {
+          const updatedCita = await response.json();
+          setCitas(citas.map(cita => cita.idCita === selectedCita.idCita ? { ...cita, estado: "Aceptado" } : cita));
           onCloseEstado();
         } else {
           setMensajeError("Error al cambiar el estado de la cita");
@@ -271,17 +288,17 @@ export default function CitasPage() {
   };
 
 
+
   const [citasConConflicto, setCitasConConflicto] = useState<Cita[]>([]);
   const [idsCitasConflicto, setIdsCitasConflicto] = useState<number[]>([]);
   const handleEstadoSelect = (cita: Cita, nuevoEstado: string) => {
     setSelectedCita(cita);
     setNuevoEstado(nuevoEstado);
-
+    setCitasConConflicto(obtenerCitasEnConflicto());
     if (nuevoEstado === "Cancelado") {
-      setActionOnCancel(""); // Resetea la acción
-      setIsOpenCancelConfirmation(true); // Abre el modal de confirmación
+      setNuevoEstado("");
+      setIsOpenCancelConfirmation(true);
     } else {
-      setCitasConConflicto(obtenerCitasEnConflicto());
       setIdsCitasConflicto(citasConConflicto.map((cita) => Number(cita.idCita)));
       onOpenEstado();
     }
@@ -290,6 +307,15 @@ export default function CitasPage() {
   const handleShowDetails = (cita: Cita) => {
     setSelectedCita(cita);
     onOpenDetails();
+  };
+
+
+  const handleOpenReagendar = () => {
+    if (selectedCita) {
+      setNuevaFecha(selectedCita.fecha); // Ajusta según tu modelo
+      setNuevaHora(`${selectedCita.hora}`); // Asegúrate de que tenga el formato correcto
+    }
+    onOpenReagendar(); // Abre el modal de reagendar
   };
 
   const obtenerCitasEnConflicto = () => {
@@ -409,29 +435,34 @@ export default function CitasPage() {
                         <div className="flex space-x-2">
                           {["En_espera", "Aceptado", "Cancelado"].map((estado) => {
                             const isDisabled = item.estado === "Aceptado" || item.estado === "Cancelado";
-                            const isSelected = item.estado === estado; // Verifica si este botón es el seleccionado
+                            const isSelected = item.estado === estado;
+                            const fullWidthClass = item.estado === "En_espera" ? "w-full" : "";
+                            if (isSelected || item.estado === "En_espera") {
+                              return (
+                                <Button
+                                  key={estado}
+                                  onClick={estado !== "En_espera" ? () => handleEstadoSelect(item, estado) : undefined}
+                                  value={estado}
+                                  className={`${isSelected ? "w-full" : ""} ${fullWidthClass}`}
+                                  style={{
+                                    backgroundColor: estado === "En_espera" ? estadoColors[estado] : "transparent",
+                                    color: estado === "En_espera" ? "black" : "white",
+                                    border: "2px solid",
+                                    borderColor: estadoColors[estado],
+                                    borderRadius: "9999px",
+                                  }}
+                                  disabled={isDisabled}
+                                >
+                                  {estadoLabels[estado]}
+                                </Button>
+                              );
+                            }
 
-                            return (
-                              <Button
-                                key={estado}
-                                onClick={!isDisabled ? () => handleEstadoSelect(item, estado) : undefined}
-                                value={estado}
-                                style={{
-                                  backgroundColor: isSelected ? estadoColors[estado] : "transparent", // Cambia el fondo si está seleccionado
-                                  color: isDisabled ? "gray" : "white",
-                                  border: "2px solid",
-                                  borderColor: estadoColors[estado],
-                                  borderRadius: "9999px",
-                                  cursor: isDisabled ? "not-allowed" : "pointer",
-                                }}
-                                disabled={isDisabled}
-                              >
-                                {estadoLabels[estado]}
-                              </Button>
-                            );
+                            return null;
                           })}
-
                         </div>
+
+
 
                       ) : column.uid === "acciones" ? (
                         <Button
@@ -537,7 +568,7 @@ export default function CitasPage() {
                   <ul>
                     {citasConConflicto.map((cita) => (
                       <li key={cita.idCita}>
-                        Cliente: {cita.idCliente}, Fecha:
+                        Cliente: {clientes[cita.idCliente]}, Fecha:
                         {new Date(cita.fecha).toLocaleDateString()}, Hora:
                         {cita.hora}
                       </li>
@@ -565,22 +596,79 @@ export default function CitasPage() {
                   ¿Desea <strong>reagendar</strong> esta cita o <strong>cancelar definitivamente</strong>?
                 </p>
                 <Button onClick={() => {
-                  setActionOnCancel("reagendar");
-                  setIsOpenCancelConfirmation(false);
-                  // Aquí puedes añadir la lógica para reagendar la cita
-                  // ...
+                  handleOpenReagendar();
+                  console.log("Reagendando la cita:", selectedCita);
+                  onCloseEstado();
                 }}>Reagendar</Button>
                 <Button onClick={() => {
-                  setActionOnCancel("cancelar");
+                  setNuevoEstado("cancelar");
                   setIsOpenCancelConfirmation(false);
-                  onOpenEstado(); // Abre el modal de cambio de estado
+                  onOpenEstado();
                 }}>Cancelar Definitivamente</Button>
               </ModalBody>
             </ModalContent>
           </Modal>
+          <Modal isOpen={isOpenReagendar} onClose={onCloseReagendar}>
+            <ModalContent>
+              <ModalHeader>Reagendar Cita</ModalHeader>
+              <ModalBody>
+                <Input
+                  type="date"
+                  value={nuevaFecha}
+                  onChange={(e) => setNuevaFecha(e.target.value)}
+                />
+                <Input
+                  type="time"
+                  value={nuevaHora}
+                  onChange={(e) => setNuevaHora(e.target.value)}
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button onClick={onCloseReagendar}>Cancelar</Button>
+                <Button
+                  onClick={async () => {
+                    if (!selectedCita) return;
+                    const updatedData = {
+                      ...selectedCita,
+                      estado: "Aceptado",
+                      fecha: nuevaFecha,
+                      hora: nuevaHora,
+                    };
+                    try {
+                      const response = await postWithAuth(
+                        `http://localhost:8080/cita/${selectedCita.idCita}`,
+                        updatedData
+                      );
+
+                      if (response.ok) {
+                        const newCita = await response.json();
+                        setCitas((prev) =>
+                          prev.map((cita) =>
+                            cita.idCita === selectedCita.idCita ? newCita : cita
+                          )
+                        );
+                        onCloseReagendar();
+                        setIsOpenCancelConfirmation(false);
+                      } else {
+                        setMensajeError("Error al reagendar la cita");
+                        onOpenError();
+                      }
+                    } catch (error) {
+                      setMensajeError("Error al enviar la solicitud");
+                      onOpenError();
+                    }
+                  }}
+                >
+                  Confirmar
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
         </div>
       ) : (
-        <CircularProgress color="warning" aria-label="Cargando..." />
+        <div className="flex items-center justify-center h-screen">
+          <CircularProgress size="lg" />
+        </div>
       )}
     </>
   );
