@@ -249,7 +249,7 @@ export default function CitasPage() {
     if (nuevoEstado === "cancelar") {
       try {
         const response = await postWithAuth(
-          `http://localhost:8080/cita/${selectedCita.idCita}/estado`,
+          `http://10.170.83.243:8080/cita/${selectedCita.idCita}/estado`,
           { estado: "Cancelado", citasCancelar: idsCitasConflicto }
         );
 
@@ -268,7 +268,7 @@ export default function CitasPage() {
     } else if (nuevoEstado === "Aceptado") {
       try {
         const response = await postWithAuth(
-          `http://localhost:8080/cita/${selectedCita.idCita}/estado`,
+          `http://10.170.83.243:8080/cita/${selectedCita.idCita}/estado`,
           { estado: "Aceptado", citasCancelar: idsCitasConflicto }
         );
 
@@ -633,11 +633,11 @@ export default function CitasPage() {
                       ...selectedCita,
                       estado: "Aceptado",
                       fecha: nuevaFecha,
-                      hora: horaConSegundos
+                      hora: nuevaHora
                     };
                     try {
                       const response = await postWithAuth(
-                        `http://localhost:8080/cita/${selectedCita.idCita}`,
+                        `http://10.170.83.243:8080/cita/${selectedCita.idCita}`,
                         updatedData
                       );
 

@@ -432,13 +432,13 @@ export default function EditarServicioPage() {
       if (cantidad < 10) {
         return "La cantidad mínima en gramos es 10g.";
       } else if (cantidad > 1000) {
-        return "La cantidad máxima en gramos es 10000g.";
+        return "La cantidad máxima en gramos es 1000g.";
       }
     } else if (productoSeleccionado?.unidadMedida === "ml") {
       if (cantidad < 10) {
         return "La cantidad mínima en mililitros es 10ml.";
       } else if (cantidad > 1000) {
-        return "La cantidad máxima en mililitros es 10000ml.";
+        return "La cantidad máxima en mililitros es 1000ml.";
       }
     }
     return "";
@@ -480,14 +480,14 @@ export default function EditarServicioPage() {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container p-4 mx-auto">
       <Toaster position="bottom-right" />
       <>
         {acceso ? (
           <div className="flex gap-4">
             {/* Sección de Campos de Servicio (Izquierda) */}
             <div className="flex-1 p-4 rounded-lg shadow-md">
-              <h1 className="text-xl font-semibold mb-4">Editar Servicio</h1>
+              <h1 className="mb-4 text-xl font-semibold">Editar Servicio</h1>
               <Divider className="h-1 my-4" /> {/* Añade el divisor */}
               <div className="mt-4">
                 {/* Campo Nombre */}
@@ -683,7 +683,7 @@ export default function EditarServicioPage() {
                   color="warning"
                   className="p-2 text-black"
                 >
-                  <ChevronLeftIcon className="h-4 w-4" />
+                  <ChevronLeftIcon className="w-4 h-4" />
                 </Button>
 
                 <span className="text-base">
@@ -696,13 +696,13 @@ export default function EditarServicioPage() {
                   color="warning"
                   className="p-2 text-black"
                 >
-                  <ChevronRightIcon className="h-4 w-4" />
+                  <ChevronRightIcon className="w-4 h-4" />
                 </Button>
               </div>
 
 
 
-              <div className="flex justify-end space-x-4 mt-10">
+              <div className="flex justify-end mt-10 space-x-4">
                 <Button
                   className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
                   onClick={cancelarEdicion}
@@ -725,7 +725,7 @@ export default function EditarServicioPage() {
         <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
           <ModalContent>
             <ModalHeader>Seleccionar Producto</ModalHeader>
-            <div className="text-center mx-auto">
+            <div className="mx-auto text-center">
               <span className="block font-semibold">Producto Seleccionado:</span>
               <span>{productoSeleccionado?.nombre}</span>
             </div>

@@ -21,7 +21,14 @@ import {
   CircularProgress,
   Divider,
 } from "@nextui-org/react";
-import { ChevronLeftIcon, ChevronRightIcon, CircleHelp, CircleX, Link, PlusIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CircleHelp,
+  CircleX,
+  Link,
+  PlusIcon,
+} from "lucide-react";
 import {
   getWithAuth,
   postWithAuth,
@@ -87,7 +94,6 @@ export default function CrearServicioPage() {
     ProductoSeleccionado[]
   >([]);
 
-
   const {
     isOpen: isOpenConfirm,
     onOpen: onOpenConfirm,
@@ -122,7 +128,6 @@ export default function CrearServicioPage() {
   };
 
   const [isLoading, setIsLoading] = useState(true);
-
 
   const unidadesMedida = [
     { key: "ml", label: "ml" },
@@ -176,7 +181,11 @@ export default function CrearServicioPage() {
       return;
     }
 
-    if (cantidad === null || cantidad === undefined || cantidad.toString().trim() === "") {
+    if (
+      cantidad === null ||
+      cantidad === undefined ||
+      cantidad.toString().trim() === ""
+    ) {
       setMensajeError("La cantidad no puede estar vacía.");
       onOpenError();
       return;
@@ -187,7 +196,7 @@ export default function CrearServicioPage() {
       onOpenError();
       return;
     }
-    
+
     if (productoSeleccionado && cantidad > 0 && error === "") {
       const productoExiste = productosSeleccionados.find(
         (p) => p.idProducto === productoSeleccionado.idProducto
@@ -212,7 +221,7 @@ export default function CrearServicioPage() {
     } else {
       setCantidadError(
         error ||
-        "Seleccione un producto y complete todos los campos necesarios."
+          "Seleccione un producto y complete todos los campos necesarios."
       );
       onOpenError();
     }
@@ -226,7 +235,10 @@ export default function CrearServicioPage() {
 
   const confirmarGuardarServicio = () => {
     const errorNombre = validarCampoString(nombre, "Nombre del servicio");
-    const errorDescripcion = validarDescripcionModal(descripcion, "Descripcion del servicio");
+    const errorDescripcion = validarDescripcionModal(
+      descripcion,
+      "Descripcion del servicio"
+    );
     const errorTiempoMinutos = validarTiempoModal(tiempoMinutos);
 
     if (errorNombre != "") {
@@ -279,12 +291,15 @@ export default function CrearServicioPage() {
         (producto) => producto.unidadMedida
       );
 
-      const response = await postWithAuth("http://10.170.83.243:8080/servicio", {
-        servicio: nuevoServicio,
-        productosId,
-        cantidad,
-        unidadMedida,
-      });
+      const response = await postWithAuth(
+        "http://10.170.83.243:8080/servicio",
+        {
+          servicio: nuevoServicio,
+          productosId,
+          cantidad,
+          unidadMedida,
+        }
+      );
 
       if (response.ok) {
         toast.success("Servicio creada con éxito!");
@@ -293,7 +308,10 @@ export default function CrearServicioPage() {
         }, 1000);
       } else {
         const errorData = await response.json();
-        if (errorData.message && errorData.message.includes("Ya existe un servicio con el nombre")) {
+        if (
+          errorData.message &&
+          errorData.message.includes("Ya existe un servicio con el nombre")
+        ) {
           setMensajeError(errorData.message);
           onOpenError();
         } else {
@@ -307,7 +325,6 @@ export default function CrearServicioPage() {
       onOpenError();
     }
   };
-
 
   const caracteresValidos = /^[a-zA-Z0-9\s]*$/;
 
@@ -346,34 +363,39 @@ export default function CrearServicioPage() {
   };
 
   const validarCantidad = (cantidad: number) => {
-    if (cantidad === null || cantidad === undefined || cantidad.toString().trim() === "") {
+    if (
+      cantidad === null ||
+      cantidad === undefined ||
+      cantidad.toString().trim() === ""
+    ) {
       return "La cantidad no puede estar vacía.";
     }
     if (productoSeleccionado?.unidadMedida === "g") {
       if (cantidad < 10) {
         return "La cantidad mínima en gramos es 10g.";
       } else if (cantidad > 1000) {
-        return "La cantidad máxima en gramos es 10000g.";
+        return "La cantidad máxima en gramos es 1000g.";
       }
     } else if (productoSeleccionado?.unidadMedida === "ml") {
       if (cantidad < 10) {
         return "La cantidad mínima en mililitros es 10ml.";
       } else if (cantidad > 1000) {
-        return "La cantidad máxima en mililitros es 10000ml.";
+        return "La cantidad máxima en mililitros es 1000ml.";
       }
     }
     return "";
   };
 
-  const validarImagenes = (imagen: string) => {
+  const validarImagenes = (imagen: string): boolean => {
+    // Cambiar el tipo de retorno a boolean
     const url = /(jpg|jpeg|png|gif)/i;
     if (!url.test(imagen)) {
-      return "La URL de la imagen debe terminar en .jpg, .jpeg, .png o .gif.";
+      return true;
     }
     if (imagen.length >= 500) {
-      return "La URL de la imagen permite 500 careacteres";
+      return true;
     }
-    return "";
+    return false;
   };
 
   const errors = React.useMemo(() => {
@@ -381,7 +403,7 @@ export default function CrearServicioPage() {
       nombre: nombre !== "" && !validarNombre(nombre),
       descripcion: descripcion !== "" && !validarDescripcion(descripcion),
       tiempoMinutos: tiempoMinutos !== "" && !validarTiempo(tiempoMinutos),
-      imagenes: imagen !== "" && !validarImagenes(imagen),
+      imagen: imagen !== "" && validarImagenes(imagen), // Validación en tiempo real para
     };
   }, [nombre, descripcion, tiempoMinutos, imagen]);
 
@@ -403,7 +425,7 @@ export default function CrearServicioPage() {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container p-4 mx-auto">
       <Toaster position="bottom-right" />
       {acceso ? (
         <>
@@ -456,17 +478,25 @@ export default function CrearServicioPage() {
                     <SelectItem key="60">60 minutos</SelectItem>
                     <SelectItem key="90">90 minutos</SelectItem>
                   </Select>
-                  <Input
-                    isRequired
-                    type="text"
-                    label="Imagenes"
-                    value={imagen}
-                    isInvalid={!!errors.imagenes}
-                    color={errors.imagenes ? "danger" : "default"}
-                    errorMessage={errors.imagenes}
-                    onValueChange={setImagen}
-                    className="w-full mb-6"
-                  />
+                  <div className="col-span-2">
+                    <Input
+                      isRequired
+                      type="text"
+                      label="Imágenes"
+                      value={imagen}
+                      isInvalid={errors.imagen}
+                      color={errors.imagen ? "danger" : "default"}
+                      onValueChange={(value) => {
+                        setImagen(value);
+                      }}
+                      className="w-full mb-4"
+                      errorMessage={
+                        errors.imagen
+                          ? "URL de imagen solo puede tener .jpg, .jpeg, .png o .gif"
+                          : ""
+                      } // Mostrar un mensaje de error genérico si hay un error
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -474,20 +504,26 @@ export default function CrearServicioPage() {
             {/* Productos seleccionados a la derecha */}
             <div className="flex-1">
               <div className="mb-4">
-                <h2 className="text-xl font-semibold">Productos Seleccionados</h2>
+                <h2 className="text-xl font-semibold">
+                  Productos Seleccionados
+                </h2>
                 <Divider />
-                <div className="mt-4 flex items-center">
+                <div className="flex items-center mt-4">
                   <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
                     <ModalContent>
                       <ModalHeader>Seleccionar Producto</ModalHeader>
-                      <div className="text-center mx-auto">
-                        <span className="block font-semibold">Producto Seleccionado:</span>
+                      <div className="mx-auto text-center">
+                        <span className="block font-semibold">
+                          Producto Seleccionado:
+                        </span>
                         <span>{productoSeleccionado?.nombre}</span>
                       </div>
                       <ModalBody>
                         <Select
                           placeholder="Selecciona un producto"
-                          onChange={(event) => handleSelectProduct(event.target.value)}
+                          onChange={(event) =>
+                            handleSelectProduct(event.target.value)
+                          }
                         >
                           {productos.map((producto) => (
                             <SelectItem
@@ -542,7 +578,9 @@ export default function CrearServicioPage() {
 
                 {/* Sección de Productos Seleccionados */}
                 <div className="p-6 rounded-lg shadow-md">
-                  <div className="flex justify-end mb-4"> {/* Alineado a la derecha */}
+                  <div className="flex justify-end mb-4">
+                    {" "}
+                    {/* Alineado a la derecha */}
                     <Button
                       size="sm"
                       className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
@@ -589,7 +627,7 @@ export default function CrearServicioPage() {
                       color="warning"
                       className="p-2 text-black"
                     >
-                      <ChevronLeftIcon className="h-4 w-4" />
+                      <ChevronLeftIcon className="w-4 h-4" />
                     </Button>
 
                     <span className="text-base">
@@ -602,7 +640,7 @@ export default function CrearServicioPage() {
                       color="warning"
                       className="p-2 text-black"
                     >
-                      <ChevronRightIcon className="h-4 w-4" />
+                      <ChevronRightIcon className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
@@ -611,7 +649,9 @@ export default function CrearServicioPage() {
           </div>
 
           {/* Botones Guardar y Cancelar */}
-          <div className="flex justify-end space-x-4 mt-8"> {/* Añadido margen superior */}
+          <div className="flex justify-end mt-8 space-x-4">
+            {" "}
+            {/* Añadido margen superior */}
             <Button
               className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
               onClick={cancelarEdicion}
@@ -627,38 +667,42 @@ export default function CrearServicioPage() {
           </div>
 
           {/* Modal de Confirmación */}
-        <Modal isOpen={isOpenConfirm} onOpenChange={onCloseConfirm}>
-          <ModalContent>
-            {(onClose) => (
-              <>
-                <ModalHeader className="flex flex-col items-center gap-1">
-                  <CircleHelp color="#fef08a" size={100} />
-                </ModalHeader>
-                <ModalBody className="text-center">
-                <p className="text-lg text-gray-50">¿Desea crear el servicio?</p>
-                <p className="text-sm text-gray-500 mt-2">El servicio no podrá eliminarse, pero podrá desactivarse.</p>
-                </ModalBody>
-                <ModalFooter>
-                  <Button
-                    className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
-                    onClick={onCloseConfirm}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
-                    onClick={() => {
-                      guardarServicio();
-                      onCloseConfirm();
-                    }}  
-                  >
-                    Crear Servicio
-                  </Button>
-                </ModalFooter>
-              </>
-            )}
-          </ModalContent>
-        </Modal>
+          <Modal isOpen={isOpenConfirm} onOpenChange={onCloseConfirm}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center gap-1">
+                    <CircleHelp color="#fef08a" size={100} />
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <p className="text-lg text-gray-50">
+                      ¿Desea crear el servicio?
+                    </p>
+                    <p className="mt-2 text-sm text-gray-500">
+                      El servicio no podrá eliminarse, pero podrá desactivarse.
+                    </p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      className="mr-2 bg-gradient-to-tr from-red-600 to-red-300"
+                      onClick={onCloseConfirm}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
+                      onClick={() => {
+                        guardarServicio();
+                        onCloseConfirm();
+                      }}
+                    >
+                      Crear Servicio
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
           {/*Modal de error*/}
           <Modal isOpen={isOpenError} onOpenChange={onCloseError}>
@@ -680,11 +724,10 @@ export default function CrearServicioPage() {
                 </>
               )}
             </ModalContent>
-            
           </Modal>
         </>
       ) : (
-        <div className="text-center mt-4">
+        <div className="mt-4 text-center">
           <p>No tienes permiso para acceder a esta sección.</p>
         </div>
       )}

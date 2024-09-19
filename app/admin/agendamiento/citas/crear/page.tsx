@@ -126,7 +126,7 @@ export default function CrearCitaPage() {
       })
       .catch((err) => console.log(err.message));
 
-    getWithAuth("http://localhost:8080/cita")
+    getWithAuth("http://10.170.83.243:8080/cita")
       .then((response) => response.json())
       .then((data) => {
         const citasAceptadas = data.filter((cita: Cita) => cita.estado === 'Aceptado');
@@ -157,7 +157,7 @@ export default function CrearCitaPage() {
       })
       .catch((err) => console.log(err.message));
 
-    getWithAuth("http://localhost:8080/servicio/paquetes")
+    getWithAuth("http://10.170.83.243:8080/servicio/paquetes")
     getWithAuth("http://10.170.83.243:8080/servicio/paquetes")
       .then((response) => response.json())
       .then((data) => {
