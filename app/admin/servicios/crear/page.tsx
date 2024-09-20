@@ -516,7 +516,7 @@ export default function CrearServicioPage() {
                       onClick={handlePreviewClick}
                       disabled={!imagen}
                     >
-                      Ver Preview
+                      Ver Imagen
                     </Button>
                   </div>
                 </div>

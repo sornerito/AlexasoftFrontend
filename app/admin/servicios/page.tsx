@@ -2,6 +2,7 @@
 import { title } from "@/components/primitives";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Image } from "@nextui-org/react";
 import {
   PlusIcon,
   PencilIcon,
@@ -64,6 +65,7 @@ interface Servicio {
   descripcion: string;
   tiempoMinutos: string;
   estado: string;
+  imagen: string;
 
 }
 
@@ -104,6 +106,13 @@ export default function ServiciosPage() {
     onOpenChange: onOpenChangeDetalles,
   } = useDisclosure(); //Hook de modal error
 
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const {
+    isOpen: isOpenImage,
+    onOpen: onOpenImage,
+    onOpenChange: onOpenChangeImage,
+  } = useDisclosure();
+
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Define la cantidad de items por página
@@ -124,6 +133,7 @@ export default function ServiciosPage() {
               descripcion: any;
               tiempoMinutos: any;
               estado: any;
+              imagen: any;
             };
             productos: [
               {
@@ -144,6 +154,7 @@ export default function ServiciosPage() {
             descripcion: item.servicios.descripcion,
             tiempoMinutos: item.servicios.tiempoMinutos,
             estado: item.servicios.estado,
+            imagen: item.servicios.imagen, 
             productos: item.productos,
           })
         );
@@ -249,6 +260,18 @@ export default function ServiciosPage() {
     });
   };
 
+  const handleOpenImageModal = (idServicio: string) => {
+    const servicio = servicios.find((serv) => serv.idServicio === idServicio);
+    console.log(servicio);
+    if (servicio) {
+      setSelectedImage(servicio.imagen);
+    } else {
+      setSelectedImage(null);
+    }
+    console.log(selectedImage);
+    onOpenImage();
+  };
+
   const handleEstadoChange = async (idServicio: any, estado: any) => {
     setServicioId(idServicio);
     setEstadoActual(estado);
@@ -335,7 +358,13 @@ export default function ServiciosPage() {
                                 </Button>
                               </DropdownTrigger>
                               <DropdownMenu
-                                onAction={(action) => console.log(action)}
+                                onAction={(key) => {
+                                  if (key === "ver-imagen") {
+                                    handleOpenImageModal(item.idServicio);
+                                  } else if (key === "editar") {
+                                    // ... tu lógica para editar
+                                  }
+                                }}
                               >
                                 <DropdownItem
                                   href={`/admin/servicios/editar/${item.idServicio}`}
@@ -355,6 +384,19 @@ export default function ServiciosPage() {
                                     <Eye />
                                     Detalles
                                   </Button>
+                                  <DropdownItem key="ver-imagen">
+                                    <Button
+                                      className="w-full bg-transparent"
+                                      onClick={() => handleOpenImageModal(item.idServicio)}
+                                    >
+                                      <Image
+                                        src="/images/icono_imagen.png" // Reemplaza con la URL de tu icono
+                                        alt="Icono de imagen"
+                                        className="w-4 h-4 mr-2"
+                                      />
+                                      Ver Imagen
+                                    </Button>
+                                  </DropdownItem>
                                 </DropdownItem>
                               </DropdownMenu>
                             </Dropdown>
@@ -428,6 +470,19 @@ export default function ServiciosPage() {
                                   Ver Detalles
                                 </Button>
                               </DropdownItem>
+                              <DropdownItem key="ver-imagen">
+                                    <Button
+                                      className="w-full bg-transparent"
+                                      onClick={() => handleOpenImageModal(item.idServicio)}
+                                    >
+                                      <Image
+                                        src="/images/icono_imagen.png" // Reemplaza con la URL de tu icono
+                                        alt="Icono de imagen"
+                                        className="w-4 h-4 mr-2"
+                                      />
+                                      Ver Imagen
+                                    </Button>
+                                  </DropdownItem>
                             </DropdownMenu>
                           </Dropdown>
                         ) : column.uid === "estado" ? (
@@ -519,45 +574,45 @@ export default function ServiciosPage() {
 
                         <div style={{ width: "50%" }}>
                           {servicioSeleccionado.productos.length > 0 ? (
-                           <> {/* Envolviendo la tabla con un fragmento <> */}
-                           <Table aria-label="Productos" className="flex-1">
-                             <TableHeader>
-                               <TableColumn>Producto</TableColumn>
-                               <TableColumn>Cantidad</TableColumn>
-                               <TableColumn>Unidad</TableColumn>
-                             </TableHeader>
-                             <TableBody>
-                               {servicioSeleccionado.productos
-                                 .slice(
-                                   (currentPage - 1) * itemsPerPage, 
-                                   currentPage * itemsPerPage
-                                 )
-                                 .map((producto: any, index: number) => (
-                                   <TableRow key={index}>
-                                     <TableCell>{producto.nombre}</TableCell>
-                                     <TableCell>{producto.cantidad}</TableCell>
-                                     <TableCell>{producto.unidadMedida}</TableCell>
-                                   </TableRow>
-                               ))}
-                             </TableBody>
-                           </Table>
+                            <> {/* Envolviendo la tabla con un fragmento <> */}
+                              <Table aria-label="Productos" className="flex-1">
+                                <TableHeader>
+                                  <TableColumn>Producto</TableColumn>
+                                  <TableColumn>Cantidad</TableColumn>
+                                  <TableColumn>Unidad</TableColumn>
+                                </TableHeader>
+                                <TableBody>
+                                  {servicioSeleccionado.productos
+                                    .slice(
+                                      (currentPage - 1) * itemsPerPage,
+                                      currentPage * itemsPerPage
+                                    )
+                                    .map((producto: any, index: number) => (
+                                      <TableRow key={index}>
+                                        <TableCell>{producto.nombre}</TableCell>
+                                        <TableCell>{producto.cantidad}</TableCell>
+                                        <TableCell>{producto.unidadMedida}</TableCell>
+                                      </TableRow>
+                                    ))}
+                                </TableBody>
+                              </Table>
 
-                           {/* Paginación dentro de la tabla */}
-                           <div className="flex justify-center mt-4"> 
-                             <Pagination
-                               showControls
-                               color="warning"
-                               page={currentPage} // Usando el estado currentPage
-                               total={Math.ceil(
-                                 servicioSeleccionado.productos.length / itemsPerPage // Usando itemsPerPage
-                               )}
-                               onChange={(page) => setCurrentPage(page)} 
-                             />
-                           </div>
-                           </> 
+                              {/* Paginación dentro de la tabla */}
+                              <div className="flex justify-center mt-4">
+                                <Pagination
+                                  showControls
+                                  color="warning"
+                                  page={currentPage} // Usando el estado currentPage
+                                  total={Math.ceil(
+                                    servicioSeleccionado.productos.length / itemsPerPage // Usando itemsPerPage
+                                  )}
+                                  onChange={(page) => setCurrentPage(page)}
+                                />
+                              </div>
+                            </>
 
                           ) : (
-                          <p>No hay productos asociados a este servicio.</p>
+                            <p>No hay productos asociados a este servicio.</p>
                           )}
                         </div>
                       </div>
@@ -579,6 +634,42 @@ export default function ServiciosPage() {
             </ModalContent>
           </Modal>
 
+          <Modal
+            isOpen={isOpenImage}
+            onOpenChange={onOpenChangeImage}
+            className="w-96"
+          >
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center gap-1">
+                    <h1 className="text-xl">Imagen del Servicio</h1>
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <div className="flex items-center justify-center">
+                      {selectedImage ? (
+                        <Image
+                        src={selectedImage || "/images/placeholder.png"} // Si selectedImage es null, usa una imagen placeholder
+                        alt="Imagen del servicio"
+                        className="full"
+                        width={250}
+                        height={250}
+                        />
+                      ) : (
+                        <p>No se encontró la imagen</p>
+                      )}
+                    </div>
+
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
           {/*Modal Cambiar Estado*/}
           <Modal isOpen={isOpen} onOpenChange={onOpenChange}>

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { Image } from "@nextui-org/react";
 import {
   Input,
   Button,
@@ -102,6 +103,8 @@ export default function EditarServicioPage() {
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editCantidad, setEditCantidad] = useState<number | null>(null);
   const [editCantidadError, setEditCantidadError] = useState<string>("");
+
+  const [previewVisible, setPreviewVisible] = useState(false);
 
 
   const guardarCantidadEditada = (index: number) => {
@@ -539,6 +542,10 @@ export default function EditarServicioPage() {
     );
   }
 
+  const handlePreviewClick = () => {
+    setPreviewVisible(true);
+  };
+
   return (
     <div className="container p-4 mx-auto">
       <Toaster position="bottom-right" />
@@ -619,6 +626,13 @@ export default function EditarServicioPage() {
                     errorMessage={imagenes}
                   />
                   {imagenes && <span className="text-red-500">{imagenes}</span>}
+                  <Button
+                      className="mt-4"
+                      onClick={handlePreviewClick}
+                      disabled={!imagen}
+                    >
+                      Ver Imagen
+                    </Button>
                 </div>
               </div>
             </div>
@@ -883,6 +897,34 @@ export default function EditarServicioPage() {
             )}
           </ModalContent>
         </Modal>
+
+        <Modal isOpen={previewVisible} onOpenChange={setPreviewVisible}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader>Preview de la imagen</ModalHeader>
+                  <ModalBody>
+                    <div className="flex items-center justify-center">
+                      {imagen && (
+                        <Image
+                          src={imagen}
+                          alt="Preview de la imagen"
+                          className="full"
+                          width={250}
+                          height={250}
+                        />
+                      )}
+                    </div>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="primary" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
 
         {/*Modal de error*/}
         <Modal isOpen={isOpenError} onOpenChange={onCloseError}>
