@@ -271,10 +271,23 @@ export default function CitasPage() {
           `http://localhost:8080/cita/${selectedCita.idCita}/estado`,
           { estado: "Aceptado", citasCancelar: idsCitasConflicto }
         );
-
+    
         if (response.ok) {
           const updatedCita = await response.json();
-          setCitas(citas.map(cita => cita.idCita === selectedCita.idCita ? { ...cita, estado: "Aceptado" } : cita));
+    
+          // Actualizamos la cita seleccionada
+          const updatedCitas = citas.map(cita =>
+            cita.idCita === selectedCita.idCita ? { ...cita, estado: "Aceptado" } : cita
+          );
+    
+          idsCitasConflicto.forEach(idCitaCancelada => {
+            const index = updatedCitas.findIndex(c => c.idCita == idCitaCancelada.toString());
+            if (index !== -1) {
+              updatedCitas[index] = { ...updatedCitas[index], estado: "Cancelado" };
+            }
+          });
+    
+          setCitas(updatedCitas);
           onCloseEstado();
         } else {
           setMensajeError("Error al cambiar el estado de la cita");
@@ -287,22 +300,22 @@ export default function CitasPage() {
     }
   };
 
-
-
   const [citasConConflicto, setCitasConConflicto] = useState<Cita[]>([]);
   const [idsCitasConflicto, setIdsCitasConflicto] = useState<number[]>([]);
   const handleEstadoSelect = (cita: Cita, nuevoEstado: string) => {
     setSelectedCita(cita);
     setNuevoEstado(nuevoEstado);
-    setCitasConConflicto(obtenerCitasEnConflicto());
+    const citasEnConflicto = obtenerCitasEnConflicto(cita); 
+    setCitasConConflicto(citasEnConflicto);
+  
     if (nuevoEstado === "Cancelado") {
-      setNuevoEstado("");
       setIsOpenCancelConfirmation(true);
     } else {
-      setIdsCitasConflicto(citasConConflicto.map((cita) => Number(cita.idCita)));
+      setIdsCitasConflicto(citasEnConflicto.map((cita) => Number(cita.idCita)));
       onOpenEstado();
     }
   };
+  
 
   const handleShowDetails = (cita: Cita) => {
     setSelectedCita(cita);
@@ -318,24 +331,20 @@ export default function CitasPage() {
     onOpenReagendar(); // Abre el modal de reagendar
   };
 
-  const obtenerCitasEnConflicto = () => {
+  const obtenerCitasEnConflicto = (citaSeleccionada: Cita) => {
     return citas.filter(
       (c) =>
         c.estado === "En_espera" &&
-        c.idCita != selectedCita?.idCita &&
-        c.fecha === selectedCita?.fecha &&
-        c.idColaborador === selectedCita.idColaborador &&
+        c.idCita !== citaSeleccionada.idCita &&
+        c.fecha === citaSeleccionada.fecha &&
+        c.idColaborador === citaSeleccionada.idColaborador &&
         (
-          c.hora <
-          calcularHoraFin(
-            selectedCita.hora,
-            paquetes[selectedCita.idPaquete].tiempoTotalServicio
-          ) &&
-          calcularHoraFin(c.hora, paquetes[c.idPaquete].tiempoTotalServicio) >
-          selectedCita.hora
+          c.hora < calcularHoraFin(citaSeleccionada.hora, paquetes[citaSeleccionada.idPaquete].tiempoTotalServicio) &&
+          calcularHoraFin(c.hora, paquetes[c.idPaquete].tiempoTotalServicio) > citaSeleccionada.hora
         )
     );
   };
+  
 
   const calcularHoraFin = (
     hora: string,
