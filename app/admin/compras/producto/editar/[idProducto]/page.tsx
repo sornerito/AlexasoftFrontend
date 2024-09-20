@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { CircleHelp, CircleX } from "lucide-react";
 import { Toaster, toast } from "sonner";
+import { Image } from "@nextui-org/react";
 import {
   Input,
   Button,
@@ -80,6 +81,7 @@ export default function ProductosEditarPage() {
   const [mensajeError, setMensajeError] = useState("");
   const router = useRouter();
   const { idProducto } = useParams();
+  const [previewVisible, setPreviewVisible] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -198,9 +200,13 @@ export default function ProductosEditarPage() {
   };
 
   const validarImagenes = (imagenes: string) => {
-    const url = /.(jpg|jpeg|png|gif)/i;
+    const url =
+      /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})(\/[\w@.-]*)*(\?.*)?\.(jpg|jpeg|png|gif)/i;
     if (!url.test(imagenes)) {
-      return "La URL de la imagen debe terminar en .jpg, .jpeg, .png o .gif.";
+      return "La URL de la imagen debe ser válida y contener una extensión .jpg, .jpeg, .png o .gif.";
+    }
+    if (imagenes.length >= 500) {
+      return "La URL de la imagen permite 500 careacteres";
     }
     return "";
   };
@@ -316,6 +322,11 @@ export default function ProductosEditarPage() {
     { key: "g", label: "g" },
   ];
 
+  const handlePreviewClick = () => {
+    setPreviewVisible(true);
+  };
+  
+  
   // Retorno del componente
   return (
     <>
@@ -363,17 +374,6 @@ export default function ProductosEditarPage() {
                     </SelectItem>
                   ))}
                 </Select>
-                <Input
-                  isRequired
-                  type="text"
-                  label="Imagenes"
-                  value={producto?.imagenes}
-                  isInvalid={!!errores.imagenes}
-                  color={errores.imagenes ? "danger" : "default"}
-                  errorMessage={errores.imagenes}
-                  onChange={handleChange}
-                  name="imagenes"
-                />
                 <Select
                   isRequired
                   name="idCategoriaProducto"
@@ -406,6 +406,24 @@ export default function ProductosEditarPage() {
                     </SelectItem>
                   ))}
                 </Select>
+                <Input
+                  isRequired
+                  type="text"
+                  label="Imagenes"
+                  value={producto?.imagenes}
+                  isInvalid={!!errores.imagenes}
+                  color={errores.imagenes ? "danger" : "default"}
+                  errorMessage={errores.imagenes}
+                  onChange={handleChange}
+                  name="imagenes"
+                />
+                 <Button
+                className="mt-4"
+                onClick={handlePreviewClick}
+                disabled={!producto?.imagenes}
+              >
+                Ver Preview
+              </Button>
               </div>
               <div className="flex justify-end mt-4">
                 <Link href="/admin/compras/producto">
@@ -452,6 +470,34 @@ export default function ProductosEditarPage() {
                       }}
                     >
                       Editar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+
+          <Modal isOpen={previewVisible} onOpenChange={setPreviewVisible}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader>Preview de la imagen</ModalHeader>
+                  <ModalBody>
+                    <div className="flex items-center justify-center">
+                      {producto?.imagenes && (
+                        <Image
+                          src={producto.imagenes}
+                          alt="Preview de la imagen"
+                          className="full"
+                          width={250}
+                          height={250}
+                        />
+                      )}
+                    </div>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="primary" variant="light" onPress={onClose}>
+                      Cerrar
                     </Button>
                   </ModalFooter>
                 </>

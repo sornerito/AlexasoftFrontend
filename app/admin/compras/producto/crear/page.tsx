@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Image } from "@nextui-org/react";
 import {
   Input,
   Button,
@@ -149,6 +150,7 @@ export default function CrearProductoPage() {
     onOpen: onOpenError,
     onOpenChange: onOpenChangeError,
   } = useDisclosure();
+  const [previewVisible, setPreviewVisible] = useState(false);
   const router = useRouter();
 
   // Validaciones
@@ -192,9 +194,10 @@ export default function CrearProductoPage() {
   };
 
   const validarImagenes = (imagenes: string) => {
-    const url = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})(\/[\w.-]*)*(\?.*)?\.(jpg|jpeg|png|gif)/i;
+    const url =
+      /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})(\/[\w.-]*)*(\?.*)?\.(jpg|jpeg|png|gif)/i;
     if (!url.test(imagenes)) {
-      return "La URL de la imagen debe Comenzar con https y tener.jpg, .jpeg, .png o .gif.";
+      return "La URL de la imagen debe ser válida y contener una extensión .jpg, .jpeg, .png o .gif.";
     }
     if (imagenes.length >= 500) {
       return "La URL de la imagen permite 500 careacteres";
@@ -324,6 +327,11 @@ export default function CrearProductoPage() {
     { key: "g", label: "g" },
   ];
 
+  const handlePreviewClick = () => {
+    setPreviewVisible(true);
+  };
+  
+  
   return (
     <>
       {acceso ? (
@@ -357,17 +365,6 @@ export default function CrearProductoPage() {
                   </SelectItem>
                 ))}
               </Select>
-              <Input
-                isRequired
-                type="text"
-                label="Imagenes"
-                value={producto.imagenes}
-                isInvalid={!!errores.imagenes}
-                color={errores.imagenes ? "danger" : "default"}
-                errorMessage={errores.imagenes}
-                onChange={handleChange}
-                name="imagenes"
-              />
               <Select
                 isRequired
                 name="idCategoriaProducto"
@@ -397,6 +394,26 @@ export default function CrearProductoPage() {
                   </SelectItem>
                 ))}
               </Select>
+              <Input
+                isRequired
+                type="text"
+                label="Imagenes"
+                value={producto.imagenes}
+                isInvalid={!!errores.imagenes}
+                color={errores.imagenes ? "danger" : "default"}
+                errorMessage={errores.imagenes}
+                onChange={handleChange}
+                name="imagenes"
+              />
+
+              
+              <Button
+                className="mt-4"
+                onClick={handlePreviewClick}
+                disabled={!producto.imagenes}
+              >
+                Ver Preview
+              </Button>
             </div>
             <div className="my-4 text-end">
               <Link href="/admin/compras/producto">
@@ -447,6 +464,36 @@ export default function CrearProductoPage() {
               )}
             </ModalContent>
           </Modal>
+
+          <Modal isOpen={previewVisible} onOpenChange={setPreviewVisible}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader>Preview de la imagen</ModalHeader>
+                  <ModalBody>
+                  <div className="flex items-center justify-center">
+                  {producto.imagenes && (
+                      <Image
+                        src={producto.imagenes}
+                        alt="Preview de la imagen"
+                        className="full"
+                        width={250}
+                        height={250}
+                      />
+                    )}
+                    </div>
+                   
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="primary" variant="light" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+
           <Modal isOpen={isOpenError} onOpenChange={onOpenChangeError}>
             <ModalContent>
               {(onClose) => (

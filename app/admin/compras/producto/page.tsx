@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useMediaQuery } from "react-responsive";
 import { PlusIcon, Ellipsis, Edit, CircleHelp, CircleX } from "lucide-react";
 import { Toaster, toast } from "sonner";
+import { Image } from "@nextui-org/react";
 import {
   Table,
   TableHeader,
@@ -57,7 +58,7 @@ interface Producto {
   unidades: number;
   estado: string;
   categoria: string;
-  imangenes: string;
+  imagenes: string;
   unidadMedida: string;
 }
 
@@ -88,6 +89,12 @@ export default function ProductosPage() {
   );
   const [mensajeError, setMensajeError] = useState("");
   const [] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const {
+    isOpen: isOpenImage,
+    onOpen: onOpenImage,
+    onOpenChange: onOpenChangeImage,
+  } = useDisclosure();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
@@ -256,6 +263,18 @@ export default function ProductosPage() {
     onOpen();
   };
 
+  const handleOpenImageModal = (idProducto: number) => {
+    const producto = productos.find((prod) => prod.idProducto === idProducto);
+    console.log(producto);
+    if (producto) {
+      setSelectedImage(producto.imagenes);
+    } else {
+      setSelectedImage(null);
+    }
+    console.log(selectedImage);
+    onOpenImage();
+  };
+
   // Función formatear el total de string a número con formato de moneda
   const formatCurrency = (
     valor: string | number,
@@ -421,16 +440,41 @@ export default function ProductosPage() {
                               </Button>
                             </DropdownTrigger>
                             <DropdownMenu
-                              onAction={(action) => console.log(action)}
+                              onAction={(key) => {
+                                if (key === "ver-imagen") {
+                                  handleOpenImageModal(item.idProducto);
+                                } else if (key === "editar") {
+                                  // ... tu lógica para editar
+                                }
+                              }}
                             >
                               <DropdownItem
                                 key="editar"
-                                href={`producto/editar/${item.idProducto}`}
+                                // Cambia esta línea para que sea una ruta relativa
+                                href={`/admin/compras/producto/editar/${item.idProducto}`}
                                 isDisabled={item.estado === "Desactivado"}
                               >
                                 <Button className="w-full bg-transparent">
                                   <Edit />
                                   Editar
+                                </Button>
+                              </DropdownItem>
+                              <DropdownItem
+                                key="ver-imagen"
+                                isDisabled={item.estado === "Desactivado"}
+                              >
+                                <Button
+                                  className="w-full bg-transparent"
+                                  onClick={() =>
+                                    handleOpenImageModal(item.idProducto)
+                                  }
+                                >
+                                  <Image
+                                    src=""
+                                    alt="Icono de imagen"
+                                    className="w-4 h-4 mr-2"
+                                  />
+                                  Ver Imagen
                                 </Button>
                               </DropdownItem>
                             </DropdownMenu>
@@ -505,6 +549,44 @@ export default function ProductosPage() {
               )}
             </ModalContent>
           </Modal>
+
+          <Modal
+            isOpen={isOpenImage}
+            onOpenChange={onOpenChangeImage}
+            className="w-96"
+          >
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col items-center gap-1">
+                    <h1 className="text-xl">Imagen del Producto</h1>
+                  </ModalHeader>
+                  <ModalBody className="text-center">
+                    <div className="flex items-center justify-center">
+                    {selectedImage ? (
+                      <Image
+                        src={selectedImage}
+                        alt="Imagen del producto"
+                        className="full"
+                                      width={250}
+                                      height={250}
+                      />
+                    ) : (
+                      <p>No se encontró la imagen</p>
+                    )}
+                    </div>
+                    
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="danger" onPress={onClose}>
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+
           {/* Modal para mostrar advertencias */}
           <Modal isOpen={isOpenWarning} onOpenChange={onOpenChangeWarning}>
             <ModalContent>
