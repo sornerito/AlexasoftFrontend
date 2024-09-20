@@ -103,15 +103,12 @@ export default function EditarServicioPage() {
   const [editCantidad, setEditCantidad] = useState<number | null>(null);
   const [editCantidadError, setEditCantidadError] = useState<string>("");
 
-  const validarCantidadEditada = (cantidad: number, unidadMedida: string) => {
-    const error = validarCantidad(cantidad);
-    setEditCantidadError(error);
-    return error;
-  };
-
 
   const guardarCantidadEditada = (index: number) => {
-    if (editCantidad !== null && validarCantidadEditada(editCantidad, productosSeleccionados[index].unidadMedida) === "") {
+    if (editCantidad !== null &&
+      !isNaN(editCantidad) && // Verifica que sea un número
+      editCantidad > 0 && // Verifica que sea positivo
+      validarCantidadEditada(editCantidad, productosSeleccionados[index].unidadMedida) === "") {
       setProductosSeleccionados(prev => prev.slice());
       setProductosSeleccionados((prevProductosSeleccionados) =>
         prevProductosSeleccionados.map((producto, i) =>
@@ -124,7 +121,8 @@ export default function EditarServicioPage() {
       setEditCantidad(null);
       setEditCantidadError("");
     } else {
-      setEditCantidadError("La cantidad no es válida o está vacía.");
+      setMensajeError("La cantidad debe ser un número entero positivo y estar dentro del rango permitido.");
+      onOpenError();
     }
   };
 
@@ -263,6 +261,12 @@ export default function EditarServicioPage() {
       return;
     }
 
+    if (isNaN(cantidad) || cantidad <= 0) {
+      setMensajeError("La cantidad debe ser un número entero positivo.");
+      onOpenError();
+      return;
+    }
+
     if (cantidad === null || cantidad === undefined || cantidad.toString().trim() === "") {
       setMensajeError("La cantidad no puede estar vacía.");
       onOpenError();
@@ -274,6 +278,8 @@ export default function EditarServicioPage() {
       onOpenError();
       return;
     }
+
+    
 
     const errorCantidad = validarCantidad(cantidad); // unidadMedida ya está actualizada
     if (errorCantidad) {
@@ -319,6 +325,32 @@ export default function EditarServicioPage() {
   };
 
   const confirmarActualizacion = () => {
+    if (productosSeleccionados.length === 0) {
+      setMensajeError("Debe seleccionar al menos un producto para actualizar el servicio.");
+      onOpenError();
+      return; 
+    }
+    const errorNombre = validarNombre(nombre);
+    const errorDescripcion = validarDescripcion(descripcion);
+    const errorTiempoMinutos = validarTiempo(tiempoMinutos);
+    const errorImagen = validarImagenes(imagen); // Valida la imagen
+
+    // Mostrar errores y detener la ejecución si existen
+    if (errorNombre) {
+      setMensajeError(errorNombre);
+      onOpenError();
+      return; 
+    }
+    if (errorDescripcion) {
+      setMensajeError(errorDescripcion);
+      onOpenError();
+      return;
+    }
+    if (errorImagen) {
+      setMensajeError(errorImagen);
+      onOpenError();
+      return;
+    }
     setIsConfirmModalOpen(true);
   };
 
@@ -424,10 +456,13 @@ export default function EditarServicioPage() {
     if (
       cantidad === null ||
       cantidad === undefined ||
-      cantidad.toString().trim() === ""
+      cantidad.toString().trim() === "" ||
+      isNaN(cantidad) ||
+      cantidad <= 0
     ) {
-      return "La cantidad no puede estar vacía.";
+      return "La cantidad debe ser un número entero positivo.";
     }
+
     if (productoSeleccionado?.unidadMedida === "g") {
       if (cantidad < 10) {
         return "La cantidad mínima en gramos es 10g.";
@@ -441,20 +476,45 @@ export default function EditarServicioPage() {
         return "La cantidad máxima en mililitros es 1000ml.";
       }
     }
+
     return "";
   };
 
-  const validarImagenes = (imagen: string) => {
-    const url = /(jpg|jpeg|png|gif)/i;
-    if (!imagen) {
-      return "La URL de la imagen no puede estar vacía.";
-    } else if (!url.test(imagen)) {
-      return "La URL de la imagen debe terminar en .jpg, .jpeg, .png o .gif.";
-    } else if (imagen.length >= 500) {
-      return "La URL de la imagen permite 500 caracteres";
+
+  const validarCantidadEditada = (cantidad: number, unidadMedida: string) => {
+    if (isNaN(cantidad) || cantidad <= 0) { // Verificar que sea un número positivo
+      return "La cantidad debe ser un número entero positivo.";
+    }
+
+    if (unidadMedida === "g") {
+      if (cantidad < 10) {
+        return "La cantidad mínima en gramos es 10g.";
+      } else if (cantidad > 1000) {
+        return "La cantidad máxima en gramos es 1000g.";
+      }
+    } else if (unidadMedida === "ml") {
+      if (cantidad < 10) {
+        return "La cantidad mínima en mililitros es 10ml.";
+      } else if (cantidad > 1000) {
+        return "La cantidad máxima en mililitros es 1000ml.";
+      }
+    }
+
+    return "";
+  };
+
+
+  const validarImagenes = (imagenes: string) => {
+    const url = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})(\/[\w.-]*)*(\?.*)?\.(jpg|jpeg|png|gif)/i;
+    if (!url.test(imagenes)) {
+      return "La URL de la imagen debe Comenzar con https y tener.jpg, .jpeg, .png o .gif.";
+    }
+    if (imagenes.length >= 500) {
+      return "La URL de la imagen permite 500 careacteres";
     }
     return "";
   };
+
 
 
   const cancelarEdicion = () => {
@@ -536,7 +596,7 @@ export default function EditarServicioPage() {
                     errorMessage={descripcionError}
                     onValueChange={(value) => {
                       setDescripcion(value);
-                      validarDescripcion(value); 
+                      validarDescripcion(value);
                     }}
                     className="w-full mb-4"
                   />
@@ -553,10 +613,10 @@ export default function EditarServicioPage() {
                     value={imagen}
                     onValueChange={(value) => {
                       setImagen(value);
-                      setImagenError(validarImagenes(value)); 
+                      setImagenError(validarImagenes(value));
                     }}
                     className="w-full mb-4"
-                    errorMessage={imagenes} 
+                    errorMessage={imagenes}
                   />
                   {imagenes && <span className="text-red-500">{imagenes}</span>}
                 </div>
@@ -564,13 +624,13 @@ export default function EditarServicioPage() {
             </div>
 
             <div className="flex-1 p-4 rounded-lg shadow-md">
-              <div className="flex flex-col items-start mb-4"> 
+              <div className="flex flex-col items-start mb-4">
                 <h2 className="text-lg font-bold">Productos Seleccionados</h2>
               </div>
 
-              <Divider className="h-1 my-4" /> 
+              <Divider className="h-1 my-4" />
 
-              <div className="flex justify-end mb-4"> 
+              <div className="flex justify-end mb-4">
                 <Button
                   size="sm"
                   className="bg-gradient-to-tr from-yellow-600 to-yellow-300"
@@ -585,7 +645,7 @@ export default function EditarServicioPage() {
               </div>
 
 
-             
+
               <Table aria-label="Productos seleccionados">
                 <TableHeader>
                   <TableColumn>Producto</TableColumn>
@@ -598,7 +658,7 @@ export default function EditarServicioPage() {
                     <TableRow key={index}>
                       <TableCell>{producto.nombre}</TableCell>
 
-                     
+
                       <TableCell>
                         {editIndex === index ? (
                           <div>
@@ -608,8 +668,10 @@ export default function EditarServicioPage() {
                               onChange={(e) => {
                                 const nuevaCantidad = Number(e.target.value);
                                 setEditCantidad(nuevaCantidad);
-                                validarCantidadEditada(nuevaCantidad, producto.unidadMedida); 
+                                const error = validarCantidadEditada(nuevaCantidad, producto.unidadMedida);
+                                setEditCantidadError(error); // Actualiza el estado de error 
                               }}
+                              errorMessage={editCantidadError}
                               className="w-full"
                             />
                             {editCantidadError && (
@@ -768,7 +830,7 @@ export default function EditarServicioPage() {
               <Input
                 label="Unidad de Medida"
                 value={productoSeleccionado?.unidadMedida || ""}
-                isReadOnly 
+                isReadOnly
                 className="mt-4"
               />
             </ModalBody>

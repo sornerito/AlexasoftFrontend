@@ -1,5 +1,6 @@
 "use client";
 import { ChangeEvent, useEffect, useState } from "react";
+import { Image } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import {
   Input,
@@ -99,6 +100,7 @@ export default function CrearServicioPage() {
     onOpen: onOpenConfirm,
     onClose: onCloseConfirm,
   } = useDisclosure();
+  const [previewVisible, setPreviewVisible] = useState(false);
 
   // Datos del formulario
   const [nombre, setNombre] = useState("");
@@ -221,7 +223,7 @@ export default function CrearServicioPage() {
     } else {
       setCantidadError(
         error ||
-          "Seleccione un producto y complete todos los campos necesarios."
+        "Seleccione un producto y complete todos los campos necesarios."
       );
       onOpenError();
     }
@@ -253,6 +255,13 @@ export default function CrearServicioPage() {
     }
     if (errorTiempoMinutos) {
       setMensajeError(errorTiempoMinutos);
+      onOpenError();
+      return;
+    }
+
+    const errorImagen = validarImagenes(imagen); // Valida la imagen
+    if (errorImagen) {
+      setMensajeError(errorImagen);
       onOpenError();
       return;
     }
@@ -328,6 +337,8 @@ export default function CrearServicioPage() {
 
   const caracteresValidos = /^[a-zA-Z0-9\s]*$/;
 
+
+
   // Validación en tiempo real para el nombre
   const validarNombre = (nombre: any) => {
     if (!caracteresValidos.test(nombre)) {
@@ -386,16 +397,15 @@ export default function CrearServicioPage() {
     return "";
   };
 
-  const validarImagenes = (imagen: string): boolean => {
-    // Cambiar el tipo de retorno a boolean
-    const url = /(jpg|jpeg|png|gif)/i;
-    if (!url.test(imagen)) {
-      return true;
+  const validarImagenes = (imagenes: string) => {
+    const url = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})(\/[\w.-]*)*(\?.*)?\.(jpg|jpeg|png|gif)/i;
+    if (!url.test(imagenes)) {
+      return "La URL de la imagen debe Comenzar con https y tener.jpg, .jpeg, .png o .gif.";
     }
-    if (imagen.length >= 500) {
-      return true;
+    if (imagenes.length >= 500) {
+      return "La URL de la imagen permite 500 careacteres";
     }
-    return false;
+    return "";
   };
 
   const errors = React.useMemo(() => {
@@ -422,6 +432,10 @@ export default function CrearServicioPage() {
   // Componente principal
   const cancelarEdicion = () => {
     window.location.href = "/admin/servicios";
+  };
+
+  const handlePreviewClick = () => {
+    setPreviewVisible(true);
   };
 
   return (
@@ -484,7 +498,7 @@ export default function CrearServicioPage() {
                       type="text"
                       label="Imágenes"
                       value={imagen}
-                      isInvalid={errors.imagen}
+                      isInvalid={!!errors.imagen}
                       color={errors.imagen ? "danger" : "default"}
                       onValueChange={(value) => {
                         setImagen(value);
@@ -496,6 +510,14 @@ export default function CrearServicioPage() {
                           : ""
                       } // Mostrar un mensaje de error genérico si hay un error
                     />
+
+                    <Button
+                      className="mt-4"
+                      onClick={handlePreviewClick}
+                      disabled={!imagen}
+                    >
+                      Ver Preview
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -697,6 +719,35 @@ export default function CrearServicioPage() {
                       }}
                     >
                       Crear Servicio
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+
+          <Modal isOpen={previewVisible} onOpenChange={setPreviewVisible}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader>Preview de la imagen</ModalHeader>
+                  <ModalBody>
+                    <div className="flex items-center justify-center">
+                      {imagen && (
+                        <Image
+                          src={imagen}
+                          alt="Preview de la imagen"
+                          className="full"
+                          width={250}
+                          height={250}
+                        />
+                      )}
+                    </div>
+
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="primary" variant="light" onPress={onClose}>
+                      Cerrar
                     </Button>
                   </ModalFooter>
                 </>
