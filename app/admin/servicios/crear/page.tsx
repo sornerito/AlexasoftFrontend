@@ -154,7 +154,7 @@ export default function CrearServicioPage() {
   const fetchProductos = async () => {
     try {
       const response = await getWithAuth(
-        "http://10.170.83.243:8080/compras/productos"
+        "http://localhost:8080/compras/productos"
       );
       if (response.ok) {
         const data = await response.json();
@@ -292,7 +292,7 @@ export default function CrearServicioPage() {
       );
 
       const response = await postWithAuth(
-        "http://10.170.83.243:8080/servicio",
+        "http://localhost:8080/servicio",
         {
           servicio: nuevoServicio,
           productosId,

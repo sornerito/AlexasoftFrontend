@@ -94,7 +94,7 @@ export default function ColaboradorPage() {
   const [mensajeError, setMensajeError] = React.useState("");
 
   React.useEffect(() => {
-    getWithAuth("http://10.170.83.243:8080/colaborador")
+    getWithAuth("http://localhost:8080/colaborador")
       .then((response) => response.json())
       .then((data) => {
         const processedData = data.map(
@@ -150,7 +150,7 @@ export default function ColaboradorPage() {
   const handleDelete = async (idColaborador: string) => {
     try {
       const response = await deleteWithAuth(
-        `http://10.170.83.243:8080/colaborador/${idColaborador}`
+        `http://localhost:8080/colaborador/${idColaborador}`
       );
       if (response.ok) {
         setColaborador(
@@ -176,7 +176,7 @@ export default function ColaboradorPage() {
     if (!selectedColaborador) return;
     try {
       const response = await postWithAuth(
-        `http://10.170.83.243:8080/colaborador/${selectedColaborador.idColaborador}/estado`,
+        `http://localhost:8080/colaborador/${selectedColaborador.idColaborador}/estado`,
         { estado: selectedEstado }
       );
       if (response.ok) {

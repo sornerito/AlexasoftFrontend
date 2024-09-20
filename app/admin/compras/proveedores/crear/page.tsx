@@ -195,7 +195,7 @@ export default function CrearProveedorPage() {
       }
   
       const response = await postWithAuth(
-        "http://10.170.83.243:8080/compras/proveedores/",
+        "http://localhost:8080/compras/proveedores/",
         proveedorData
       );
   

@@ -28,7 +28,7 @@ interface Producto {
 // Función para obtener las categorías
 const fetchCategorias = async () => {
     try {
-        const response = await getWithAuth("http://10.170.83.243:8080/compras/productos");
+        const response = await getWithAuth("http://localhost:8080/compras/productos");
         if (!response.ok) {
             throw new Error("Error al obtener los productos");
         }
@@ -118,7 +118,7 @@ export default function CrearProductoPage() {
 
     const handleConfirmSubmit = async () => {
         try {
-            const response = await postWithAuth("http://10.170.83.243:8080/compras/salidas-producto", {
+            const response = await postWithAuth("http://localhost:8080/compras/salidas-producto", {
                     ...salidaSalidaProductos,
                     precio: Number(salidaSalidaProductos.cantidad),
                     idProducto: Number(salidaSalidaProductos.idProducto),

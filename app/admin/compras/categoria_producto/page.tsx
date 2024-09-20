@@ -78,7 +78,7 @@ export default function CategoriasProductoPage() {
   useEffect(() => {
     const fetchCategoriasProducto = async () => {
       try {
-        const response = await getWithAuth("http://10.170.83.243:8080/compras/categorias-producto");
+        const response = await getWithAuth("http://localhost:8080/compras/categorias-producto");
         const data = await response.json();
         setCategoriasProducto(data.map((item: any) => ({
           idCategoriaProducto: item.idCategoriaProducto,
@@ -130,7 +130,7 @@ export default function CategoriasProductoPage() {
 
     const promise = new Promise<void>((resolve, reject) => {
       setTimeout(() => {
-        postWithAuth(`http://10.170.83.243:8080/compras/categorias-producto/${idCategoriaProducto}`,
+        postWithAuth(`http://localhost:8080/compras/categorias-producto/${idCategoriaProducto}`,
           updatedCategoria
         ).then(response => {
           if (response.ok) {
@@ -158,7 +158,7 @@ export default function CategoriasProductoPage() {
 
 
   const handleDeleteCategoriaProductoModalConfirm = () => {
-    deleteWithAuth(`http://10.170.83.243:8080/compras/categorias-producto/eliminar/${selectedCategoriaProductoId}`
+    deleteWithAuth(`http://localhost:8080/compras/categorias-producto/eliminar/${selectedCategoriaProductoId}`
     )
       .then((response) => {
         if (!response.ok) {

@@ -107,12 +107,12 @@ export default function CrearCitaPage() {
   }, []);
 
   useEffect(() => {
-    getWithAuth("http://10.170.83.243:8080/colaborador")
+    getWithAuth("http://localhost:8080/colaborador")
       .then((response) => response.json())
       .then((data) => setColaboradores(data))
       .catch((err) => console.log(err.message));
 
-    getWithAuth("http://10.170.83.243:8080/cita")
+    getWithAuth("http://localhost:8080/cita")
       .then((response) => response.json())
       .then((data) => {
         const citasAceptadas = data.filter((cita: Cita) => cita.estado === 'Aceptado');
@@ -143,7 +143,7 @@ export default function CrearCitaPage() {
       })
       .catch((err) => console.log(err.message));
 
-    getWithAuth("http://10.170.83.243:8080/servicio/paquetes")
+    getWithAuth("http://localhost:8080/servicio/paquetes")
       .then((response) => response.json())
       .then((data) => {
         const paquetesActivos = data
@@ -159,7 +159,7 @@ export default function CrearCitaPage() {
       .catch((err) => console.error("Error fetching paquetes:", err.message));
 
 
-    getWithAuth("http://10.170.83.243:8080/horario")
+    getWithAuth("http://localhost:8080/horario")
       .then((response) => response.json())
       .then((data: Horario[]) => setHorarios(data))
       .catch((err) => console.log(err.message));
@@ -276,7 +276,7 @@ export default function CrearCitaPage() {
       console.log(paqueteSeleccionado);
       const duracion = paqueteSeleccionado.tiempoTotalServicio;
       try {
-        const response = await postWithAuth(`http://10.170.83.243:8080/cita?duracion=${duracion}`, {
+        const response = await postWithAuth(`http://localhost:8080/cita?duracion=${duracion}`, {
           ...formData,
           hora: horaConSegundos,
         });

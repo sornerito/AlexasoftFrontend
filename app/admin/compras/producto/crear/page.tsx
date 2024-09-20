@@ -59,7 +59,7 @@ interface DetalleCompra {
 const fetchCategorias = async () => {
   try {
     const response = await getWithAuth(
-      "http://10.170.83.243:8080/compras/categorias-producto"
+      "http://localhost:8080/compras/categorias-producto"
     );
     if (!response.ok) {
       throw new Error("Error al obtener las categorías");
@@ -80,7 +80,7 @@ const fetchCategorias = async () => {
 // Función para obtener las marcas
 const fetchMarcas = async () => {
   try {
-    const response = await getWithAuth("http://10.170.83.243:8080/compras/marcas");
+    const response = await getWithAuth("http://localhost:8080/compras/marcas");
     if (!response.ok) {
       throw new Error("Error al obtener las marcas");
     }
@@ -101,7 +101,7 @@ const fetchMarcas = async () => {
 const fetchDetalleCompra = async () => {
   try {
     const response = await getWithAuth(
-      "http://10.170.83.243:8080/compras/detalle-producto-compra-producto"
+      "http://localhost:8080/compras/detalle-producto-compra-producto"
     );
     if (!response.ok) {
       throw new Error("Error al obtener las detalle de compra producto ");
@@ -192,9 +192,9 @@ export default function CrearProductoPage() {
   };
 
   const validarImagenes = (imagenes: string) => {
-    const url = /(jpg|jpeg|png|gif)/i;
+    const url = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})(\/[\w.-]*)*(\?.*)?\.(jpg|jpeg|png|gif)/i;
     if (!url.test(imagenes)) {
-      return "La URL de la imagen debe terminar en .jpg, .jpeg, .png o .gif.";
+      return "La URL de la imagen debe Comenzar con https y tener.jpg, .jpeg, .png o .gif.";
     }
     if (imagenes.length >= 500) {
       return "La URL de la imagen permite 500 careacteres";
@@ -249,7 +249,7 @@ export default function CrearProductoPage() {
   const handleConfirmSubmit = async () => {
     try {
       const response = await postWithAuth(
-        "http://10.170.83.243:8080/compras/productos/",
+        "http://localhost:8080/compras/productos/",
         {
           ...producto,
           idMarca: Number(producto.marca),

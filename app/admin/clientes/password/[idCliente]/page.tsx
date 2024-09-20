@@ -73,7 +73,7 @@ export default function EditarContrasenaPage() {
     const fetchCliente = async () => {
       try {
         const response = await getWithAuth(
-          `http://10.170.83.243:8080/cliente/${idCliente}`
+          `http://localhost:8080/cliente/${idCliente}`
         );
         if (!response.ok) {
           if (response.status === 404) {
@@ -109,7 +109,7 @@ export default function EditarContrasenaPage() {
 
     try {
       const response = await postWithAuth(
-        `http://10.170.83.243:8080/cliente/password/${cliente.idCliente}`,
+        `http://localhost:8080/cliente/password/${cliente.idCliente}`,
         nuevaContrasena
       );
       if (response.ok) {

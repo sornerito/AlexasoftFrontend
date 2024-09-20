@@ -130,7 +130,7 @@ export default function CitasPage() {
   const [isOpenCancelConfirmation, setIsOpenCancelConfirmation] = useState(false);
 
   useEffect(() => {
-    getWithAuth("http://10.170.83.243:8080/cita")
+    getWithAuth("http://localhost:8080/cita")
       .then((response) => response.json())
       .then((data) => {
         const processedData = data.map((item: Cita) => ({
@@ -150,7 +150,7 @@ export default function CitasPage() {
       const fetchedClientes: { [key: number]: string } = {};
       for (const id of ids) {
         const response = await getWithAuth(
-          `http://10.170.83.243:8080/cliente/${id}`
+          `http://localhost:8080/cliente/${id}`
         );
         const data = await response.json();
         fetchedClientes[id] = data.nombre;
@@ -163,7 +163,7 @@ export default function CitasPage() {
       const fetchedPaquetes: { [key: number]: Paquete } = {};
       for (const id of ids) {
         const response = await getWithAuth(
-          `http://10.170.83.243:8080/servicio/paquete/${id}`
+          `http://localhost:8080/servicio/paquete/${id}`
         );
         const data = await response.json();
         const { idPaquete, nombre, estado, tiempoTotalServicio } = data.paquete;
@@ -182,7 +182,7 @@ export default function CitasPage() {
       const fetchedColaboradores: { [key: number]: string } = {};
       for (const id of ids) {
         const response = await getWithAuth(
-          `http://10.170.83.243:8080/colaborador/${id}`
+          `http://localhost:8080/colaborador/${id}`
         );
         const data = await response.json();
         fetchedColaboradores[id] = data.nombre;
@@ -192,7 +192,7 @@ export default function CitasPage() {
 
     const fetchMotivos = async () => {
       const response = await getWithAuth(
-        `http://10.170.83.243:8080/motivocancelacion`
+        `http://localhost:8080/motivocancelacion`
       );
       const data = await response.json();
       const fetchedMotivos: { [key: number]: string } = {};
@@ -249,7 +249,7 @@ export default function CitasPage() {
     if (nuevoEstado === "cancelar") {
       try {
         const response = await postWithAuth(
-          `http://10.170.83.243:8080/cita/${selectedCita.idCita}/estado`,
+          `http://localhost:8080/cita/${selectedCita.idCita}/estado`,
           { estado: "Cancelado", citasCancelar: idsCitasConflicto }
         );
 
@@ -268,7 +268,7 @@ export default function CitasPage() {
     } else if (nuevoEstado === "Aceptado") {
       try {
         const response = await postWithAuth(
-          `http://10.170.83.243:8080/cita/${selectedCita.idCita}/estado`,
+          `http://localhost:8080/cita/${selectedCita.idCita}/estado`,
           { estado: "Aceptado", citasCancelar: idsCitasConflicto }
         );
 
@@ -637,7 +637,7 @@ export default function CitasPage() {
                     };
                     try {
                       const response = await postWithAuth(
-                        `http://10.170.83.243:8080/cita/${selectedCita.idCita}`,
+                        `http://localhost:8080/cita/${selectedCita.idCita}`,
                         updatedData
                       );
 

@@ -94,7 +94,7 @@ export default function PaquetesPage() {
 
   // Hacer Fetch para obtener roles y acomodarlos a conveniencia
   React.useEffect(() => {
-    getWithAuth("http://10.170.83.243:8080/servicio/paquetes")
+    getWithAuth("http://localhost:8080/servicio/paquetes")
       .then((response) => response.json())
       .then((data) => {
         // Procesar los datos para que coincidan con la estructura de columnas
@@ -174,7 +174,7 @@ export default function PaquetesPage() {
       setTimeout(async () => {
         try {
           const response = await postWithAuth(
-            "http://10.170.83.243:8080/servicio/cambiarEstado/" + idPaquete,
+            "http://localhost:8080/servicio/cambiarEstado/" + idPaquete,
             {
               method: "POST",
               headers: {

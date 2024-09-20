@@ -93,7 +93,7 @@ export default function RegistroPage() {
 
     try {
       const response = await fetch(
-        "http://10.170.83.243:8080/acceso/iniciarSesion",
+        "http://localhost:8080/acceso/iniciarSesion",
         {
           method: "POST",
           headers: {
@@ -150,7 +150,7 @@ export default function RegistroPage() {
     }
 
     let url =
-      "http://10.170.83.243:8080/acceso/cambiarRecuperarContrasena?correo=" +
+      "http://localhost:8080/acceso/cambiarRecuperarContrasena?correo=" +
       correoRecuperar +
       "&nuevaContrasena=" +
       contrasenaRecuperar;
@@ -189,7 +189,7 @@ export default function RegistroPage() {
     }
 
     let url =
-      "http://10.170.83.243:8080/acceso/solicitarCambioContrasenaCorreo?correo=" +
+      "http://localhost:8080/acceso/solicitarCambioContrasenaCorreo?correo=" +
       correoRecuperar +
       "&registro=false";
     try {
@@ -223,7 +223,7 @@ export default function RegistroPage() {
     }
 
     let url =
-      "http://10.170.83.243:8080/acceso/validarCodigo?correo=" +
+      "http://localhost:8080/acceso/validarCodigo?correo=" +
       correoRecuperar +
       "&codigo=" +
       codigo;

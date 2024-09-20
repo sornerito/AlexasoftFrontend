@@ -85,7 +85,7 @@ export default function EditarPaquetePage({
 
   // Hacer Fetch para obtener paquete del id
   React.useEffect(() => {
-    getWithAuth("http://10.170.83.243:8080/servicio/paquete/" + params.idPaquete)
+    getWithAuth("http://localhost:8080/servicio/paquete/" + params.idPaquete)
       .then((response) => response.json())
       .then((data) => {
         const nombresServicios: string[] = (data.servicios as Servicio[]).map(
@@ -111,7 +111,7 @@ export default function EditarPaquetePage({
 
   // Hacer Fetch para obtener los servicios y acomodarlos a conveniencia
   React.useEffect(() => {
-    getWithAuth("http://10.170.83.243:8080/servicio")
+    getWithAuth("http://localhost:8080/servicio")
       .then((response) => response.json())
       .then((data) => {
         // Procesar los datos para que coincidan con la estructura de columnas
@@ -234,7 +234,7 @@ export default function EditarPaquetePage({
 
     try {
       const response = await postWithAuth(
-        "http://10.170.83.243:8080/servicio/paquete/" + params.idPaquete,
+        "http://localhost:8080/servicio/paquete/" + params.idPaquete,
         data
       );
 

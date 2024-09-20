@@ -20,7 +20,7 @@ export default function ServiciosCliente() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const response = await getWithAuth("http://10.170.83.243:8080/servicio");
+        const response = await getWithAuth("http://localhost:8080/servicio");
         if (response.ok) {
           const data = await response.json();
           setServicios(data);

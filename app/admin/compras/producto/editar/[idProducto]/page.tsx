@@ -85,7 +85,7 @@ export default function ProductosEditarPage() {
     const fetchData = async () => {
       try {
         const [categoriasProductoResponse] = await Promise.all([
-          getWithAuth("http://10.170.83.243:8080/compras/categorias-producto"),
+          getWithAuth("http://localhost:8080/compras/categorias-producto"),
         ]);
         const categoriasProductoData = await categoriasProductoResponse.json();
         const categoriasActivos = categoriasProductoData.filter(
@@ -105,7 +105,7 @@ export default function ProductosEditarPage() {
     const fetchData = async () => {
       try {
         const [categoriasProductoResponse] = await Promise.all([
-          getWithAuth("http://10.170.83.243:8080/compras/categorias-producto"),
+          getWithAuth("http://localhost:8080/compras/categorias-producto"),
         ]);
         const categoriasProductoData = await categoriasProductoResponse.json();
         const categoriasActivos = categoriasProductoData.filter(
@@ -125,7 +125,7 @@ export default function ProductosEditarPage() {
     const fetchData = async () => {
       try {
         const [marcaResponse] = await Promise.all([
-          getWithAuth("http://10.170.83.243:8080/compras/marcas"),
+          getWithAuth("http://localhost:8080/compras/marcas"),
         ]);
         const marcaData = await marcaResponse.json();
         const marcasActivos = marcaData.filter(
@@ -142,7 +142,7 @@ export default function ProductosEditarPage() {
   }, []);
 
   useEffect(() => {
-    getWithAuth(`http://10.170.83.243:8080/compras/productos/${idProducto}`)
+    getWithAuth(`http://localhost:8080/compras/productos/${idProducto}`)
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
@@ -251,7 +251,7 @@ export default function ProductosEditarPage() {
   const handleSubmit = async () => {
     try {
       const response = await postWithAuth(
-        `http://10.170.83.243:8080/compras/productos/${producto?.idProducto}`,
+        `http://localhost:8080/compras/productos/${producto?.idProducto}`,
         {
           ...producto,
           idCategoriaProducto: producto?.idCategoriaProducto.toString(),
